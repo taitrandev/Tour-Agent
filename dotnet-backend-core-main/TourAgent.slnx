@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TourAgent.Api/TourAgent.Api.csproj" />
+    <Project Path="src/TourAgent.Application/TourAgent.Application.csproj" />
+    <Project Path="src/TourAgent.Domain/TourAgent.Domain.csproj" />
+    <Project Path="src/TourAgent.Infrastructure/TourAgent.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TourAgent.Application.UnitTests/TourAgent.Application.UnitTests.csproj" />
+    <Project Path="tests/TourAgent.ArchitectureTests/TourAgent.ArchitectureTests.csproj" />
+    <Project Path="tests/TourAgent.Domain.UnitTests/TourAgent.Domain.UnitTests.csproj" />
+  </Folder>
+</Solution>

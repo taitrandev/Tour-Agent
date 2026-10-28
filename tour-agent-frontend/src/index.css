@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-dark: #080c14;
+    --darkbg: #080c14;
+    --cardbg: #141e33;
+    --surface: #0f172a;
+    --bordercolor: #222f49;
+    --gold-400: #e5b95f;
+    --gold-500: #d4a853;
+    --gold-600: #b88628;
+    --gold-700: #91681b;
+  }
+
+  body {
+    background-color: #080c14;
+    color: #f1f5f9;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #080c14;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #222f49;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+  }
+}
+
+/* Luxury Gold & Glass Utilities replicated 100% from PHP */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #fce09b 0%, #d4a853 50%, #b88628 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-border-glow {
+  border: 1px solid rgba(212, 168, 83, 0.3);
+  box-shadow: 0 0 25px rgba(212, 168, 83, 0.12);
+}
+
+.glass-panel {
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-gold {
+  background: rgba(20, 30, 51, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 168, 83, 0.28);
+}
+
+.glass-card {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+.glow-effect {
+  animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+@keyframes pulseHot {
+  0%, 100% { opacity: 0.5; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+.glow-hot {
+  animation: pulseHot 1.8s infinite ease-in-out;
+}
+
+@keyframes pulseSlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.04); }
+}
+.pulse-slow {
+  animation: pulseSlow 3.5s infinite ease-in-out;
+}
+
+.typing-cursor::after {
+  content: '▋';
+  color: #d4a853;
+  display: inline-block;
+  margin-left: 2px;
+  animation: pulseSlow 0.8s infinite;
+}

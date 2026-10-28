@@ -1,0 +1,43 @@
+# Dependencies
+**/node_modules/
+**/vendor/
+
+# Environment files
+**/.env
+**/.env.backup
+**/.env.production
+
+# Testing and IDE
+**/.phpunit.cache/
+**/.phpunit.result.cache
+**/.idea/
+**/.vscode/
+**/.fleet/
+**/.nova/
+**/.zed/
+
+# Laravel storage & public build
+**/storage/*.key
+**/storage/logs/*.log
+**/storage/framework/cache/*
+!**/storage/framework/cache/.gitignore
+**/storage/framework/sessions/*
+!**/storage/framework/sessions/.gitignore
+**/storage/framework/views/*
+!**/storage/framework/views/.gitignore
+**/public/storage
+**/public/build
+**/public/hot
+
+# System files
+.DS_Store
+Thumbs.db
+
+/reference-gettime/
+
+# .NET Build Artifacts
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo

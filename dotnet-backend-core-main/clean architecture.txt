@@ -1,0 +1,334 @@
+User:
+
+- tôi quyết định dùng clean architecture. tôi sẽ yêu cầu tạo project agent tư vấn tour theo clean architecture
+- hãy giúp tôi tạo ra prompt để dựng project, có cần lấy link github đưa AI coding assistant ko? dưngk project mới bằng cách nào? và tạo thêm những quy tắc cần có khi vibe coding với clean architecture. những điều mà AI cần biết mỗi khi làm việc trên 1 chat session mới
+
+
+Claude Opus 5.5:
+
+# Dựng project Tour Agent theo Clean Architecture cùng AI
+
+## Kết luận
+
+1. **Đừng để AI dựng khung project.** Tự dựng bằng `dotnet` CLI (một script khoảng 30 dòng, ở dưới). Khung project là phần cần chính xác tuyệt đối, và CLI cho kết quả giống nhau mọi lần. AI dựng thì mỗi lần ra một kiểu, dễ dùng version package cũ hoặc bịa ra package không tồn tại.
+2. **Không cần đưa link GitHub cho AI.** Nếu AI không truy cập được repo, nó sẽ "nhớ lại" template từ dữ liệu huấn luyện và có thể lẫn giữa các phiên bản. Việc hiệu quả hơn là **tự viết tay một slice mẫu chuẩn ngay trong repo** để AI bắt chước. Link GitHub chỉ để bạn đọc tham khảo.
+3. **Rule gồm 3 lớp:** compiler (project reference), architecture test chạy trong CI, và file rule cho AI (`AGENTS.md`/`CLAUDE.md`). Kèm theo một file `docs/PROGRESS.md` làm "bộ nhớ" giữa các chat session.
+
+Bạn đã chọn Clean Architecture thì tôi không bàn lại lựa chọn đó. Tôi chỉ giữ một nguyên tắc: **dùng Clean ở mức tối thiểu**. Chưa dùng CQRS tách DB, Event Sourcing hay Domain Events cho tới khi có lý do cụ thể.
+
+---
+
+## 1. Chọn cách dựng project
+
+| Cách | Ưu | Nhược | Khuyến nghị |
+|---|---|---|---|
+| **A. Tự dựng bằng CLI** | Hiểu rõ từng dòng, không có code thừa, không phụ thuộc thư viện có thể bị đổi license | Mất khoảng 30 phút | ✅ **Nên dùng** |
+| B. Template Jason Taylor (`Clean.Architecture.Solution.Template`) | Có sẵn đầy đủ | Nhiều thứ bạn chưa cần (frontend, Identity...), dùng MediatR | Chỉ nên đọc để tham khảo |
+| C. Template Ardalis (`Ardalis.CleanArchitecture.Template`) | Chuẩn, có kèm DDD | Nặng DDD so với MVP | Chỉ nên đọc để tham khảo |
+| D. Để AI tự dựng | Nhanh | Không lặp lại được, dễ bịa package | ❌ Không nên |
+
+**Cảnh báo cần tự kiểm tra lại:** theo những gì tôi biết, từ giữa năm 2025 **MediatR và AutoMapper chuyển sang license thương mại** cho một số trường hợp sử dụng. Hãy xem lại điều khoản hiện tại trước khi dùng. Để tránh rủi ro này, tôi đề xuất **tự viết handler đơn giản và mapping thủ công**. AI viết phần mapping rất nhanh, và code tường minh cũng dễ review hơn.
+
+### Script dựng project (cách A)
+
+Chạy `dotnet --version` trước. Tính đến 9/2026, .NET 10 là bản LTS; nếu máy bạn cài bản khác thì sửa `-f` cho khớp.
+
+```bash
+mkdir TourAgent && cd TourAgent
+git init
+dotnet new sln -n TourAgent
+dotnet new gitignore
+
+# Source
+dotnet new classlib -n TourAgent.Domain         -o src/TourAgent.Domain         -f net10.0
+dotnet new classlib -n TourAgent.Application    -o src/TourAgent.Application    -f net10.0
+dotnet new classlib -n TourAgent.Infrastructure -o src/TourAgent.Infrastructure -f net10.0
+dotnet new webapi   -n TourAgent.Api            -o src/TourAgent.Api            -f net10.0
+
+# Tests
+dotnet new xunit -n TourAgent.Domain.UnitTests      -o tests/TourAgent.Domain.UnitTests      -f net10.0
+dotnet new xunit -n TourAgent.Application.UnitTests -o tests/TourAgent.Application.UnitTests -f net10.0
+dotnet new xunit -n TourAgent.ArchitectureTests     -o tests/TourAgent.ArchitectureTests     -f net10.0
+
+dotnet sln add (Get-ChildItem -Recurse *.csproj)   # PowerShell
+# bash: dotnet sln add $(find . -name "*.csproj")
+
+# Dependency Rule, được compiler kiểm tra
+dotnet add src/TourAgent.Application    reference src/TourAgent.Domain
+dotnet add src/TourAgent.Infrastructure reference src/TourAgent.Application
+dotnet add src/TourAgent.Api            reference src/TourAgent.Application src/TourAgent.Infrastructure
+
+dotnet add tests/TourAgent.Domain.UnitTests      reference src/TourAgent.Domain
+dotnet add tests/TourAgent.Application.UnitTests reference src/TourAgent.Application
+dotnet add tests/TourAgent.ArchitectureTests     reference src/TourAgent.Domain src/TourAgent.Application src/TourAgent.Infrastructure src/TourAgent.Api
+dotnet add tests/TourAgent.ArchitectureTests package NetArchTest.Rules
+
+mkdir docs
+dotnet build
+```
+
+Thêm file `Directory.Build.props` ở thư mục gốc để áp chuẩn chung cho mọi project:
+```xml
+<Project>
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>
+```
+
+---
+
+## 2. Cấu trúc thư mục đích
+
+```
+src/
+  TourAgent.Domain/
+    Tours/Tour.cs, TourDeparture.cs
+    Leads/Lead.cs, LeadStatus.cs
+    Conversations/Conversation.cs, Message.cs
+    Common/Entity.cs, Result.cs
+  TourAgent.Application/
+    Abstractions/            # IAppDbContext, ILlmClient, ICrmConnector, IClock
+    Features/
+      Conversations/HandleIncomingMessage/
+        HandleIncomingMessageCommand.cs
+        HandleIncomingMessageHandler.cs
+        HandleIncomingMessageValidator.cs
+        HandleIncomingMessageResponse.cs
+      Tours/SearchTours/...
+      Leads/CaptureLead/...
+    Agent/
+      Tools/                 # SearchToursTool, CaptureLeadTool, EscalateToHumanTool
+      Prompts/               # system prompt có version
+  TourAgent.Infrastructure/
+    Persistence/AppDbContext.cs, Configurations/, Migrations/
+    Llm/OpenAiLlmClient.cs
+    Crm/...
+    DependencyInjection.cs
+  TourAgent.Api/
+    Endpoints/               # Minimal API
+    Program.cs
+docs/
+  ARCHITECTURE.md  PROGRESS.md  decisions/
+AGENTS.md
+```
+
+Hai quyết định cần làm rõ:
+- **Folder theo feature bên trong Application.** Cách này vẫn đúng Clean Architecture, nhưng code của một tính năng nằm cùng một chỗ, nên AI cần ít context hơn khi làm việc với tính năng đó.
+- **Dùng `IAppDbContext` thay cho Repository riêng cho từng entity.** Như vậy bớt được một lớp boilerplate, và đây là cách phổ biến trong cộng đồng .NET.
+
+---
+
+## 3. Architecture tests: lớp bảo vệ quan trọng nhất
+
+```csharp
+public class LayerTests
+{
+    private const string Domain = "TourAgent.Domain";
+    private const string Application = "TourAgent.Application";
+    private const string Infrastructure = "TourAgent.Infrastructure";
+    private const string Api = "TourAgent.Api";
+
+    [Fact]
+    public void Domain_Has_No_Outward_Dependencies() =>
+        Assert.True(Types.InAssembly(typeof(TourAgent.Domain.Tours.Tour).Assembly)
+            .ShouldNot().HaveDependencyOnAny(Application, Infrastructure, Api,
+                "Microsoft.EntityFrameworkCore")
+            .GetResult().IsSuccessful);
+
+    [Fact]
+    public void Application_Does_Not_Depend_On_Infrastructure_Or_Api() =>
+        Assert.True(Types.InAssembly(typeof(TourAgent.Application.AssemblyMarker).Assembly)
+            .ShouldNot().HaveDependencyOnAny(Infrastructure, Api)
+            .GetResult().IsSuccessful);
+
+    [Fact]
+    public void Handlers_Are_Sealed_And_Named_Correctly() =>
+        Assert.True(Types.InAssembly(typeof(TourAgent.Application.AssemblyMarker).Assembly)
+            .That().HaveNameEndingWith("Handler")
+            .Should().BeSealed()
+            .GetResult().IsSuccessful);
+}
+```
+
+Mỗi lần AI viết sai layer, lỗi sẽ hiện ngay ở `dotnet test` thay vì chờ tới lúc bạn review.
+
+---
+
+## 4. Prompt dựng nền (dùng sau khi đã chạy script)
+
+Chạy **từng bước một** trong các session riêng. Mỗi bước phải build và test pass rồi mới commit, sau đó mới sang bước tiếp theo. Nếu yêu cầu AI "làm hết một lần", bạn sẽ nhận về 40 file và không review nổi.
+
+```
+Đọc AGENTS.md và docs/ARCHITECTURE.md trước khi làm bất cứ việc gì.
+
+Bối cảnh: Solution TourAgent đã được scaffold bằng dotnet CLI (Clean Architecture,
+4 project src + 3 project tests, project reference đã đúng). KHÔNG tạo thêm project,
+KHÔNG đổi project reference.
+
+Nhiệm vụ BƯỚC 1 (chỉ bước này):
+1. Domain/Common: Entity base (Guid Id), Result<T> + Error (không dùng exception
+   cho lỗi nghiệp vụ).
+2. Domain/Tours: Tour (Name, Destination, DurationDays, PriceFrom, Currency,
+   Highlights, IsActive) với factory method Create() kiểm tra invariant
+   (giá > 0, số ngày >= 1). Không public setter.
+3. Unit test cho các invariant của Tour.
+
+Ràng buộc:
+- Không thêm NuGet package nào ngoài những gì tôi cho phép.
+- Không dùng MediatR, AutoMapper.
+- Trước khi code: liệt kê các file sẽ tạo và chờ tôi xác nhận.
+- Sau khi code: chạy `dotnet build` và `dotnet test`, báo kết quả, rồi cập nhật
+  docs/PROGRESS.md.
+```
+
+Lộ trình các bước tiếp theo, mỗi bước là một session:
+
+| Bước | Nội dung |
+|---|---|
+| 2 | Infrastructure/Persistence: `AppDbContext`, cấu hình entity, migration đầu tiên, seed 10 tour mẫu |
+| 3 | **Slice mẫu `SearchTours` (bạn tự viết hoặc review thật kỹ)**. Đây là khuôn để AI bắt chước cho mọi slice sau |
+| 4 | `ILlmClient` + cài đặt thật + bản fake dùng cho test |
+| 5 | Agent tools: `SearchTours`, `CaptureLead`, `EscalateToHuman` |
+| 6 | `HandleIncomingMessage`: vòng lặp gồm gọi LLM, gọi tool, lưu Conversation |
+| 7 | Endpoint API + log các metric (latency, token, lượt chuyển cho người, lead được capture) |
+
+---
+
+## 5. File `AGENTS.md` (rule AI đọc mỗi session)
+
+Tên file tùy tool bạn dùng: Claude Code đọc `CLAUDE.md`, Cursor đọc `.cursor/rules/`, Copilot đọc `.github/copilot-instructions.md`. Nhiều tool hiện hỗ trợ `AGENTS.md`. Cách an toàn là viết nội dung trong `AGENTS.md` rồi cho các file kia trỏ tới nó, để chỉ phải duy trì một nguồn.
+
+````markdown
+# AGENTS.md — TourAgent
+
+## 1. Bối cảnh sản phẩm
+AI agent tư vấn tour cho công ty du lịch SME. Mục tiêu kinh doanh:
+- Trả lời câu hỏi về tour 24/7, phản hồi < 10 giây
+- Gợi ý tour phù hợp (điểm đến, ngân sách, số ngày, số người)
+- Thu thập lead (tên, SĐT/email, nhu cầu) và chuyển cho sale
+- Chuyển cho người thật khi không chắc chắn, KHÔNG bịa thông tin
+Hiện ở giai đoạn MVP: ưu tiên đơn giản, đúng, dễ đổi.
+
+## 2. Kiến trúc: Clean Architecture (bắt buộc)
+Dependency chỉ hướng vào trong: Api → Infrastructure → Application → Domain
+- Domain: entity, value object, business rule. KHÔNG reference EF Core, ASP.NET,
+  hay bất kỳ project nào khác.
+- Application: use case (Features/), interface (Abstractions/), DTO, agent tools.
+  KHÔNG reference Infrastructure/Api.
+- Infrastructure: EF Core, LLM client, CRM, email. Cài đặt interface từ Application.
+- Api: Minimal API endpoints, DI, middleware. Không chứa business logic.
+Architecture tests trong tests/TourAgent.ArchitectureTests sẽ fail nếu vi phạm.
+
+## 3. Quy ước code
+- Mỗi use case là 1 folder: Features/{Area}/{UseCase}/ gồm Command|Query,
+  Handler, Validator, Response.
+- Mẫu chuẩn để bắt chước: Features/Tours/SearchTours/. LUÔN đọc mẫu này trước khi tạo
+  use case mới.
+- Handler: `sealed class`, 1 public method `Handle(request, CancellationToken)`,
+  trả về `Result<T>`.
+- Entity: không public setter, tạo qua factory `Create()`, business rule nằm trong
+  entity (không để entity anemic).
+- Không trả Entity ra khỏi Application; luôn map sang Response DTO bằng code tường minh.
+- Truy cập dữ liệu qua `IAppDbContext`, không tạo Repository riêng.
+- Lỗi nghiệp vụ trả về `Result.Failure(Error)`; exception chỉ dùng cho lỗi hệ thống.
+- Mọi method async nhận `CancellationToken`.
+- Nullable bật, warning = error.
+
+## 4. Quy tắc riêng cho AI Agent (quan trọng nhất)
+- LLM chỉ được gọi qua `ILlmClient`. Không gọi SDK của provider trong Application.
+- Giá, lịch khởi hành, tình trạng chỗ: CHỈ lấy từ database qua tool. LLM không bao giờ
+  được tự sinh các con số này.
+- Mọi tool trả về dữ liệu có cấu trúc; tool lỗi → agent xin lỗi và escalate,
+  không đoán.
+- System prompt nằm trong Application/Agent/Prompts, có version (v1, v2...).
+  Không hard-code prompt rải rác.
+- Mỗi lượt hội thoại phải log: conversationId, latency, token in/out, tool đã gọi,
+  có escalate không, có capture lead không.
+- Dữ liệu cá nhân (SĐT, email) không ghi vào log dạng plain text.
+
+## 5. Cấm
+- Thêm NuGet package mà chưa hỏi.
+- Dùng MediatR, AutoMapper, Repository pattern cho từng entity, CQRS tách DB,
+  Event Sourcing, microservices.
+- Sửa file ngoài phạm vi task được giao.
+- Sửa hoặc xóa test để "cho pass".
+- Tạo abstraction "để sau này dùng" (YAGNI).
+
+## 6. Quy trình mỗi task
+1. Đọc AGENTS.md, docs/PROGRESS.md, và slice mẫu liên quan.
+2. Nêu kế hoạch: file sẽ tạo/sửa + lý do. Chờ xác nhận nếu > 5 file.
+3. Code theo từng bước nhỏ.
+4. Chạy `dotnet build` và `dotnet test`. Chưa xanh thì chưa xong.
+5. Cập nhật docs/PROGRESS.md.
+6. Nếu có quyết định kiến trúc mới → đề xuất ADR trong docs/decisions/, không tự quyết.
+
+## 7. Definition of Done
+- Build không warning, toàn bộ test pass (bao gồm architecture tests)
+- Có unit test cho business rule mới và handler mới
+- Không vi phạm mục 5
+- PROGRESS.md đã cập nhật
+
+## 8. Khi không chắc
+Hỏi lại thay vì đoán. Nói rõ "tôi không chắc" với API/package/version.
+````
+
+---
+
+## 6. Bộ nhớ giữa các session: `docs/PROGRESS.md`
+
+AI không nhớ gì giữa các session. File này thay cho trí nhớ của nó:
+
+```markdown
+# PROGRESS
+
+## Trạng thái hiện tại
+- Bước đã xong: 1 (Domain Tour), 2 (Persistence)
+- Đang làm: 3 — slice mẫu SearchTours
+- Bước tiếp: 4 — ILlmClient
+
+## Quyết định đã chốt
+- DB: PostgreSQL (EF Core)  | LLM: <provider>, qua ILlmClient
+- Không MediatR/AutoMapper (ADR-001)
+
+## Vấn đề mở / nợ kỹ thuật
+- Chưa có xử lý tiền tệ đa loại (chỉ VND)
+
+## Log
+- 2026-09-25: scaffold solution, thêm architecture tests
+```
+
+## 7. Prompt mở đầu mỗi session mới
+
+```
+Bắt đầu session mới. Trước khi làm gì:
+1. Đọc AGENTS.md, docs/PROGRESS.md, docs/ARCHITECTURE.md.
+2. Tóm tắt lại cho tôi trong 5 dòng: trạng thái hiện tại, bước tiếp theo,
+   các ràng buộc quan trọng nhất.
+3. Chờ tôi xác nhận rồi mới code.
+
+Task hôm nay: <mô tả 1 task nhỏ, 1 use case>
+```
+
+Bước 2 là "phép thử đã hiểu": nếu AI tóm tắt sai thì bạn phát hiện ngay, trước khi nó viết ra 20 file sai.
+
+---
+
+## 8. Rủi ro và cách kiểm soát
+
+| Rủi ro | Dấu hiệu | Cách xử lý |
+|---|---|---|
+| Codebase lệch chuẩn dần | Các slice mỗi cái một kiểu | Slice mẫu + architecture test + bắt AI đọc mẫu trước khi làm |
+| Agent bịa giá hoặc lịch khởi hành | Khách phàn nàn, mất uy tín | Rule mục 4 + test: câu trả lời có chứa giá phải khớp với dữ liệu tool trả về |
+| Bạn không review nổi | PR hơn 500 dòng | Mỗi session chỉ làm 1 use case |
+| Kiến trúc làm chậm việc ra tính năng | Mất hơn 2 ngày cho một thay đổi nhỏ | Theo dõi metric này; nếu xấu đi thì đơn giản hóa |
+
+## Việc tiếp theo
+
+1. **Hôm nay:** chạy script, thêm `Directory.Build.props`, `AGENTS.md`, `PROGRESS.md` và architecture tests, rồi commit.
+2. **Ngày mai:** làm bước 1 và 2 cùng AI, sau đó **tự viết hoặc review thật kỹ slice `SearchTours`**. Đây là khoản đầu tư có lợi nhất trong cả quy trình.
+3. **Song song:** gọi cho 3 công ty tour để hỏi một câu: *"Mỗi ngày bạn nhận bao nhiêu tin nhắn hỏi tour, bao nhiêu tin bị trả lời chậm hơn 1 giờ, và tỷ lệ chốt đơn là bao nhiêu?"* Câu trả lời sẽ cho bạn biết agent cần ưu tiên tính năng nào: trả lời nhanh, gợi ý tour hay thu thập lead.
+
+Nếu bạn cho tôi biết đang dùng tool nào (Claude Code, Cursor hay Copilot) và database nào, tôi sẽ viết sẵn slice mẫu `SearchTours` hoàn chỉnh để làm khuôn cho các slice sau.

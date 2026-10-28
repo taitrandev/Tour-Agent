@@ -1,0 +1,107 @@
+Timeline có thể chia thành các giai đoạn như sau (update)
+	- mỗi giai đoạn rút đc bài học gì?
+- bối cảnh - vấn đề - (sai lầm ban đầu - root cause) - cách giải quyết - kết quả - đúc kết
+- trong lúc giải thích mindset, từ khóa, quy trình hãy tập trung vào bối cảnh dev trước, những vấn đề khác như cross-domain, cuộc sống thì để sau
+	4 tháng sau khi nghỉ
+		- giai đoạn này e chưa có gì nổi bật lắm, chủ yếu nghiên cứu giao dịch crypto và tạo tool bằng github copilot
+- trong khoảng thời gian này có điểm e thấy bất ngờ là lúc nghỉ thì copilot chưa ra mode Agent, mỗi lần code là phải copy paste bằng tay, sau 1 tháng thì ra mode Agent và bắt đầu cảm thấy đc sức mạnh từ AI
+	 4 tháng tiếp theo e làm ở tiệm gốm
+		- chủ yếu setup tiệm, bán hàng, 
+quay video up lên các nền tảng tiktok, fb, insta
+			- vấn đề: khoảng thời gian này có 2 vấn đề khiến e nhớ, vì liên quan đến AI
+đầu tiên là do tiệm bán gốm Nhật và gốm Âu. gốm Âu thường chỉ có viền vàng, họa tiết đơn giản, ko có họa tiết đặc sắc như gốm Nhật nên khi quay video sẽ thấy bình thường, và chán
+- cách giải quyết: nên e có ý định là dùng AI để generate các món ăn lên sản phẩm và chèn cuối video, mục đích là giúp người xem dễ tưởng tượng và cảm nhận đc là khi có món ăn thì sẽ đẹp như thế nào
+
+- vấn đề: vấn đề thứ 2 là trong quá trình generate hình thì bị AI chế lại viền, họa tiết của sản phẩm gốc, mà việc này thì ko được phép xảy ra, vì nếu người xem thấy sản phẩm thật và video khác nhau sẽ có ấn tượng không tốt
+- root cause: sau đó e phát hiện được root cause là pixel density, có lời giải thích e thấy rất hay là, hãy xem AI như là 1 họa sĩ bị cận, nên hãy cố gắng đưa hình thật rõ cho AI. ban đầu e đưa hình sản phẩm nằm trên 1 khung trắng quá lớn, dẫn đến AI ko nhìn rõ các viền vàng và họa tiết và AI sẽ có xu hướng vẽ lại những thứ đó
+- cách giải quyết: sau khi hiểu được bản chất và cơ chế hoạt động, thì mỗi lần generate hình thì e luôn crop sát sản phẩm nhất có thể, để AI nhận diện sản phẩm 1 cách tốt nhất, từ đó hiếm khi bị vấn đề vẽ lại viền và họa tiết nữa
+			Đúc kết: trong quá trình này e học được những từ khóa và mindset quan trọng như là bản chất, cơ chế hoạt động, root cause, solution bias, tool limitation
+- trong đó có mindset solution bias rất quan trọng, vì nếu không nhận thức được thì dev sẽ thường xuyên hỏi AI là "cách fix lỗi này như thế nào" thay vì hỏi "root cause là gì". vì vậy sẽ không fix triệt để, fix kiểu chữa cháy rất nguy hiểm
+- tool limitation cũng khiến e rất nhớ, tại thời điểm đó e dùng model của google và gpt để test. model của gpt chế nhiều hơn của google, mặc dù đã cố fix prompt rất nhiều nhưng vẫn ko đc. sau khi hỏi bản chất thì mới biết là model của google có xu hướng giữ sản phẩm gốc tốt hơn gpt, nên đây là vấn đề liên quan tool limitation. Nếu dev ko nhận thức được từ này thì cũng sẽ có xu hướng cố gắng fix thay vì tìm tool khác
+		- trong thời gian này e cũng bắt đầu có thói quen 
+giữ lại luồng suy nghĩ của mình và hỏi AI
+			- Vấn đề: lúc trước là e thường để suy nghĩ của mình trôi đi mất, không giữ lại để phân tích, dẫn đến việc ko hiểu suy nghĩ của bản thân. e thấy có những suy nghĩ rất hay trong lúc chạy xe hoặc làm gì đó khiến mình phải wow, nhưng chỉ trong 1 thời gian ngắn suy nghĩ đó có thể biến mất, sau đó mình phải cố gắng nhớ lại, và nếu lỡ ko nhớ được thì sẽ thấy tiếc và khó chịu
+- Cách giải quyết: cách giải quyết của e là sẽ luôn có thói quen giữ lại luồng suy nghĩ bằng cách note lại ngay, nếu e có đang chạy xe thì cũng dừng lại ngay để note, sau đó sẽ hỏi AI về những suy nghĩ đó. e sẽ luôn dùng 1 bộ câu hỏi có sẵn như là:
+   - bản chất? tại sao? có liên quan mindset gì? có điều gì tốt cần giữ lại và phát huy? có gì không tốt cần tránh? có golden rule gì? có blind spot hoặc unknow unknowns gì cần biết?
+
+Đúc kết: từ 1 thói quen này mà e thấy tư duy và nhận thức tăng lên rất nhiều. Nhưng cũng  vì đợt này có AI để hỏi, chứ nếu lúc trước muốn hiểu những suy nghĩ này sẽ rất khó, vì ko có ai để hỏi. nên đến bây giờ e vẫn giữ thói quen này
+- e cũng bắt đầu nhận thức được tầm quan trọng của việc có tư duy tốt sẽ giúp ích mình rất nhiều trong công việc và trên con đường phát triển sau này
+	4 tháng tiếp theo thì e chủ yếu 
+tham gia 3 khóa học về AI
+		- 2 khóa đầu tiên là về AI Automation và Google AI ecosystem. nhờ 2 khóa này mà e bắt đầu làm quen với vibe coding, tạo landing page để bán hàng, thu thập lead. tạo workflow n8n, xây CRM đơn giản
+
+- khóa thứ 3 là dạng thử thách 21 ngày, để được refund thì cần làm bài tập hằng ngày, nộp đúng hạn, được duyệt, và cần giữ liên tục 21 ngày. cần có kỷ luật cao và duy trì trong thời gian dài
+- mỗi bài trong khóa này khi ghép lại sẽ được 1 hệ thống bán hàng tự động. từ việc tạo landing page, tạo chat bot để tư vấn sản phẩm, tích hợp thanh toán bằng sepay. CRM đơn giản để quản lý khách hàng, đơn hàng, sản phẩm. build second brain để lưu thông tin sản phẩm, giọng văn, phong cách viết bài. mỗi lần muốn tạo 1 bài post fb thì sẽ yêu cầu Agent truy cập second brain để lấy thông tin và viết bài
+
+- trong khóa này cũng có làm quen với goclaw, là 1 phiên bản rebuild của OpenClaw bằng ngôn ngữ Go. dùng để xây và vận hành nhiều Agent. có hỗ trợ multi tenant. có nhiều channel như là fb, tele, zalo, discord. hỗ trợ nhiều LLM. khi dùng goclaw thì cũng có tạo thử mcp và skill. có thử vài chức năng như là yêu cầu viết bài, auto post fb
+		Đúc kết: trong giai đoạn này thì e có ấn tượng về tư duy ẩn dụ, khi giảng viên giải thích gì đó thì dùng hình ảnh quen thuộc trong thực tế. việc này thật sự giúp mình dễ nắm được những concept phức tạp
+- sau đó là AI First, khi có vấn đề gì thì hãy hỏi AI trước, người đó có thể xem như áp dụng cực đoan luôn. thì đối với người mới hoặc chưa có tư duy dùng AI đúng thì e thường giải thích như sau: khi ta xác định đc điểm xuất phát và đích đến, thì hãy cho AI tạo đường đi, dẫn mình đi, cho ta thấy trên đường đi có gì. sau đó người quyết định đường đi cuối cùng vẫn là mình
+- càng ngày e càng thấy việc tiếp cận mọi việc theo hướng tư duy đúng là rất quan trọng
+- e cũng nhận thức về sức mạnh của landing page, điều mà trước giờ ko nhận thức được vì lúc nào cũng chỉ làm những web kiểu hệ thống, quản lý nội bộ
+	tiếp theo là xây kênh youtube
+		bối cảnh
+			- giai đoạn này e đang muốn xây kênh youtube
+- sau đó là tạo quy trình để generate mọi thứ như: hook, kịch bản lời thoại, hình ảnh, voice, edit với capcut, upload lên youtube
+		hành trình
+			- vấn đề: giai đoạn này e bị sai lầm là cố nghiên cứu, sửa prompt làm sao cho tốt, tìm nhiều thứ để video hay, dẫn đến việc mất thời gian rất lâu thì e mới ra được video đầu tiên. suy nghĩ quá nhiều còn chỉ số hành động rất thấp
+- root cause: e thấy root cause của mình là không đặt ra giới hạn cho việc nghiên cứu, không có 1 bản MVP cho prompt, bản MVP cho quy trình, dẫn đến việc ra video đầu tiên cứ bị trượt
+- cách giải quyết: sau đó e nhận ra rằng việc nghiên cứu prompt quá nhiều mà ko hành động, dẫn đến không có output để đánh giá, nên e đã chạy thử, khi có output thì có nhiều thứ để đánh giá và điều chỉnh
+		Đúc kết
+			- đây cũng là là giai đoạn e nhận thức được tầm quan trọng của chữ "quy trình", điều mà trước đây e cũng ngại follow. vì e đã tự tạo ra quy trình và làm việc trên nó, nên sẽ hiểu sự khó khăn và vất vả để rút ra được 1 quy trình tốt để mọi người sử dụng
+- nếu không có quy trình thì mình sẽ ko biết đang đứng ở đâu, làm gì tiếp, khó nhận biết bottle neck nằm ở bước nào trong quy trình 
+- e nghĩ 1 phần có thể là vì e ko phải là người tạo ra quy trình đó, nên khi áp dụng sẽ ko quen và thấy khó chịu
+- nhưng khi 1 người đã tự tay xây 1 quy trình gì đó thì sau đó sẽ nhận thức được tầm quan trọng của quy trình, ngay cả khi quy trình đó không phải của mình xây ra
+
+- đẩy cao chỉ số hành động, đẩy nhanh vòng xoay feedback loop
+
+- trong giai đoạn này e cũng nhận ra có những cặp từ khóa nên khắc vào trí nhớ, sẽ giúp bản thân nhận thức rất tốt như là: mơ hồ - làm rõ, signal - noise, trải nghiệm - đúc kết, vấn đề - root cause - giải pháp
+	hiện tại e đang tham gia khóa AI Agent nâng cao
+		đây là khóa học tiếp theo sau khóa thử thách 21 ngày
+- trong khóa này đc học cách build agent để giải quyết vấn đề gì đó, hiện tại thì e đang có cái demo về Agent tư vấn tour du lịch
+- cũng nhờ khóa này mà e mới bắt đầu biết về harness, áp dụng giúp cho agent chạy ổn định và đáng tin cậy hơn. trong lúc build agent tư vấn du lịch thì e cũng có apply vài kỹ thuật như là agent state store, tool guardrail pipeline, agent loop
+khóa này cũng mời đc vài chuyên gia về AI để hướng dẫn và tư vấn, nên e nghĩ trong thời gian tới sẽ học được rất nhiều điều và dùng những điều này đóng góp cho công ty
+	tổng kết
+		e nhìn lại thì 15 tháng này nghỉ cũng thật sự xứng đáng, vì có rất nhiều điều mà trong hơn 30 năm e không nhận ra. gần như mọi thứ của e đều phát triển và thay đổi theo chiều hướng tốt. e duy trì được thói quen và kỷ luật hơn, quan sát tốt hơn, ngộ đc nhiều tư duy tiếp cận và giải quyết công việc. e thấy bản thân như được lột xác vậy
+
+e đã duy trì hơn 1 năm việc tập gym và thói quen thức sớm lúc 5h và ngủ sớm lúc 10h
+
+mặc dù mọi thứ tốt nhưng có 1 thứ chưa tốt là ko có nguồn thu nhập, cũng sợ sợ thiệt, cho nên hiện tại công việc này rất quan trọng với e
+
+có người nói trường hợp của e giống như mấy phim đánh trận vậy, đốt thuyền, phá cầu để binh lính không có đường lui, từ đó phải cố gắng hết sức để tiến lên
+
+ở thời điểm hiện tại có thể e chưa phải là 1 người giỏi về kỹ thuật, vì e mất 1 khoảng gap 15 tháng, nhưng e tin là với những tư duy mình đã đc trang bị trong khoảng thời gian này thì việc lấy lại kiến thức và kỹ thuật sẽ nhanh hơn, vào nhóm cũng có thể share những tư duy làm việc giúp dự án tốt hơn
+
+lần này e quay lại sẽ khác lần trước, lần trước e chỉ có thể đóng góp cho cty sự cố gắng, cần cù, nỗ lực thôi, nhưng e nhận ra rằng khi lớn tuổi thì những điều này sẽ giảm dần theo thời gian. còn nếu có tư duy tốt thì sẽ duy trì được lâu hơn
+	những thói quen mà e đang duy trì mỗi ngày
+		giữ lại suy nghĩ sau đó hỏi AI để hiểu bản thân nhiều hơn
+		nhận thức và áp dụng những mindset, pattern, từ khóa quan trọng
+		làm mọi thứ đều cố gắng set timebox
+		đúc kết kiến thức, suy nghĩ trong ngày
+	e có những thói quen gì khi làm việc với AI?
+		trước khi làm task thì nên plan và debate thật nhiều để ra được file blueprint
+			Inversion Thinking => để thấy đc những điểm nguy hiểm
+			Input process output => để thấy được dòng chảy của hệ thống
+			System thinking => zoom out để thấy được bức tranh toàn cảnh của task và những thành phần xoay quanh task đó để nhận thức được impact, side effect
+sau đó zoom in để xác định được những thành phần có trong task
+			Break task nhỏ (decomposition)
+			Set timebox cho task
+			Sắp xếp ưu tiên sub-task
+	những từ khóa
+		ma sát
+		blind spot, unknown unknowns
+	hiện tại có những mindset e thường hay nghĩ tới là
+		IPO: input - process - output
+			mục đích là giúp e ngừng nhìn mọi thứ xung quanh 1 cách hỗn độn, mà bắt đầu nhìn dưới góc độ hệ thống và dòng chảy
+mindset này cũng có thể áp dụng trong việc học kiến thức mới rất tốt. vì lúc trước e thường mắc phải, lúc nhớ thì có học và hành, ko nhớ thì chỉ có học. nếu mình đưa tư duy này vào đầu thì mình sẽ dễ duy trì thói quen hơn, ko dựa vào trí nhớ nữa, mỗi lần học gì mới thì sẽ cần trải qua đủ 3 chữ input - process - output
+		Inversion Thinking
+			- khi bắt đầu làm gì đó thì mình thường tìm những điều tốt để làm, nhưng theo tư duy này là sẽ liệt kê những điều khiến mình thất bại và chủ động ko làm những điều đó. 
+- ví dụ khi build agent tư vấn tour thì sẽ yêu cầu AI: "tôi đang build agent tư vấn tour, hãy dùng inversion thinking để phân tích phần kỹ thuật" thì mình sẽ đc 1 danh sách những điều khiến agent bị thất bai. ví dụ như cho LLM tính toán giá tiền, nếu đúng thì cần tool call để tính. hoặc quên thông tin khách đã nói ở đầu hội thoại, ngăn ngừa bằng cách lưu những thông tin quan trọng bằng state và inject vào prompt khi request api llm
+		system thinking
+		Circle of competence
+(vòng tròn năng lực)
+			mindset này e thường dùng để giải thích khi có ai đó hỏi về 1 vấn đề mà e ko biết. thì e sẽ hướng đến vòng tròn nhận thức và AI First
+
+e thường giải thích kiểu vấn đề đó e ko biết, nên ko giúp được, nhưng hãy thử hỏi AI. 
+
+mục đích là cho mình nhận thức được những gì biết và ko biết. thay vì cố đoán và làm mọi thứ theo cảm tính, thì tư duy này rèn cho mình thói quen ra quyết định và hành động bên trong vòng tròn hiểu biết của mình, khi vấn đề nằm ngoài vòng tròn thì hãy nghĩ đến việc ủy thác hoặc tìm sự giúp đỡ từ người có chuyên môn như là AI là cách tối ưu nhất để giảm rủi ro và ra quyết định chính xác hơn
+ 
