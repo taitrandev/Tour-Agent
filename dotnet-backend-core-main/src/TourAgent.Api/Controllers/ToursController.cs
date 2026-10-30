@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using TourAgent.Api.Extensions;
 using TourAgent.Application.Common;
 using TourAgent.Application.Features.Tours.SearchTours;
 using TourAgent.Domain.Common;
@@ -34,18 +35,12 @@ public class ToursController : ControllerBase
     /// <response code="400">Tham số tìm kiếm hoặc phân trang không hợp lệ.</response>
     [HttpGet]
     [ProducesResponseType(typeof(SearchToursResult), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SearchTours(
         [FromQuery] SearchToursQuery query,
         CancellationToken cancellationToken)
     {
         var result = await _searchToursHandler.HandleAsync(query, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return BadRequest(result.Error);
-        }
-
-        return Ok(result.Value);
+        return result.ToActionResult();
     }
 }
