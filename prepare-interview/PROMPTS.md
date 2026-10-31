@@ -142,9 +142,9 @@ NGỮ CẢNH CỦA TÔI:
 
 NHIỆM VỤ CỦA BẠN:
 
-1. Đóng vai người phỏng vấn, hỏi tôi TỪNG CÂU MỘT dựa theo danh sách trong [01_kich_ban.md](file;file:///d%3A/Ngh%C4%A9a/AI-Agent-Travel/prepare-interview/study-notes/01_kich_ban.md)
+1. Đóng vai người phỏng vấn, hỏi tôi TỪNG CÂU MỘT dựa theo danh sách trong file
 2. Sau khi bạn đặt câu hỏi, hãy DỪNG LẠI HOÀN TOÀN để chờ tôi trả lời. Tuyệt đối không tự trả lời thay hoặc hỏi gộp nhiều câu cùng lúc.
-3. Khi tôi trả lời xong, hãy đánh giá câu trả lời của tôi dựa trên  [01_kich_ban.md](file;file:///d%3A/Ngh%C4%A9a/AI-Agent-Travel/prepare-interview/study-notes/01_kich_ban.md)  theo cấu trúc:
+3. Khi tôi trả lời xong, hãy đánh giá câu trả lời của tôi dựa trên file theo cấu trúc:
    - ✅ Điểm tốt / Ý đã đúng: Những từ khóa, ý cốt lõi tôi đã nắm được.
    - ⚠️ Điểm còn thiếu hoặc chưa chuẩn: Những ý quan trọng trong kịch bản mà tôi bỏ sót.
    - 💡 Gợi ý tinh chỉnh: Cách trình bày ngắn gọn, sắc bén hơn theo tư duy Senior.

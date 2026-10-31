@@ -125,6 +125,22 @@ có thể dùng bộ câu hỏi sau để xác định dùng minimal API vs cont
 
 ---
 
+## Các sai lầm thường gặp khi throw exception trong .NET
+
+Top 3 lỗi gây hại nhiều nhất là:
+
+* throw ex thay vì throw: throw ex sẽ làm mất stack trace, dấu vết chỉ bắt đầu từ dòng throw ex, những dấu vết trước bị reset
+* wrap exception nhưng không truyền innerException: cần luôn truyền innerException
+* Nuốt exception: catch rỗng ko làm gì, hoặc catch xong return null
+
+3 lỗi nhỏ hơn
+
+* throw exception chung chung: nên throw cụ thể, có ngữ nghĩa như là ArgumentException, hoặc custom exception
+* message thiếu ngữ cảnh hoặc làm lộ dữ liệu nhạy cảm
+* log rồi rethrow nhiều tầng: việc này dẫn đến lỗi xuất hiện nhiều lần trong log, trong lúc đọc log dễ bị nhiễu. chỉ log ở những nơi thực sự xử lý lỗi. các tầng giữa nếu cần context thì thêm bằng cách wrap exception, không log lại
+
+
+
 ## 4️⃣ Async Best Practices
 
 ### CancellationToken — PHẢI truyền qua mọi hàm async

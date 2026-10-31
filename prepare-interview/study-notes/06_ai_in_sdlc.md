@@ -67,20 +67,24 @@ Thông tin thêm:
 
 1 task đc xem là done khi qua được 3 cổng, có thể tưởng tượng các cổng này sẽ trải dài từ local đến staging
 
-* đầu tiên là cổng dev ở local
+* đầu tiên là cổng local ở dev
 
   * cần đáp ứng đủ AC bao gồm happy case và edge case
-  * self-review lại git diff để bao đảm ko vi phạm coding convention, security, đặc biệt là nợ vibe coding, dev nên hiểu mọi dòng code AI sinh ra, giải thích được lý do kỹ thuật và business phức tạp
+  * self-review lại git diff: để bao đảm ko vi phạm coding convention, security. Đặc biệt là nợ vibe coding, dev nên hiểu mọi dòng code AI sinh ra, giải thích được lý do kỹ thuật và business phức tạp
   * pass toàn bộ unit test, integration test
-* thứ 2 là cổng PR
+* thứ 2 là cổng PR và CI
 
-  * PR cần có description rõ ràng, có ghi giải pháp kèm ưu điểm, nhược điểm, tại sao dùng. output có hình ảnh, video hoặc log
-  * chạy CI không có warning. cần pass build, unit test, sonar, secret, security
-  * cần được review bởi 1-2 người, giải quyết các comment và approve
-* thứ 3 là cổng staging
+  * PR cần có description rõ ràng: có ghi giải pháp kèm ưu điểm, nhược điểm, tại sao dùng. output có hình ảnh, video hoặc log
+  * chạy CI không có warning: cần pass build, unit test, sonar, secret, security
+  * review bởi 1-2 người: giải quyết các comment và approve
+* thứ 3 là cổng testing và staging
 
-  * merge code vào develop, deploy lên staging và test thành công
+  * code được deploy lên môi trường test để QA test. sau đó là lên staging để khách hàng nghiệm thu
   * update document như là lesson learned, technical doc, api doc
+* Thông tin thêm:
+
+  * về góc nhìn của sprint thì việc chuyển ticket DONE chỉ là đóng pham vi công việc của sprint
+  * Còn góc nhìn trách nhiệm sản phẩm thì nên coi trọng staging hơn. vì môi trường testing chỉ có mock data, QA test ổn, nhưng lên staging có dữ liệu lớn và sát thực tế thì mới dễ xảy ra lỗi. Không nên giữ tư duy "kéo ticket sang DONE là xong việc". Bản thân nên chủ động theo dõi chức năng khi lên staging để bảo đảm an toàn
 
 ## 7. Dev nhận thức về việc nợ vibe coding và cách trả nợ bằng AI?
 

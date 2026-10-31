@@ -1,33 +1,85 @@
 # 📐 NHÓM 1: Clean Architecture & Design Principles
+
 > **Source of Truth — Cập nhật liên tục khi có câu hỏi/kiến thức mới**
 > Dự án tham chiếu: `dotnet-backend-core-main` (TourAgent — .NET 10)
 
 ---
 
-## 🗺️ Bản Đồ Tư Duy
+## Em dùng AI như thế nào trong SDLC?
 
-```
-Clean Architecture
-├── 1. 4-Layer Structure & Dependency Rule
-├── 2. Domain Layer Patterns
-│   ├── Entity + Private Setter + Factory Method
-│   ├── Result<T> + Error (thay Exception)
-│   └── Value Objects
-├── 3. Application Layer Patterns
-│   ├── Feature Folders (Vertical Slice)
-│   ├── Command / Query Handlers
-│   ├── Abstractions (IAppDbContext, ILlmClient)
-│   └── Validators
-├── 4. Infrastructure Layer
-│   └── Cài đặt interface từ Application
-├── 5. Architecture Tests (NetArchTest)
-└── 6. Quyết Định "Không Dùng" (YAGNI)
-    ├── Không MediatR
-    ├── Không AutoMapper
-    └── Không Generic Repository
-```
+e ko dùng AI để code nhanh hơn, mà dùng AI xuyên suốt SDLC: từ giai đoạn system review, architecture 
 
----
+## Tại sao e không dùng MediatR?
+
+Nguyên nhân chính e không dùng là vì trước đó nghe nói bắt đầu apply license. Nhưng thông qua việc không apply thì e cũng có thêm góc nhìn và kiến thức, bỏ được ngộ nhận là khi dùng CQRS cần phải dùng MediatR. trong giai đoạn system design thì e áp dụng tư duy AI-First để debate về những kỹ thuật để biết ưu điểm, nhược điểm, trade-off giữa việc dùng MediatR và tự viết handler
+
+Những ưu điểm khi tự viết handler là:
+
+* dễ debug & trace code: dùng tính năng go to implementation để từ controller vào handler
+* controller thấy được rõ ràng các handler, không bị che giấu, tránh biến controller thành 1 túi mù
+* dự án của e nhỏ, nếu dùng MediatR thì dễ bị over engineering, gây phức tạp hóa
+
+## Em biết gì về MediatR?
+
+Bản chất MediatR là 1 thư viện giúp giảm sự phụ thuộc giữa caller và handler. Controller ko cần biết handler cụ thể, nó chỉ gửi request còn MediatR sẽ dùng reflection tìm và điều phối đến handler tương ứng lúc runtime. 
+
+ưu điểm là: 
+
+* xử lý cross cutting mạnh và tiện. Nên với hệ thống lớn có rất nhiều usecase và nhiều cross cutting phức tạp. Lúc đó chi phí dùng thư viện sẽ rẻ hơn chi chí tự viết và bảo trì pipeline riêng
+
+nhược điểm là
+
+* khó trace code: khó theo luồng code khi đọc, vì ko đi thẳng từ controller tới handler đc
+* rủi ro dời về runtime: quên đăng ký handler thì lúc chạy app và request gọi đến thì mới văng exception, compile time ko phát hiện được
+* dễ bị dev lạm dụng pub/sub để làm message broker trong bộ nhớ, gây mất dữ liệu khi server có vấn đề
+* rủi ro về license
+
+## Tại sao dùng Result thay vì Exception rồi bắt tại middleware?
+
+Vì e dùng Result cho những lỗi liên quan business dự đoán được như là not found, validation fail. Còn Exception chỉ nên dùng cho các tình huống bất thường, không lường trước được như là timeout, mất kết nối đến db thì sẽ bắt ở middleware để trả 500
+
+còn lý do phụ là hiệu suất. có 1 benchmark trên .NET cho thấy khi có lỗi thì Result chạy nhanh hơn Exception 40 lần, còn cấp phát bộ nhớ thì ít hơn khoảng 26 lần. Còn khi không có lỗi thì hai cách gần như ngang nhau. Nên chênh lệch chỉ đáng kể khi lỗi xảy ra thường xuyên, ví dụ validation fail nhiều hoặc bị tấn công bằng cách spam request sai
+
+* trade-off khi dùng Result là
+  * Code dài hơn: vì Result phải truyền ngược qua từng tầng như là Domain lên Handler
+  * Tầng controller phải check và map status code: phải tạo extension method để map các error, status code theo chuẩn ProblemsDetails
+  * Dù dùng Result nhưng vẫn cần phải có middleware để bắt exception và trả 500. Tức là hệ thống phải dùng cả 2
+* Thông tin thêm
+  * đối với authentication và authorization (401) thì sẽ bắt ở middleware trước khi đến controller, handler. result chỉ nên chứa lỗi bussiness như Validation (400), Not Found (404)
+
+
+## Các sai lầm thường gặp khi throw exception trong .NET
+
+Top 3 lỗi gây hại nhiều nhất là:
+
+* throw ex thay vì throw: throw ex sẽ làm mất stack trace, dấu vết chỉ bắt đầu từ dòng throw ex, những dấu vết trước bị reset
+* wrap exception nhưng không truyền innerException: cần luôn truyền innerException
+* Nuốt exception: catch rỗng ko làm gì, hoặc catch xong return null
+
+3 lỗi nhỏ hơn
+
+* throw exception chung chung: nên throw cụ thể, có ngữ nghĩa như là ArgumentException, hoặc custom exception
+* message thiếu ngữ cảnh hoặc làm lộ dữ liệu nhạy cảm
+* log rồi rethrow nhiều tầng: việc này dẫn đến lỗi xuất hiện nhiều lần trong log, trong lúc đọc log dễ bị nhiễu. chỉ log ở những nơi thực sự xử lý lỗi. các tầng giữa nếu cần context thì thêm bằng cách wrap exception, không log lại
+
+
+## CancellationToken là gì? Tại sao cần dùng (WHY)?
+
+Là cơ chế giúp hủy tác vụ đang chạy trong .NET, giống như một "Lá cờ". Các tác vụ thấy cờ bật lên sẽ chủ động dừng lại và ném exception
+
+- Đối với server thì sẽ tiết kiệm tài nguyên, đối với AI thì sẽ tiết kiệm token
+- Hệ thống sẽ dừng khi code chạm các hàm async await và được truyền cancellation token. còn code sync hoặc async await không truyền cancellation token sẽ không tự dừng. dev sẽ phải tự kiểm tra cờ và dừng.
+- đối với database driver thì có cơ chế dừng riêng, db driver sẽ lập tức gửi CancelRequest xuống db để dừng lập tức query đang chạy
+
+Nguyên lý cốt lõi ngắt là:
+
+* ví dụ khi user F5 web hoặc bấm Cancel postman thì sẽ gửi gửi 1 gói tin TCP segment có gắn cờ FIN hoặc RST để phát tín hiệu đóng TCP socket. Kestrel nhận được cờ này sẽ biết là socket đã bị ngắt, Kestrel sẽ update CancellationToken thành true
+* thêm thông tin chi tiết:
+
+  * đối với ReactJs gõ tìm kiếm, muốn ngắt thì phải dùng AbortController để chủ động ngắt TCP socket
+  * đôi với postman nếu send 2 request thì xem như 2 lần độc lập, không ngắt socket. muốn ngắt thì phải bấm Cancel
+
+
 
 ## 1️⃣ 4-Layer Structure & Dependency Rule
 
@@ -41,12 +93,12 @@ Api  ──►  Application  ──►  Domain
 
 ### Rule bất di bất dịch
 
-| Layer | Được phụ thuộc vào | KHÔNG được phụ thuộc vào |
-|---|---|---|
-| **Domain** | (không ai) | Application, Infrastructure, Api, EF Core |
-| **Application** | Domain | Infrastructure, Api |
-| **Infrastructure** | Application, Domain | Api |
-| **Api** | Application, Infrastructure | (tất cả đều được) |
+| Layer                    | Được phụ thuộc vào    | KHÔNG được phụ thuộc vào           |
+| ------------------------ | --------------------------- | ----------------------------------------- |
+| **Domain**         | (không ai)                 | Application, Infrastructure, Api, EF Core |
+| **Application**    | Domain                      | Infrastructure, Api                       |
+| **Infrastructure** | Application, Domain         | Api                                       |
+| **Api**            | Application, Infrastructure | (tất cả đều được)                  |
 
 ### File tham chiếu trong TourAgent
 
@@ -61,6 +113,7 @@ src/
 ```
 
 ### Ẩn dụ để nhớ
+
 > **Não** (Domain) không biết cơ thể có gì → không import gì cả
 > **Thần kinh** (Application) điều phối nhưng không tự làm
 > **Tay chân** (Infrastructure) làm việc cụ thể theo lệnh thần kinh
@@ -69,9 +122,11 @@ src/
 ### Q&A
 
 **Q: Tại sao Domain không được import EF Core?**
+
 > Vì EF Core là **implementation detail** của cách lưu dữ liệu. Ngày mai đổi sang Dapper hay MongoDB → Domain không được biết/không được thay đổi. Đây là Dependency Inversion Principle.
 
 **Q: NetArchTest bảo vệ điều gì?**
+
 > Tự động kiểm tra ranh giới layer trong CI/CD. Dev vô tình `using Microsoft.EntityFrameworkCore` trong Domain → test fail ngay. Không cần review bằng mắt.
 
 ---
@@ -142,6 +197,7 @@ public async Task<Result<TourResponse>> HandleAsync(...)
 ```
 
 **Q: Khi nào dùng Result\<T\>, khi nào dùng Exception?**
+
 > - **Result\<T\>**: Lỗi business bình thường, caller biết trước phải handle (tour không tồn tại, validation fail)
 > - **Exception**: Lỗi không mong đợi (DB bị down, network fail, lỗi lập trình)
 > - Rule: Exception = "emergency exit". Result = "expected branching"
@@ -161,6 +217,7 @@ Features/Tours/SearchTours/
 ```
 
 **Q: Feature Folder khác Layer Folder như thế nào?**
+
 > - **Layer Folder (horizontal)**: `/Commands/`, `/Queries/`, `/DTOs/` — mở file Commands thì thấy commands của TẤT CẢ feature
 > - **Feature Folder (vertical)**: `/SearchTours/` — mở folder thì thấy TẤT CẢ file liên quan đến SearchTours
 > - Khi maintain feature SearchTours → chỉ cần mở 1 folder, không phải nhảy qua nhiều folder
@@ -183,6 +240,7 @@ app.MapPost("/api/v1/tours/search", async (
 ```
 
 **Q: Tại sao không dùng MediatR?**
+
 > MediatR thêm 1 lớp indirection không cần thiết. Handler được inject trực tiếp → `Ctrl+Click` đến Handler ngay, không qua magic pipeline. Dễ debug, dễ trace.
 > **Trade-off**: Mất "decoupling" ở Api layer, nhưng gain được simplicity + performance + zero magic.
 
@@ -192,13 +250,13 @@ app.MapPost("/api/v1/tours/search", async (
 
 ### Không AutoMapper
 
-| Tiêu chí | AutoMapper | Manual Extension Method |
-|---|---|---|
-| Setup | Cần cấu hình Profile | Viết method tường minh |
-| Debug | Lỗi runtime khó trace | Lỗi compile-time rõ ràng |
-| Performance | Reflection, chậm hơn | Direct property assignment |
-| License | v11+ có thể thu phí | Free forever |
-| Readability | Config ở nơi khác | Code đọc là hiểu ngay |
+| Tiêu chí  | AutoMapper              | Manual Extension Method     |
+| ----------- | ----------------------- | --------------------------- |
+| Setup       | Cần cấu hình Profile | Viết method tường minh   |
+| Debug       | Lỗi runtime khó trace | Lỗi compile-time rõ ràng |
+| Performance | Reflection, chậm hơn  | Direct property assignment  |
+| License     | v11+ có thể thu phí  | Free forever                |
+| Readability | Config ở nơi khác    | Code đọc là hiểu ngay   |
 
 ```csharp
 // Manual mapping — TourAgent cách làm
@@ -251,6 +309,7 @@ public void Domain_Should_Not_HaveDependencyOn_Infrastructure()
 ```
 
 **Tại sao quan trọng?**
+
 > Quy trình tốt = tự động kiểm soát, không dựa vào kỷ luật cá nhân. NetArchTest = "người gác cửa tự động" cho kiến trúc.
 
 ---
