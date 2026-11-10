@@ -147,7 +147,43 @@ Thông tin thêm:
   * phát hiện sự thụt lùi: đổi model chạy eval set thấy giảm xuống 80%
   * biết có giao tiếp được với khách không? tỷ lệ đúng 99%, ticket giả 0/100 là sử dụng được hoặc đem bán được
 
+## Nếu bị hỏi về prompt engineering thì trả lời sao?
 
+prompt engineering là cách điều khiển LLM bằng ngôn ngữ. Mục tiêu là giúp AI hiểu đúng mong muốn của mình và đưa ra kết quả chính xác nhất có thể. 1 bản prompt mvp nên có 5 thành phần là có role, task, context, output format, constraint
+
+* vd: bạn là senior React. Hãy review code cho PR này, soi performance issue. mỗi issue cho tôi biết root cause kèm theo những phương pháp để giải quyết, mỗi phương pháp kèm theo ưu điểm, nhược điểm, tại sao dùng? có impact gì ko? có phù hợp với dự án ko? xuất ra dạng bảng giúp tôi để dễ so sánh. Chỉ tập trung vào performance issue.
+
+nhược điểm khi dùng prompt là:
+
+* thứ nhất là kết quả chỉ mang tính xác suất: 1 câu prompt có thể chạy tốt với model này, nhưng có thể sẽ ko tốt với model khác. Nên có eval set chạy lại như regression test để đo lường được độ hiệu quả của mỗi model
+* thứ 2 là bị prompt injection: hacker có thể dùng những câu để lừa model, mục đích là ghi đè và bỏ qua các quy tắc gốc của mình đặt ra. vd: yêu cầu AI đưa ra các mã giảm giá có giá trị lớn hoặc thông tin nhạy cảm từ database. Nếu AI bị lừa thì AI sẽ lấy những thông tin đó và đưa cho hacker.
+* thứ 3 là prompt càng dài thì càng tệ: dễ làm model bỏ sót thông tin nằm giữa, đây là hiện tượng lost in the middle. ví dụ nhét toàn bộ thông tin 10 tour vào prompt, khi khách hỏi những tour nằm ở đầu hoặc cuối prompt thì trả lời rất chính xác, nhưng nếu thông tin tour nằm giữa thì AI có thể bị mơ hồ, trả lời thông tin bị sai lệch
+
+## Cách giải quyết lost in the middle?
+
+* thứ nhất là đổi lại thứ tự ưu tiên: những gì ưu tiên thì nên đưa lên trên hoặc cuối để tạo sự chú ý cho AI
+* thứ 2 là áp dụng kiến trúc RAG: hệ thống sẽ luôn tìm và lấy dữ liệu từ vector db trước rồi mới gọi model lưu thông tin vào vector database. hệ thống sẽ dùng thuật toán lấy đúng dữ liệu yêu cầu và trả lại cho khách
+* thứ 3 là sử dụng function calling: biến các thông tin, danh sách tour thành 1 API hoặc function như là searchtour có param là địa điểm, khi khách muốn tìm thông tin tour địa điểm là Đà Lạt thì sẽ  dùng function searchtour kèm Đà Lạt, Function sẽ trả lại đúng thông tin liên quan Đà Lạt, AI sẽ tổng hợp lại thông tin và đưa cho khách
+
+## Cách giải quyết prompt injection?
+
+* có 2 loại prompt injection là direct và indirect
+
+  * direct là nhập trực tiếp câu lệnh độc hại vào khung chat. indirect là giấu câu lệnh độc hại vào 1 nguồn dữ liệu mà AI sẽ đọc như web, file pdf
+* cách phòng tránh cho direct: nhìn theo mô hình IPO, mình sẽ xác định đc input mà hacker xâm nhập là từ khung chat, nên, nên mục tiêu là làm sao để AI phân biệt được đâu là chỉ dẫn của mình, đâu là dữ liệu của người dùng. sẽ có những cách để đánh dấu như sau
+
+  * thứ nhất là phân tách dữ liệu: bọc dữ liệu của người dùng vào tag bất kỳ do mình định nghĩa ví dụ customer. sau đó sẽ xử lý nội dung trong tag này
+  * thứ 2 là sử dụng lớp lọc bảo mật (LLM guardrail): sử dụng các thư viện chuyên về guardrail, các thư viện này sẽ đóng vai người gác cổng. quét tin nhắn của người dùng trước khi gửi đến AI. nếu phát hiện các từ khóa jailbreak như là "bỏ qua hướng dẫn trước", hệ thống sẽ lập tức chặn lại và trả về câu trả lời mặc định
+  * thứ 3 là mô hình AI chấm điểm (dual LLM architecture): dùng 1 AI model nhỏ rẻ tiền để làm nhiệm vụ phân loại như là "câu này của khách có phải là tấn công jailbreak hay không?" nếu không thì xử lý tiếp, nếu có thì hệ thống cũng sẽ chặn lại và trả về câu trả lời mặc định
+* còn cách phòng tránh indirect: nhìn theo mô hình IPO thì xác định được input mà hacker xâm nhập sẽ là những website, file pdf, email mà AI sẽ đọc. sẽ có những cách sau:
+
+  * thứ nhất là tách biệt quyền của Agent: nguyên tắc là ko bao giờ cho 1 agent vừa có quyền đọc mà vừa có quyền hành động, nói chung sẽ là read và write. giải pháp là chia 2 agent, agent A chỉ có quyền đọc và trích xuất các thông tin thô. Agent B dùng những thông tin thô từ agent A để hành động gì đó, tuyệt đối không tiếp xúc trực tiếp với web, file
+  * thứ 2 là sử dụng kiến truc RAG thay vì đọc trực tiếp: khi khách đưa 1 file hoặc url thì AI đọc cũng sẽ dễ bị dính bẫy ngầm được giấu. nên đưa file vào vector db để chia nhỏ thành các đoạn ngắn. AI chỉ lấy ra đúng những gì liên quan để đọc. so sánh thì vector db có nhiều ưu điểm hơn so với để agent tự đọc từ các yếu tố như chi phí, tốc độ, an toàn. chỉ có khả năng hiểu thì sẽ không bằng AI đọc trực tiếp thôi. Tùy vào business sẽ lựa chọn và đánh đổi
+  * thứ 3 là bắt buộc có người kiểm duyệt (human in the loop): đối với các hành động quan trọng thì agent ko đc tự ý làm mà phải có người đứng ra chịu trách nhiệm để thao tác, bấm nút
+
+## Nếu bị hỏi về context engineering thì trả lời sao?
+
+Nếu prompt engineering là "hỏi như thế nào?" thì context engineering là "cung cấp dữ liệu gì?" vào context window. Chất lượng output sẽ tùy thuộc vào context có đủ và tốt hay không. có nguyên lý nên nắm là: garbage in garbage out
 
 # Em biết gì về MCP?
 
@@ -162,8 +198,6 @@ mục đích chính của MCP là:
 * AI sẽ có dư liệu thât và mới nhất
 * 
 
-
-
 2. Tại sao dùng? (3 lý do)
    Giải bài toán tích hợp N×M: N ứng dụng AI nhân M hệ thống sẽ thành N+M. Viết một MCP server cho hệ thống nội bộ (ERP, CRM, DB) thì mọi client tương thích MCP đều dùng được.
    Tách AI app khỏi integration: Đội backend sở hữu server (domain logic, auth), đội AI sở hữu agent. Hai bên deploy và version độc lập, giống tư duy microservice.
@@ -176,7 +210,6 @@ mục đích chính của MCP là:
    Tái sử dụng và tương thích: Viết một lần, chạy được trên nhiều host.
    Dynamic discovery: Client gọi tools/list lúc runtime. Server thêm tool thì client không cần redeploy.
    Ranh giới bảo mật rõ ràng: Credential nằm ở server, không lộ cho model. Spec cho remote server có OAuth 2.1.
-
 
 ## Những concept quan trọng và ưu tiên nên biết?
 
@@ -272,6 +305,5 @@ public class IncomingMessageChannel
 | Dùng khi  | SME, single server        | Microservice, HA   |
 
 ---
-
 
 <!-- Thêm kiến thức/câu hỏi mới vào đây -->

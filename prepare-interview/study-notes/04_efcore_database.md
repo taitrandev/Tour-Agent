@@ -388,7 +388,7 @@ Mặc định thì EF Core sẽ lưu snapshot của mọi entity đc query và �
 
 ---
 
-## 🥊 Cụm 3: Bắt bẻ về Rich Domain Model & EF Core Encapsulation
+## 🥊 Cụm 3: Bắt bẻ về ![1794189781120](image/04_efcore_database/1794189781120.png)Rich Domain Model & EF Core Encapsulation
 
 ### 📍 Dẫn chứng trong code:
 

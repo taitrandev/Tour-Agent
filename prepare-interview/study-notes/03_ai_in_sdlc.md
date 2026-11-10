@@ -99,15 +99,19 @@ việc nợ vibe coding thực chất là nợ kỹ thuật bị phóng đại b
 
 ## 8. Trong dự án nên tổ chức các file context như thế nào?
 
-context engineering rất quan trọng, vì context quyết định AI nhìn thấy được gì. trong dự án e thường có những file như là:
+context engineering rất quan trọng, vì context quyết định AI nhìn thấy được gì. E nghĩ trong dự án nên có những file như là:
 
 * project architecture: để nắm overview, tech stack
-* coding rule và convention: để chứa những ví dụ code mẫu để AI follow, dùng ví dụ sẽ mạnh hơn là dùng lời nói
+* coding rule và convention: để chứa những ví dụ code mẫu để AI follow, dùng ví dụ như few-shot example sẽ mạnh hơn là dùng lời nói
 * security: để tránh những vấn đề liên quan security
 * lesson learned: để chưng cất lại những gì tốt đã làm đã quyết định. thường có thể chia những nhóm như là:
 
   * core: dùng cho toàn dự án để lưu các quy tắc chung --- domain, feature để chuyên cho module --- review checklist: tổng hợp các lỗi dev trong team hay mắc phải khi tạo PR
 * prompt: chứa những prompt template để chuẩn hóa các quy trình hằng ngày như là start chat session mới, implement, fix bug, review, onboarding dev mới
+* ADR (Architecture decision record): Code chỉ cho biết "làm như thế nào" là HOW, còn ADR giải thích "tại sao làm vậy và tại sao dùng kiến trúc, mô hình, third patty này này" là WHY và TRADE-OFF
+
+  * Nếu không có ADR thì khi AI đọc codebase có xu hướng "refactor ngược", tức là sẽ gợi ý lại các phương pháp mà team đã cân nhắc và cố tình ko dùng. vd gợi ý dùng MediatR trong khi dự án đã quyết định tự tạo handler
+  * Nên tạo các file adr cho 2 level: là project và feature. ví dụ level project như là tại sao không dùng mediatR. tại sao ko dùng AutoMapper. level feature như là chức năng thanh toán trực tuyến tại sao dùng Sepay mà không dùng của hệ thống khác
 * Thông tin thêm:
 
   * Bản chất của lesson learned là bộ nhớ dài hạn giúp chống lại bệnh mất trí nhớ của AI. mỗi khi mở 1 chat session mới thì AI sẽ mất trí nhớ hoàn toàn về những sai lầm trong quá khứ. Nếu không có lesson learned thì AI sẽ tiếp tục lặp lại đúng những sai lầm mà lần trước đã mắc phải
@@ -189,11 +193,31 @@ theo e thì trong thời đại AI thì năng lực của senior ko còn nằm �
 * hallucinate: là AI tự bịa ra thông tin, logic ko có thật
 * lost in the middle: là hiện tượng AI chú ý ở phần đầu và cuối của prompt dài, còn phần giữa dễ bị bỏ sót
 
-## 15. Tư duy system view và detail view
+## AI viết test đạt coverage cao rất dễ, nhưng sao làm biết test có thực sự bắt được bug khi sửa code bị impact, hay chỉ là test cho xanh?
 
-e nghĩ là dev nên có tư duy system view và detail view. system view để xem dòng chảy dữ liệu, các thành phần được kết nối thế nào, input, process, output của các thành phần, từ đó có khả năng nhận thức được khả năng impact. còn detail là để biết những gì mình làm có đúng chưa
+bản chất con số code coverage chỉ là số đo ảo. AI rất hay mắc lỗi assert yếu hoặc over-mocking dẫn đến business logic bị che mất, dù code bị sửa sai nhưng vẫn chạy xanh
 
-ví dụ khi fix bug thì ban đầu e dùng system view vì lỗi có thể nằm ở những thành phần khác, khi khoanh vùng được thì bắt đầu dùng detail view để fix. khi fix xong thì dùng system view để xem lại có impact những thành phần khác ko
+những cách để giải quyết:
+
+* thứ nhất là tách việc định nghĩa test case khỏi việc viết test: giai đoạn định nghĩa sẽ kết với với AI để tạo ra test case dựa vào AC. sau khi có danh sách test case thì dev phải tự đọc hiểu và soi test case có bám AC ko, những edge case có hợp lý không
+* thứ 2 là áp dụng Mutation Testing: bản chất là cố ý phá hoại code, tạo ra các thay đổi nhỏ gọi là mutant để đánh giá assert của bộ unit test có đủ mạnh hay không
+  * ví dụ trong code có logic là giá >= 0, khi test thì thư viện sẽ đổi condition thành giá > 0, nếu vẫn xanh thì có nghĩa unit test chưa đủ mạnh, assert đang yếu, cần phải cover thêm
+  * trade-off là thời gian chạy test chậm hơn nhiều so với dotnet test, vì phải chạy cho rất nhiều thay đổi nhỏ. có thư viện stryker.net hỗ trợ việc này
+* thứ 3 là soi kỹ phần assert: khi review test code thì đa số nên soi kỹ phần assert, xem giá trị mong đợi có khớp với business ko
+
+
+## Những tư duy nên có trong quá trình implementation là gì?
+
+* Plan and debate first: cần nhớ là đa số chi phí sửa lỗi trên action plan sẽ rẻ hơn nhiều so với sửa code. trước khi code thì phải nhìn được luồng input process output
+* tư duy refactor trước khi merge: Mặc dù đã có các file rule để AI tuân theo, nhưng vẫn có khả AI làm khác. Cần phải coi code cho AI sinh ra là bản draft. dev phải dùng lại các rule đã quy định để sàn lọc và điều chỉnh lại cho đúng
+* simplicity over cleverness: AI rất thường viết code phức tạp dẫn đến over engineering,
+* system view và detail view: system view để xem dòng chảy dữ liệu, các thành phần, liên kết giữa các thành phần từ đó giúp nhận biết impact. còn detail view để biết những gì mình làm có đúng chưa
+  * ví dụ khi fix bug thì ban đầu e dùng system view vì lỗi có thể nằm ở những thành phần khác, khi khoanh vùng được thì bắt đầu dùng detail view để fix. khi fix xong thì dùng system view để xem lại có impact những thành phần khác ko
+* Defensive programming and fail fast (phòng thủ và thất bại sớm)
+  * giữ tâm thế: mọi thứ bên ngoài đều có thể sai hoặc fail như là third party, api sập, db timeout, user gửi dữ liệu rác
+  * cần validate dữ liệu ngay các cổng, tránh để lỗi lọt vào hệ thống
+* Atomic Increment
+  * không làm 1 lúc cả tính năng lớn. nên chia nhỏ và từng phần độc lập để hiểu được, kiểm soát và được và tránh bị nợ vibe coding
 
 ## 16. Tư duy inversion thinking
 
