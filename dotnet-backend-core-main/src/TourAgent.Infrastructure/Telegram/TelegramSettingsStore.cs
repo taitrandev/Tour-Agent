@@ -29,21 +29,19 @@ public sealed class TelegramSettingsStore : ITelegramSettingsStore
 
     /// <summary>
     /// Nạp cấu hình từ file JSON hoặc từ biến môi trường/mặc định ban đầu.
+    /// Ưu tiên biến môi trường và IConfiguration trên môi trường Cloud.
     /// </summary>
     /// <param name="configuration">Đối tượng IConfiguration.</param>
     /// <returns>Đối tượng TelegramSettings đã nạp.</returns>
     private TelegramSettings LoadSettings(IConfiguration configuration)
     {
+        TelegramSettings? loadedFromFile = null;
         try
         {
             if (File.Exists(_filePath))
             {
                 var content = File.ReadAllText(_filePath);
-                var loaded = JsonSerializer.Deserialize<TelegramSettings>(content);
-                if (loaded != null)
-                {
-                    return loaded;
-                }
+                loadedFromFile = JsonSerializer.Deserialize<TelegramSettings>(content);
             }
         }
         catch (Exception ex)
@@ -52,25 +50,24 @@ public sealed class TelegramSettingsStore : ITelegramSettingsStore
         }
 
         var token = configuration["Telegram:BotToken"]
-            ?? Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN")
-            ?? string.Empty;
+            ?? Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN");
 
         var webhook = configuration["Telegram:WebhookUrl"]
-            ?? Environment.GetEnvironmentVariable("TELEGRAM_WEBHOOK_URL")
-            ?? string.Empty;
+            ?? Environment.GetEnvironmentVariable("TELEGRAM_WEBHOOK_URL");
 
         var adminChat = configuration["Telegram:AdminChatId"]
-            ?? Environment.GetEnvironmentVariable("TELEGRAM_ADMIN_CHAT_ID")
-            ?? string.Empty;
+            ?? Environment.GetEnvironmentVariable("TELEGRAM_ADMIN_CHAT_ID");
 
         var defaultSettings = new TelegramSettings
         {
-            BotToken = token,
-            WebhookUrl = webhook,
-            AdminChatId = adminChat
+            BotToken = !string.IsNullOrWhiteSpace(token) ? token : (loadedFromFile?.BotToken ?? string.Empty),
+            WebhookUrl = !string.IsNullOrWhiteSpace(webhook) ? webhook : (loadedFromFile?.WebhookUrl ?? string.Empty),
+            AdminChatId = !string.IsNullOrWhiteSpace(adminChat) ? adminChat : (loadedFromFile?.AdminChatId ?? string.Empty)
         };
 
-        if (!string.IsNullOrWhiteSpace(token) || !string.IsNullOrWhiteSpace(webhook) || !string.IsNullOrWhiteSpace(adminChat))
+        if (!string.IsNullOrWhiteSpace(defaultSettings.BotToken) ||
+            !string.IsNullOrWhiteSpace(defaultSettings.WebhookUrl) ||
+            !string.IsNullOrWhiteSpace(defaultSettings.AdminChatId))
         {
             SaveToFile(defaultSettings);
         }

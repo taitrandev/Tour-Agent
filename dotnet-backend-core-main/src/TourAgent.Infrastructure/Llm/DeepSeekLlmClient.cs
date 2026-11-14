@@ -48,7 +48,7 @@ public sealed class DeepSeekLlmClient : ILlmClient
 
         _fallbackApiKey = configuration["DeepSeek:ApiKey"]
             ?? Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY")
-            ?? "sk-92e03f3300c7429389be0a047169e06a";
+            ?? string.Empty;
 
         _fallbackModel = configuration["DeepSeek:Model"] ?? "deepseek-reasoner";
         _fallbackBaseUrl = (configuration["DeepSeek:BaseUrl"] ?? "https://api.deepseek.com").TrimEnd('/');

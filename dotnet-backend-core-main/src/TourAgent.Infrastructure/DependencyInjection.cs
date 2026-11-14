@@ -51,6 +51,10 @@ public static class DependencyInjection
         // Đăng ký Background Service tiêu thụ tin nhắn Telegram
         services.AddHostedService<Channels.TelegramWebhookBackgroundService>();
 
+        // Đăng ký Health Check services để API layer có thể sử dụng cho Health Probes
+        services.AddTransient<Health.DatabaseHealthCheck>();
+        services.AddTransient<Health.DeepSeekHealthCheck>();
+
         return services;
     }
 }

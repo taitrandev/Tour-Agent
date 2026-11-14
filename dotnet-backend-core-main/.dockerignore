@@ -1,0 +1,13 @@
+**/.git
+**/.github
+**/.vscode
+**/.vs
+**/bin
+**/obj
+**/*.user
+**/*.suo
+**/appsettings.Development.json
+**/*.log
+**/secrets.json
+**/.env
+**/.env.*

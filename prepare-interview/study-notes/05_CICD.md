@@ -1,3 +1,11 @@
+## note quá trình làm
+
+* yêu cầu hướng dẫn CI/CD pipeline theo nguyên lý 80/20 và cho 1 bản pipeline mvp để nắm được CI/CD cần có gì
+
+1. giai đoạn 0: cloud ready. mục đích là source code cần sẵn sàng cho môi trường cloud (vẫn hardcode, localhost, thiếu health check) thì pipeline CD/CD tốt thế nào thì cũng bị sập (crasCrashLoopBackOff hoặc 500 error)
+
+
+
 
 Khi đưa dự án này vào CV và đi phỏng vấn, các interviewer thường sẽ hỏi 5 câu cốt lõi sau. Nắm chắc 5 câu này là đạt 80% điểm phỏng vấn CI/CD:
 

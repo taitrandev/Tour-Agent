@@ -50,10 +50,27 @@
 | **6.2** | Khởi tạo dự án Frontend SPA (`tour-agent-frontend`) Vite + React 19 + TypeScript | ✅ DONE | Tailwind CSS v4, Lucide |
 | **6.3** | Tích hợp Client Portal & AI Consultant Widget với SSE Streaming + Tool Badges | ✅ DONE | `/api/v1/agent/chat/stream` |
 | **6.4** | Tách Route 1-1 theo dự án PHP: `/` (Landing), `/admin`, `/admin/conversations`, `/admin/escalations`, `/admin/channels/telegram` | ✅ DONE | Replicate 100% PHP UI |
+| **7.1** | Phase 0 Step 1: Dọn dẹp Secret & Hardcoded API Key khỏi code và config | ✅ DONE | Trừu tượng hóa qua Env Vars |
+| **7.2** | Phase 0 Step 2: Cấu hình CORS động (`CORS_ALLOWED_ORIGINS`) & Telegram WebhookUrl | ✅ DONE | Hỗ trợ Cloud Deploy |
+| **7.3** | Phase 0 Step 3: Tích hợp ASP.NET Core Health Checks (`/health`) cho DB & DeepSeek AI | ✅ DONE | Endpoint `/health` kiểm tra song song DB và DeepSeek API |
+| **7.4** | Phase 0 Step 4: Dockerfile Multi-stage .NET 10 & .dockerignore | ✅ DONE | Image size chỉ 102MB, non-root user, layer cache tối ưu |
+| **7.5** | CI/CD Pipeline GitHub Actions deploy Azure App Service | ⏳ PENDING | GitHub Actions workflow |
 
 ---
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
+- **2026-11-12**:
+  - Hoàn thành Step 4: Viết Multi-stage `Dockerfile` (.NET 10) gồm 4 stages (base, build, publish, final) và `.dockerignore`.
+  - Tối ưu Docker Layer Caching (copy .csproj và restore trước khi copy source).
+  - Sử dụng non-root user (`USER $APP_UID`) chuẩn bảo mật ASP.NET 10.
+  - Test build Docker image `touragent-api:local` thành công với dung lượng tối ưu chỉ 102MB.
+  - Chạy thử nghiệm container, xác minh tính năng Health Check trả về kết quả chuẩn xác trên Docker.
+- **2026-11-11**:
+  - Khởi tạo GitHub Issue #1 theo dõi quá trình chuẩn bị Cloud-Ready cho CI/CD.
+  - Hoàn thành Step 1: Loại bỏ API key hardcode trong `LlmSettingsStore.cs`, dọn sạch `appsettings.json`, chuyển cấu hình local vào `appsettings.Development.json`.
+  - Hoàn thành Step 2: Cấu hình CORS động từ `Cors:AllowedOrigins` và `CORS_ALLOWED_ORIGINS`, cập nhật ưu tiên biến môi trường cho `TelegramSettingsStore` và `LlmSettingsStore`.
+  - Tạo tài liệu checklist hướng dẫn cấu hình toàn diện `docs/AZURE_DEPLOYMENT_CHECKLIST.md`.
+  - Toàn bộ 87 tests PASSED (35 Domain + 48 Application + 4 Architecture).
 - **2026-09-27**:
   - Dựng khung `TourAgent.sln` (.NET 10) với 4 source projects và 3 test projects.
   - Thiết lập `Directory.Build.props` bật `TreatWarningsAsErrors`.

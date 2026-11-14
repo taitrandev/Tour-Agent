@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
 using TourAgent.Application;
 using TourAgent.Infrastructure;
+using TourAgent.Infrastructure.Health;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,17 +19,35 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
 
-// 2.1 Cấu hình CORS cho phép Frontend SPA kết nối
+// 2.1 Cấu hình CORS cho phép Frontend SPA kết nối linh hoạt theo môi trường
+var envOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+var configuredOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+
+var originsToUse = (envOrigins is { Length: > 0 } ? envOrigins : configuredOrigins)
+    ?? ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"];
+
+var allowedOrigins = originsToUse
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Distinct()
+    .ToArray();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("SpaCorsPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
+
+// 2.2 Cấu hình Health Checks kiểm tra sức khỏe ứng dụng, PostgreSQL và DeepSeek AI
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy("Ứng dụng đang chạy bình thường."), tags: new[] { "live" })
+    .AddCheck<DatabaseHealthCheck>("postgresql", tags: new[] { "db", "ready" })
+    .AddCheck<DeepSeekHealthCheck>("deepseek_ai", tags: new[] { "ai", "ready" });
 
 // 3. Cấu hình Swagger / OpenAPI Documentation
 builder.Services.AddEndpointsApiExplorer();
@@ -69,7 +90,77 @@ using (var scope = app.Services.CreateScope())
     await TourAgent.Infrastructure.Persistence.OrderDataSeeder.EnsureSeededAsync(dbContext);
 }
 
-// 5. Định tuyến Controllers
+// 5. Định tuyến Health Checks (Tách biệt Liveness và Readiness Probes)
+// 5.1 Liveness Probe: Dành riêng cho Cloud Orchestrator kiểm tra app process còn sống, không check tài nguyên ngoài
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("live"),
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { status = report.Status.ToString() });
+    }
+});
+
+// 5.2 Readiness Probe: Kiểm tra tính sẵn sàng phục vụ người dùng (PostgreSQL DB & DeepSeek AI)
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        if (app.Environment.IsDevelopment())
+        {
+            var response = new
+            {
+                status = report.Status.ToString(),
+                total_duration_ms = report.TotalDuration.TotalMilliseconds,
+                entries = report.Entries.Select(e => new
+                {
+                    name = e.Key,
+                    status = e.Value.Status.ToString(),
+                    description = e.Value.Description,
+                    duration_ms = e.Value.Duration.TotalMilliseconds
+                })
+            };
+            await context.Response.WriteAsJsonAsync(response);
+        }
+        else
+        {
+            await context.Response.WriteAsJsonAsync(new { status = report.Status.ToString() });
+        }
+    }
+});
+
+// 5.3 Endpoint tổng quát /health tương thích ngược
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        if (app.Environment.IsDevelopment())
+        {
+            var response = new
+            {
+                status = report.Status.ToString(),
+                total_duration_ms = report.TotalDuration.TotalMilliseconds,
+                entries = report.Entries.Select(e => new
+                {
+                    name = e.Key,
+                    status = e.Value.Status.ToString(),
+                    description = e.Value.Description,
+                    duration_ms = e.Value.Duration.TotalMilliseconds
+                })
+            };
+            await context.Response.WriteAsJsonAsync(response);
+        }
+        else
+        {
+            await context.Response.WriteAsJsonAsync(new { status = report.Status.ToString() });
+        }
+    }
+});
+
 app.MapControllers();
 
 app.Run();

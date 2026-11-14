@@ -29,21 +29,19 @@ public sealed class LlmSettingsStore : ILlmSettingsStore
 
     /// <summary>
     /// Nạp cấu hình từ file JSON cục bộ hoặc từ cấu hình IConfiguration.
+    /// Ưu tiên biến môi trường và IConfiguration trên môi trường Cloud.
     /// </summary>
     /// <param name="configuration">Đối tượng IConfiguration.</param>
     /// <returns>Đối tượng LlmSettings đã nạp.</returns>
     private LlmSettings LoadSettings(IConfiguration configuration)
     {
+        LlmSettings? loadedSettings = null;
         try
         {
             if (File.Exists(_filePath))
             {
                 var fileContent = File.ReadAllText(_filePath);
-                var loadedSettings = JsonSerializer.Deserialize<LlmSettings>(fileContent);
-                if (loadedSettings != null)
-                {
-                    return loadedSettings;
-                }
+                loadedSettings = JsonSerializer.Deserialize<LlmSettings>(fileContent);
             }
         }
         catch (Exception ex)
@@ -52,18 +50,26 @@ public sealed class LlmSettingsStore : ILlmSettingsStore
         }
 
         var apiKey = configuration["DeepSeek:ApiKey"]
-            ?? Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY")
-            ?? "sk-92e03f3300c7429389be0a047169e06a";
+            ?? Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY");
+
+        var effectiveApiKey = !string.IsNullOrWhiteSpace(apiKey) ? apiKey : (loadedSettings?.ApiKey ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(effectiveApiKey))
+        {
+            _logger.LogWarning("Chưa cấu hình API Key cho DeepSeek qua 'DeepSeek:ApiKey' hoặc biến môi trường 'DEEPSEEK_API_KEY'.");
+        }
 
         var model = configuration["DeepSeek:Model"]
             ?? Environment.GetEnvironmentVariable("DEEPSEEK_MODEL")
+            ?? loadedSettings?.Model
             ?? "deepseek-reasoner";
 
         var baseUrl = configuration["DeepSeek:BaseUrl"]
+            ?? Environment.GetEnvironmentVariable("DEEPSEEK_BASE_URL")
+            ?? loadedSettings?.BaseUrl
             ?? "https://api.deepseek.com";
 
-        float temperature = 0.2f;
-        if (float.TryParse(configuration["DeepSeek:Temperature"], out var parsedTemp))
+        float temperature = loadedSettings?.Temperature ?? 0.2f;
+        if (float.TryParse(configuration["DeepSeek:Temperature"] ?? Environment.GetEnvironmentVariable("DEEPSEEK_TEMPERATURE"), out var parsedTemp))
         {
             temperature = parsedTemp;
         }
@@ -71,7 +77,7 @@ public sealed class LlmSettingsStore : ILlmSettingsStore
         return new LlmSettings
         {
             Driver = "deepseek",
-            ApiKey = apiKey,
+            ApiKey = effectiveApiKey,
             Model = model,
             BaseUrl = baseUrl,
             Temperature = temperature
