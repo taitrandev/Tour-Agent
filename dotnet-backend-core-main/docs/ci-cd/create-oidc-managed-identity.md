@@ -239,13 +239,13 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore dotnet-backend-core-main/TourAgent.sln
+        run: dotnet restore dotnet-backend-core-main/TourAgent.slnx
 
       - name: Build
-        run: dotnet build dotnet-backend-core-main/TourAgent.sln -c Release --no-restore
+        run: dotnet build dotnet-backend-core-main/TourAgent.slnx -c Release --no-restore
 
       - name: Test
-        run: dotnet test dotnet-backend-core-main/TourAgent.sln --no-build -c Release --verbosity normal
+        run: dotnet test dotnet-backend-core-main/TourAgent.slnx --no-build -c Release --verbosity normal
 
   docker-build-and-push:
     needs: build-and-test
