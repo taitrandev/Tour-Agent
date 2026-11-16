@@ -44,7 +44,47 @@ lúc chuẩn bị CI/CD thì e có các 4 giai đoạn. thứ nhất là bảo �
 
 ## Giai đoạn 1 :CI
 
+### 1. hiểu ACR và container app trong CI CD
 
+CI sẽ: build => unit test => docker build image => push ACR
+
+CD sẽ: az login => az containerapp update ()
+
+mô tả flow theo văn nói về ACR và ContainerApp:
+
+* ACR như 1 cái khó để chứa image. CI build xong thì sẽ cất image mới vào kho, có dán nhãn vd: commit ID abc456. Xong, ko báo ai hết
+* Container App là cái máy đang chạy. trong máy có ghi tờ giấy cho biết  là đang chạy image abc123. lúc khởi động thì máy sẽ đọc tờ giấy đó, lấy image ra kho và chạy. sau đó ko quay lại kho để kiểm tra nữa
+* "az containerapp update ...:abc45" là cầm viết sửa tờ giấy thành abc456, máy thấy tờ giấy bị đổi thì sẽ tạo 1 revision, vào kho lấy abc456 để chạy. khi thấy bản mới chạy ổn thì mới chuyển người dùng qua bản mới
+* pipeline hiểu đơn giản sẽ có 2 câu:
+  * CI: "đóng gói, kiểm tra, ném vào kho" => docker push
+  * CD: "máy ơi, chạy gói mới nhất trong kho đi" => az containerapp update
+
+những cách khác để sửa tờ giấy ngoài "az containerapp update"
+
+* sửa trên portal: tự tay bấm
+* bicep/terraform: sửa cấu hình bằng code
+* bật CD trên portal: azure sinh ra workflow github action, và workflow cũng update, nhưng sẽ bị giấu đi
+
+những lưu ý:
+
+* phải dùng tag khác như là commitID: nếu tag là latest thì sẽ ko tạo revision mới mà sẽ vẫn chạy bản cũ
+* secrect và env ko mất khi update image: secret nằm ở cấp app, còn env var nằm trong template và được chép sang revision mới. Vì vậy pipeline chỉ cần biết tên image, không cần biết secret
+
+### 2. Tạo User-Assigned Managed Identity
+
+**Tại sao không dùng ACR Admin Password hay Service Principal Client Secret?**
+
+* **Zero Stored Secrets**: GitHub Actions không lưu bất kỳ password nào. Chỉ lưu 3 ID công khai (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`). Token đăng nhập là JWT ngắn hạn (~1 giờ) do GitHub tự ký và Entra ID tự kiểm tra chữ ký.
+* **Nhất quán 1 cơ chế cho cả CI và CD (Chuẩn 80/20)**: Nếu dùng ACR Password, bạn chỉ push được image lên ACR ở bước CI. Đến bước CD (`az containerapp update`), bạn lại phải làm thêm một cơ chế auth khác. Dùng Managed Identity với 2 role (`AcrPush`cho ACR và `Contributor`cho Resource Group) sẽ giải quyết trọn vẹn cả CI lẫn CD.
+
+#### 1. Tạo Managed identity bằng portal theo file (create-oidc-managed-identity.md)
+
+##### hiểu về OIDC, Managed Identity, Entra ID, RBAC
+
+* Bắt đầu tạo Managed Identity
+* vào Identity tạo tiếp Federated Credential
+* gán quyền RBAC (acrPush trên ACR và Container App Contributor trên Resource Group)
+* lấy ClientID, TenantID, SubscriptionID, acr name điền vào Github Repository variable
 
 ---
 
