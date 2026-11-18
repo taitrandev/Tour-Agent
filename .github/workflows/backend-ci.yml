@@ -77,5 +77,39 @@ jobs:
           push: true
           tags: |
             ${{ vars.ACR_NAME }}.azurecr.io/touragent-api:${{ github.sha }}
-            ${{ vars.ACR_NAME }}.azurecr.io/touragent-api:latest
+
+  deploy:
+    name: Deploy to Azure Container Apps
+    needs: docker-build-and-push
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure Login via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Image to Azure Container Apps
+        run: |
+          az containerapp update \
+            --name ${{ vars.ACA_NAME }} \
+            --resource-group ${{ vars.AZURE_RG }} \
+            --image ${{ vars.ACR_NAME }}.azurecr.io/touragent-api:${{ github.sha }}
+
+      - name: Get Container App FQDN
+        id: get-fqdn
+        run: |
+          FQDN=$(az containerapp show --name ${{ vars.ACA_NAME }} --resource-group ${{ vars.AZURE_RG }} --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "fqdn=$FQDN" >> $GITHUB_OUTPUT
+
+      - name: Smoke Test Readiness
+        run: |
+          echo "Testing readiness at: https://${{ steps.get-fqdn.outputs.fqdn }}/health/ready"
+          curl -f "https://${{ steps.get-fqdn.outputs.fqdn }}/health/ready" \
+            --retry 6 \
+            --retry-delay 10 \
+            --retry-all-errors \
+            --max-time 15
 

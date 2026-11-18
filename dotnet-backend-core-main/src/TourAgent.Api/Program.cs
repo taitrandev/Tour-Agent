@@ -36,10 +36,21 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("SpaCorsPolicy", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        var hasWildcard = allowedOrigins.Any(origin => origin == "*");
+        if (hasWildcard)
+        {
+            // Theo chuẩn W3C CORS: Không được kết hợp AllowCredentials() khi dùng wildcard "*"
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
     });
 });
 
