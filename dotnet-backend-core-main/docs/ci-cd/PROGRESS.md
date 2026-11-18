@@ -14,4 +14,4 @@
 | **4** | Phase 0 Step 4: Dockerfile Multi-stage .NET 10 & .dockerignore                           |   ✅ DONE   | Image size chỉ 102MB, non-root user, layer cache tối ưu   |
 | **5** | Phase 1 Step 1: Thống nhất thiết kế CI & Nguyên lý "Build Once, Deploy The Same Artifact" |   ✅ DONE   | [ADR-0003](adr/0003-build-once-push-acr-in-ci.md) Push ACR ở CI khi merge `main` |
 | **6** | Phase 1 Step 2: Cấu hình OIDC & User-Assigned Managed Identity kết nối GitHub Actions      |   ✅ DONE   | Thiết lập Federated Credential & quyền `AcrPush` / `Container Apps Contributor` |
-| **7** | Phase 1 Step 3: Tạo workflow GitHub Actions CI (`.github/workflows/backend-ci.yml`)       | ⏳ IN PROGRESS | Kiểm thử Build, Unit Test và Push Docker image lên ACR qua OIDC |
+| **7** | Phase 1 Step 3: Tạo workflow GitHub Actions CI (`.github/workflows/backend-ci.yml`)       |   ✅ DONE   | Pipeline chạy 1m 51s: Build, Unit Test, OIDC Login & Push ACR thành công tag SHA & latest |
