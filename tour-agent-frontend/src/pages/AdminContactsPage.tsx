@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../api/client';
 
 /**
  * Định nghĩa cấu trúc dữ liệu một bản ghi khách hàng CRM.
@@ -109,7 +110,7 @@ export const AdminContactsPage: React.FC = () => {
       if (currentStage) params.append('stage', currentStage);
       if (searchKeyword.trim()) params.append('search', searchKeyword.trim());
 
-      const res = await fetch(`/api/v1/admin/contacts?${params.toString()}`);
+      const res = await apiFetch(`/api/v1/admin/contacts?${params.toString()}`);
       const json = await res.json();
 
       if (json.success && Array.isArray(json.data)) {
@@ -153,7 +154,7 @@ export const AdminContactsPage: React.FC = () => {
     setDetailData(null);
 
     try {
-      const res = await fetch(`/api/v1/admin/contacts/${contactId}`);
+      const res = await apiFetch(`/api/v1/admin/contacts/${contactId}`);
       const json = await res.json();
       if (json.success && json.data) {
         setDetailData(json.data);
@@ -209,7 +210,7 @@ export const AdminContactsPage: React.FC = () => {
         notes: editForm.notes.trim() || null,
       };
 
-      const res = await fetch(`/api/v1/admin/contacts/${editForm.id}`, {
+      const res = await apiFetch(`/api/v1/admin/contacts/${editForm.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -267,7 +268,7 @@ export const AdminContactsPage: React.FC = () => {
         notes: createForm.notes.trim() || null,
       };
 
-      const res = await fetch('/api/v1/admin/contacts', {
+      const res = await apiFetch('/api/v1/admin/contacts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -297,7 +298,7 @@ export const AdminContactsPage: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`/api/v1/admin/contacts/${contactId}`, {
+      const res = await apiFetch(`/api/v1/admin/contacts/${contactId}`, {
         method: 'DELETE',
       });
       const json = await res.json();

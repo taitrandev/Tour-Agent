@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../api/client';
 
 /**
  * Định nghĩa cấu trúc dữ liệu cấu hình LLM Gateway.
@@ -81,7 +82,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
   const loadLlmStatus = useCallback(async () => {
     try {
       setLoadingStatus(true);
-      const response = await fetch('/api/v1/llm-setting');
+      const response = await apiFetch('/api/v1/llm-setting');
       const json = await response.json();
 
       if (json.success && json.data) {
@@ -112,7 +113,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
     setIsSaving(true);
 
     try {
-      const response = await fetch('/api/v1/llm-setting', {
+      const response = await apiFetch('/api/v1/llm-setting', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +153,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
     addLog('Bắt đầu kiểm tra kết nối tới DeepSeek API Gateway...', 'warn');
 
     try {
-      const response = await fetch('/api/v1/llm-setting/test', {
+      const response = await apiFetch('/api/v1/llm-setting/test', {
         method: 'POST',
         headers: { Accept: 'application/json' },
       });

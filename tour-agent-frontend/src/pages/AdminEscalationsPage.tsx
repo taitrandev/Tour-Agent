@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../api/client';
 
 interface EscalationTicket {
   id: number;
@@ -49,7 +50,7 @@ export const AdminEscalationsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('/api/v1/admin/escalations');
+      const res = await apiFetch('/api/v1/admin/escalations');
       if (!res.ok) {
         throw new Error(`Lỗi tải dữ liệu: ${res.statusText}`);
       }
@@ -79,7 +80,7 @@ export const AdminEscalationsPage: React.FC = () => {
   const updateStatus = async (id: number, action: 'contacting' | 'approve' | 'close') => {
     try {
       let endpoint = `/api/v1/admin/escalations/${id}/${action}`;
-      const res = await fetch(endpoint, {
+      const res = await apiFetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),

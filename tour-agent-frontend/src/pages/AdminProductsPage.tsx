@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../api/client';
 import type { TravelProduct, TourDeparture, ItineraryDay, TravelReview, TravelFaq } from '../types/travel';
 
 /**
@@ -79,7 +80,7 @@ export const AdminProductsPage: React.FC = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/travels');
+      const res = await apiFetch('/api/v1/travels');
       const json = await res.json();
       if (json.success && json.data) {
         setProducts(json.data);
@@ -204,7 +205,7 @@ export const AdminProductsPage: React.FC = () => {
       const url = editingId ? `/api/v1/travels/${editingId}` : '/api/v1/travels';
       const method = editingId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify(payload),
@@ -230,7 +231,7 @@ export const AdminProductsPage: React.FC = () => {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa tour "${title}" không?`)) return;
 
     try {
-      const res = await fetch(`/api/v1/travels/${id}`, {
+      const res = await apiFetch(`/api/v1/travels/${id}`, {
         method: 'DELETE',
         headers: { Accept: 'application/json' },
       });
@@ -254,7 +255,7 @@ export const AdminProductsPage: React.FC = () => {
     setShowReviewsModal(true);
     setShowAddReviewForm(false);
     try {
-      const res = await fetch(`/api/v1/travels/${product.id}/reviews`);
+      const res = await apiFetch(`/api/v1/travels/${product.id}/reviews`);
       const json = await res.json();
       if (json.success && json.data) {
         setReviews(json.data);
@@ -272,7 +273,7 @@ export const AdminProductsPage: React.FC = () => {
     if (!selectedProduct) return;
 
     try {
-      const res = await fetch(`/api/v1/travels/${selectedProduct.id}/reviews`, {
+      const res = await apiFetch(`/api/v1/travels/${selectedProduct.id}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
@@ -306,7 +307,7 @@ export const AdminProductsPage: React.FC = () => {
     setShowFaqsModal(true);
     setShowAddFaqForm(false);
     try {
-      const res = await fetch(`/api/v1/travels/${product.id}/faqs`);
+      const res = await apiFetch(`/api/v1/travels/${product.id}/faqs`);
       const json = await res.json();
       if (json.success && json.data) {
         setFaqs(json.data);
@@ -324,7 +325,7 @@ export const AdminProductsPage: React.FC = () => {
     if (!selectedProduct) return;
 
     try {
-      const res = await fetch(`/api/v1/travels/${selectedProduct.id}/faqs`, {
+      const res = await apiFetch(`/api/v1/travels/${selectedProduct.id}/faqs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
@@ -361,7 +362,7 @@ export const AdminProductsPage: React.FC = () => {
     setIsAgentTyping(true);
 
     try {
-      const res = await fetch('/api/v1/agent/chat', {
+      const res = await apiFetch('/api/v1/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({

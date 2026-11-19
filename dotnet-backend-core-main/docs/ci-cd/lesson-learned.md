@@ -153,8 +153,46 @@ builder.Services.AddCors(options =>
 
 ---
 
-## 4. Tổng Kết Mindset Vận Hành Cho Kỹ Sư DevOps / Backend
+## 4. Bài Học 4: Cạm Bẫy Đường Dẫn Tương Đối Phía Frontend & Bản Chất Của SPA Rewrite Rule (Tránh Lỗi 404)
+
+### Vấn đề 1: Cạm bẫy của đường dẫn tương đối (`/api/...`) và ảo tưởng từ Vite Dev Server Proxy
+* **Triệu chứng**:
+  * Ở local, gọi API từ các trang Admin (`/admin/offers`, `/admin/products`,...) chạy bình thường.
+  * Khi deploy lên Production (Vercel / Azure), trang chủ gọi được API (`https://touragent-api.../api/v1/tours`), nhưng trang Admin lại gọi vào `https://<domain-frontend>/api/v1/offers` và trả về mã 304 / nội dung HTML của `index.html`.
+* **Nguyên nhân cốt lõi**:
+  * Các trang Admin gọi trực tiếp `fetch('/api/v1/offers')` bằng đường dẫn tương đối.
+  * Ở local, Vite dev server có cấu hình `server.proxy` tự động bắt các request bắt đầu bằng `/api` và bí mật chuyển tiếp tới `http://localhost:5132`. Lập trình viên tưởng rằng code đã chuẩn, nhưng thực chất đang phụ thuộc vào "cái nạng" của Vite proxy.
+  * Ở Production (static file hosting), không còn Node.js hay Vite proxy nữa. Trình duyệt gửi request `/api/v1/offers` lên chính Web Server của frontend.
+  * Thậm chí ở trang `AdminOrdersPage`, code bị hardcode cứng `const API_BASE_URL = 'http://localhost:5132'`, khiến người dùng bên ngoài không thể kết nối tới server.
+* **Giải pháp chuẩn hóa (Single Source of Truth - SSOT)**:
+  * Không dùng URL tương đối hay hardcode trong từng component.
+  * Mọi request bắt buộc phải đi qua một client tập trung duy nhất (`src/api/client.ts` -> `apiFetch()` / `fetchJson()`), tự động gắn `VITE_API_BASE_URL` động theo môi trường (Local, Vercel, Azure Container Apps, AWS,...).
+
+---
+
+### Vấn đề 2: Tại sao route `/admin/products` tồn tại nhưng Web Server lại báo 404 nếu không có Rewrite về `index.html`?
+* **Câu hỏi lớn**: *Route `/admin/products` trong code React vẫn chạy bình thường, tại sao cần cấu hình rewrite về `index.html`? Đây có phải là cách "chữa cháy" không?*
+* **Bản chất kiến trúc**:
+  * Đây **KHÔNG PHẢI** là cách chữa cháy. Đây là **nguyên lý vận hành nền tảng bắt buộc của mọi ứng dụng Single Page Application (SPA)** (React, Vue, Angular) trên toàn thế giới (từ Nginx `try_files`, Apache, Azure Static Web Apps đến Vercel).
+* **Phân biệt Server-Side Routing vs. Client-Side Routing**:
+  1. **Trong ổ cứng của Web Server (`dist/`)**:
+     * Thư mục `dist/` sau khi build chỉ gồm: `index.html`, `assets/index.js`, `assets/index.css`.
+     * **Hoàn toàn KHÔNG TỒN TẠI** thư mục vật lý nào tên là `/admin/` hay file `/admin/products.html` trên máy chủ!
+  2. **Route `/admin/products` thực sự nằm ở đâu?**:
+     * Nó **chỉ tồn tại trong bộ nhớ RAM của trình duyệt**, do thư viện JavaScript `React Router` quản lý (`<Route path="/admin/products" ... />`).
+  3. **Hai kịch bản duyệt web**:
+     * **Kịch bản 1 (Chuyển trang nội bộ)**: Khách vào trang chủ `/` (tải `index.html` và JS vào RAM). Khi click vào menu "Quản trị", React Router dùng HTML5 History API (`window.history.pushState`) đổi URL trên thanh địa chỉ thành `/admin/products` mà **không hề gửi request lên web server**. React tự tráo đổi giao diện trong RAM nên ta thấy trang đổi mượt mà.
+     * **Kịch bản 2 (Gõ trực tiếp URL hoặc nhấn F5 Refresh)**: Trình duyệt gửi một request HTTP GET nguyên thủy lên Web Server: *"Cho tôi xin file tại đường dẫn `/admin/products`"*. Web Server tìm trên đĩa cứng không thấy file nào tên là `admin/products` nên theo chuẩn HTTP nó buộc phải trả về: **`404 Not Found`**!
+  4. **Quy tắc Rewrite giải quyết bài toán này như thế nào?**:
+     * Quy tắc `rewrite: "/(.*)" -> "/index.html"` chỉ thị cho Web Server: *"Nếu khách yêu cầu bất kỳ đường dẫn nào mà không phải là file tĩnh cụ thể, hãy cứ trả file `index.html` về cho trình duyệt"*.
+     * Ngay khi trình duyệt nhận được `index.html`, nó sẽ khởi động mã JavaScript của React.
+     * React Router khởi động trong RAM, đọc thanh địa chỉ (đang là `/admin/products`), và lập tức hiển thị đúng giao diện Admin Products cho người dùng!
+
+---
+
+## 5. Tổng Kết Mindset Vận Hành Cho Kỹ Sư DevOps / Fullstack
 
 1. **Automation Over Manual**: Tránh phụ thuộc vào các bước bấm chuột trên giao diện Portal vì UI wizard thường phát sinh xung đột quyền giữa các tầng tài nguyên. Hãy luôn chuẩn hóa vào file script bash idempotent (`create-container-app.sh`).
 2. **Đọc Log Từ Dưới Lên**: Khi gặp lỗi `App port is not ready`, đó chỉ là triệu chứng bên ngoài của Azure. Nguyên nhân gốc rễ luôn nằm ở dòng `crit: Microsoft.AspNetCore.Hosting.Diagnostics` trong console log của container.
 3. **Bảo Mật CORS Không Bao Giờ Đi Tắt**: Wildcard `*` tiện cho dev local nhưng là cạm bẫy chết người khi kết hợp với xác thực người dùng trên Cloud.
+4. **Hiểu Bản Chất SPA**: Client-side routing chỉ tồn tại trong JavaScript runtime. Web Server luôn cần cơ chế fallback/rewrite về `index.html` để giao quyền định tuyến lại cho React Router.

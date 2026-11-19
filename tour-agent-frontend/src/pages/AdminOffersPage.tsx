@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../api/client';
 
 /**
  * Định nghĩa cấu trúc dữ liệu cho một hạng mục trong Bảng xếp chồng giá trị (Value Stack).
@@ -120,7 +121,7 @@ export const AdminOffersPage: React.FC = () => {
   const fetchOffers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/offers');
+      const res = await apiFetch('/api/v1/offers');
       const json = await res.json();
       if (json.success && json.data) {
         setOffers(json.data);
@@ -137,7 +138,7 @@ export const AdminOffersPage: React.FC = () => {
    */
   const fetchTravels = async () => {
     try {
-      const res = await fetch('/api/v1/travels');
+      const res = await apiFetch('/api/v1/travels');
       const json = await res.json();
       if (json.success && json.data) {
         setTravels(json.data);
@@ -331,7 +332,7 @@ export const AdminOffersPage: React.FC = () => {
       const url = editingId ? `/api/v1/offers/${editingId}` : '/api/v1/offers';
       const method = editingId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify(payload),
@@ -357,7 +358,7 @@ export const AdminOffersPage: React.FC = () => {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa gói Offer "${title}" không?`)) return;
 
     try {
-      const res = await fetch(`/api/v1/offers/${id}`, {
+      const res = await apiFetch(`/api/v1/offers/${id}`, {
         method: 'DELETE',
         headers: { Accept: 'application/json' },
       });
@@ -386,7 +387,7 @@ export const AdminOffersPage: React.FC = () => {
     setIsAgentTyping(true);
 
     try {
-      const res = await fetch('/api/v1/agent/chat', {
+      const res = await apiFetch('/api/v1/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userText, stream: false }),

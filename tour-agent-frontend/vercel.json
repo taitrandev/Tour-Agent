@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://touragent-api.gentlecliff-410d3b6b.southeastasia.azurecontainerapps.io/api/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../api/client';
 
 /**
  * Định nghĩa cấu trúc dữ liệu Bot Account nhận về từ Telegram API (getMe).
@@ -83,7 +84,7 @@ export const AdminTelegramPage: React.FC = () => {
   const loadTelegramStatus = useCallback(async () => {
     setLoadingStatus(true);
     try {
-      const response = await fetch('/api/v1/agent/telegram/status');
+      const response = await apiFetch('/api/v1/agent/telegram/status');
       const data: TelegramConfigStatus = await response.json();
       setConfig(data);
 
@@ -139,7 +140,7 @@ export const AdminTelegramPage: React.FC = () => {
 
     setSavingToken(true);
     try {
-      const res = await fetch('/api/v1/agent/telegram/save-token', {
+      const res = await apiFetch('/api/v1/agent/telegram/save-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ bot_token: trimmed }),
@@ -171,7 +172,7 @@ export const AdminTelegramPage: React.FC = () => {
 
     setActivatingWebhook(true);
     try {
-      const res = await fetch('/api/v1/agent/telegram/set-webhook', {
+      const res = await apiFetch('/api/v1/agent/telegram/set-webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ webhook_url: trimmed }),
@@ -199,7 +200,7 @@ export const AdminTelegramPage: React.FC = () => {
 
     setRemovingWebhook(true);
     try {
-      const res = await fetch('/api/v1/agent/telegram/delete-webhook', {
+      const res = await apiFetch('/api/v1/agent/telegram/delete-webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       });
@@ -229,7 +230,7 @@ export const AdminTelegramPage: React.FC = () => {
 
     setSavingAdminChatId(true);
     try {
-      const res = await fetch('/api/v1/agent/telegram/save-admin-chat-id', {
+      const res = await apiFetch('/api/v1/agent/telegram/save-admin-chat-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ admin_chat_id: trimmed }),
@@ -258,7 +259,7 @@ export const AdminTelegramPage: React.FC = () => {
     setEscalationResult(null);
 
     try {
-      const res = await fetch('/api/v1/agent/telegram/test-escalation', {
+      const res = await apiFetch('/api/v1/agent/telegram/test-escalation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ admin_chat_id: trimmed }),
@@ -296,7 +297,7 @@ export const AdminTelegramPage: React.FC = () => {
     setTestMessageResult(null);
 
     try {
-      const res = await fetch('/api/v1/agent/telegram/test-message', {
+      const res = await apiFetch('/api/v1/agent/telegram/test-message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ chat_id: trimmed }),

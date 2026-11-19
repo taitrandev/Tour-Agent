@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../api/client';
 
 /**
  * Interface biểu diễn thông tin khách hàng gắn với đơn hàng.
@@ -74,8 +75,6 @@ interface OrderMetrics {
   final_payment_pending: number;
   t3_departure: number;
 }
-
-const API_BASE_URL = 'http://localhost:5132';
 
 /**
  * Trang Quản Trị Đơn Tour & Tiến Trình Visa (Order & Visa Pipeline Desk).
@@ -163,7 +162,7 @@ export const AdminOrdersPage: React.FC = () => {
       if (searchKeyword.trim()) params.append('search', searchKeyword.trim());
       params.append('per_page', '50');
 
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/orders?${params.toString()}`);
+      const res = await apiFetch(`/api/v1/admin/orders?${params.toString()}`);
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       const json = await res.json();
       if (json.success) {
@@ -229,7 +228,7 @@ export const AdminOrdersPage: React.FC = () => {
     if (!depositOrder) return;
     setSubmittingDeposit(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/${depositOrder.id}/deposit`, {
+      const res = await apiFetch(`/api/v1/admin/orders/${depositOrder.id}/deposit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payment_account_note: depositAccountNote }),
@@ -270,7 +269,7 @@ export const AdminOrdersPage: React.FC = () => {
     if (!visaOrder) return;
     setSubmittingVisa(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/${visaOrder.id}/visa`, {
+      const res = await apiFetch(`/api/v1/admin/orders/${visaOrder.id}/visa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -315,7 +314,7 @@ export const AdminOrdersPage: React.FC = () => {
     if (!finalPaymentOrder) return;
     setSubmittingFinalPayment(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/${finalPaymentOrder.id}/final-payment`, {
+      const res = await apiFetch(`/api/v1/admin/orders/${finalPaymentOrder.id}/final-payment`, {
         method: 'POST',
       });
       const json = await res.json();
@@ -353,7 +352,7 @@ export const AdminOrdersPage: React.FC = () => {
     if (!t3Order) return;
     setSubmittingT3(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/${t3Order.id}/t3-notified`, {
+      const res = await apiFetch(`/api/v1/admin/orders/${t3Order.id}/t3-notified`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -396,7 +395,7 @@ export const AdminOrdersPage: React.FC = () => {
   const handleDeleteOrder = async (order: TourOrderItem) => {
     if (!window.confirm(`Bạn có chắc muốn xóa đơn hàng #${order.order_code} không?`)) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/${order.id}`, {
+      const res = await apiFetch(`/api/v1/admin/orders/${order.id}`, {
         method: 'DELETE',
       });
       const json = await res.json();
@@ -458,15 +457,15 @@ export const AdminOrdersPage: React.FC = () => {
         notes: formNotes,
       };
 
-      let url = `${API_BASE_URL}/api/v1/admin/orders`;
+      let url = '/api/v1/admin/orders';
       let method = 'POST';
 
       if (formIsEditing && editingOrderId) {
-        url = `${API_BASE_URL}/api/v1/admin/orders/${editingOrderId}`;
+        url = `/api/v1/admin/orders/${editingOrderId}`;
         method = 'PUT';
       }
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

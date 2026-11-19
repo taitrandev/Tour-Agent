@@ -1,7 +1,47 @@
 /**
- * Cấu hình đường dẫn gốc của Backend API .NET 10.
+ * Chuẩn hóa base URL: bỏ dấu / ở cuối nếu có.
+ * Mặc định: VITE_API_BASE_URL nếu có, fallback về 'http://localhost:5132/api/v1'.
  */
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5132/api/v1';
+const rawBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5132/api/v1').replace(/\/+$/, '');
+
+// Đảm bảo baseUrl luôn kết thúc bằng /api/v1
+export const API_BASE_URL = rawBaseUrl.endsWith('/api/v1')
+  ? rawBaseUrl
+  : `${rawBaseUrl}/api/v1`;
+
+/**
+ * Xây dựng URL API hoàn chỉnh từ một endpoint bất kỳ.
+ * Tự động gắn API_BASE_URL và chống trùng lặp '/api/v1'.
+ * Hỗ trợ cả:
+ *   buildApiUrl('/offers')            -> 'https://.../api/v1/offers'
+ *   buildApiUrl('/api/v1/offers')     -> 'https://.../api/v1/offers'
+ *   buildApiUrl('api/v1/offers')      -> 'https://.../api/v1/offers'
+ */
+export function buildApiUrl(endpoint: string): string {
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    return endpoint;
+  }
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  if (cleanEndpoint.startsWith('/api/v1/')) {
+    const subPath = cleanEndpoint.substring('/api/v1'.length);
+    return `${API_BASE_URL}${subPath}`;
+  }
+  if (cleanEndpoint === '/api/v1') {
+    return API_BASE_URL;
+  }
+  return `${API_BASE_URL}${cleanEndpoint}`;
+}
+
+/**
+ * Wrapper cho fetch chuẩn: Tự động phân giải URL đầy đủ thông qua buildApiUrl.
+ * @param endpoint Endpoint tương đối (vd: '/api/v1/offers' hoặc '/offers')
+ * @param options Cấu hình RequestInit
+ * @returns Response
+ */
+export async function apiFetch(endpoint: string, options?: RequestInit): Promise<Response> {
+  const url = buildApiUrl(endpoint);
+  return fetch(url, options);
+}
 
 /**
  * Thực hiện yêu cầu HTTP fetch với xử lý lỗi chuẩn hóa.
@@ -10,7 +50,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localho
  * @returns Dữ liệu JSON kiểu T
  */
 export async function fetchJson<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = buildApiUrl(endpoint);
   const response = await fetch(url, {
     ...options,
     headers: {
@@ -47,7 +87,7 @@ export async function streamSSE<T>(
   onEvent: (event: T) => void,
   signal?: AbortSignal
 ): Promise<void> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = buildApiUrl(endpoint);
   const response = await fetch(url, {
     method: 'POST',
     headers: {
