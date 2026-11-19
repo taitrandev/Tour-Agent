@@ -81,10 +81,19 @@ những lưu ý:
 
 ##### hiểu về OIDC, Managed Identity, Entra ID, RBAC
 
+##### Bắt đầu tạo resource
+
 * Bắt đầu tạo Managed Identity
 * vào Identity tạo tiếp Federated Credential
 * gán quyền RBAC (acrPush trên ACR và Container App Contributor trên Resource Group)
 * lấy ClientID, TenantID, SubscriptionID, acr name điền vào Github Repository variable
+* làm theo create-oidc-managed-identity.md là đc
+
+## Giai đoạn 2: CD
+
+* migrate db lên supabase trước
+* tạo azure container app (create-azure-container-app.md)
+* 
 
 ---
 

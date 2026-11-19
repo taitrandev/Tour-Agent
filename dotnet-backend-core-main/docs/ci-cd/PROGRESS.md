@@ -18,4 +18,5 @@
 | **8** | Phase 2 Step 1: Di chuyển cơ sở dữ liệu lên Cloud PostgreSQL (Supabase)                   |   ✅ DONE   | [ADR-0004](adr/0004-cd-azure-container-apps-and-supabase.md) Chuỗi kết nối SSL, auto-seed |
 | **9** | Phase 2 Step 2: Soạn thảo tài liệu Day-0 Provisioning Azure Container Apps                |   ✅ DONE   | Hướng dẫn chi tiết Portal & CLI tại [create-azure-container-app.md](create-azure-container-app.md) |
 | **10**| Phase 2 Step 3: Cập nhật CD Pipeline trong `.github/workflows/backend-ci.yml`             |   ✅ DONE   | Thêm job `deploy` cập nhật image SHA, Smoke test `/health/ready` với `--retry-all-errors` |
-| **11**| Phase 2 Step 4: Khởi tạo Azure Container App trên Azure và chạy thử CD Pipeline           | ⏳ IN PROGRESS | Chờ tạo app và nạp biến `ACA_NAME`, `AZURE_RG` vào GitHub |
+| **11**| Phase 2 Step 4: Khởi tạo Azure Container App bằng script & Đúc kết bài học kinh nghiệm    |   ✅ DONE   | App chạy thông suốt, đúc kết bài học tại [lesson-learned.md](lesson-learned.md) |
+| **12**| Phase 2 Step 5: Nạp biến GitHub (`ACA_NAME`, `AZURE_RG`) và chạy thử CD Pipeline tự động  | ⏳ IN PROGRESS | Kiểm thử deploy tự động khi push code lên `main` |

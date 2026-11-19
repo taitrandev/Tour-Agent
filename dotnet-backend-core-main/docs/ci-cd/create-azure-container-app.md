@@ -30,6 +30,7 @@ Tài liệu này hướng dẫn chi tiết từng bước tạo và cấu hình 
 ```
 
 ### Tại sao cần Day-0 Provisioning trước khi chạy CD?
+
 - Lệnh `az containerapp update` trong CD pipeline **chỉ làm nhiệm vụ cập nhật tag image mới** (`az containerapp update --image ...`). Lệnh này sẽ báo lỗi nếu Container App chưa tồn tại.
 - Bước Day-0 này chỉ cần thực hiện **1 LẦN DUY NHẤT** để dựng bộ khung hạ tầng ban đầu.
 
@@ -39,15 +40,15 @@ Tài liệu này hướng dẫn chi tiết từng bước tạo và cấu hình 
 
 Hãy kiểm tra các thông số sau của dự án trước khi tạo:
 
-| Thông số | Giá trị khuyến nghị | Ý nghĩa |
-| :--- | :--- | :--- |
-| **Resource Group** | `rg-touragent-prod` | Chứa toàn bộ tài nguyên của TourAgent |
-| **Region** | `Southeast Asia` (hoặc East Asia) | Cùng region với ACR và gần Supabase Singapore |
-| **Container Apps Environment** | `cae-touragent-prod` | Môi trường cụm container ảo |
-| **Container App Name** | `touragent-api` | Tên dịch vụ backend |
-| **ACR Name** | `touragentacr` | Registry đã chứa image `touragent-api` |
-| **Target Port** | `8080` | Port non-root cấu hình trong `Dockerfile` |
-| **CPU / Memory** | `0.25 vCPU` / `0.5 GiB` | Gói tối thiểu (đủ cho MVP, chi phí gần như 0đ) |
+| Thông số                           | Giá trị khuyến nghị              | Ý nghĩa                                               |
+| :----------------------------------- | :----------------------------------- | :------------------------------------------------------ |
+| **Resource Group**             | `rg-touragent-prod`                | Chứa toàn bộ tài nguyên của TourAgent             |
+| **Region**                     | `Southeast Asia` (hoặc East Asia) | Cùng region với ACR và gần Supabase Singapore       |
+| **Container Apps Environment** | `cae-touragent-prod`               | Môi trường cụm container ảo                        |
+| **Container App Name**         | `touragent-api`                    | Tên dịch vụ backend                                  |
+| **ACR Name**                   | `touragentacr`                     | Registry đã chứa image `touragent-api`             |
+| **Target Port**                | `8080`                             | Port non-root cấu hình trong `Dockerfile`           |
+| **CPU / Memory**               | `0.25 vCPU` / `0.5 GiB`          | Gói tối thiểu (đủ cho MVP, chi phí gần như 0đ) |
 
 ---
 
@@ -60,11 +61,13 @@ Bạn có thể làm theo **Cách A (Giao diện Azure Portal trực quan)** ho�
 ### Cách A: Thao Tác Trực Quan Trên Azure Portal
 
 #### Bước A1: Truy cập trang tạo Container App
+
 1. Đăng nhập [Azure Portal](https://portal.azure.com/).
 2. Trên thanh tìm kiếm, gõ `Container Apps` ➔ bấm vào dịch vụ **Container Apps**.
 3. Bấm **+ Create** ➔ chọn **Container App**.
 
 #### Bước A2: Cấu hình Tab "Basics"
+
 - **Subscription**: Chọn Subscription của bạn.
 - **Resource group**: Chọn `rg-touragent-prod` (nơi chứa ACR).
 - **Container app name**: Nhập `touragent-api`.
@@ -77,6 +80,7 @@ Bạn có thể làm theo **Cách A (Giao diện Azure Portal trực quan)** ho�
 - Bấm **Next: Container >**.
 
 #### Bước A3: Cấu hình Tab "Container"
+
 1. **Uncheck** ô *Use quickstart image* (để dùng image của riêng ta).
 2. **Name**: `touragent-api`.
 3. **Image source**: Chọn **Azure Container Registry**.
@@ -88,22 +92,25 @@ Bạn có thể làm theo **Cách A (Giao diện Azure Portal trực quan)** ho�
 5. **Container resource allocation**:
    - CPU: `0.25 vCPU`.
    - Memory: `0.5 Gi`.
-5. **Environment variables (Biến môi trường)**:
+6. **Environment variables (Biến môi trường)**:
    Bấm **+ Add** thêm các biến sau:
    - `ConnectionStrings__DefaultConnection` (Manual entry) = `<Chuỗi Supabase PostgreSQL của bạn>`
    - `DeepSeek__ApiKey` (Manual entry / Secret) = `<API Key DeepSeek của bạn>`
    - `ASPNETCORE_ENVIRONMENT` (Manual entry) = `Production`
    - `CORS_ALLOWED_ORIGINS` (Manual entry) = `*` (hoặc link frontend sau này)
-6. Bấm **Next: Ingress >**.
+7. Bấm **Next: Ingress >**.
 
 #### Bước A4: Cấu hình Tab "Ingress" (Cực kỳ quan trọng)
+
 1. **Ingress**: Tick chọn **Enabled**.
 2. **Ingress traffic**: Chọn **Accepting traffic from anywhere** (External HTTP/HTTPS công khai).
 3. **Target port**: Nhập chính xác **`8080`** (vì container .NET 10 chạy non-root ở port 8080).
 4. Bấm **Review + create** ➔ Bấm **Create** (chờ khoảng 1-2 phút).
 
 #### Bước A5: Cấu hình Health Probes (Sau khi App tạo xong)
+
 Để Azure Container Apps tự động nhận diện container khỏe mạnh trước khi định tuyến traffic (Zero-Downtime):
+
 1. Vào Container App `touragent-api` vừa tạo.
 2. Menu trái mục **Application** ➔ chọn **Containers**.
 3. Bấm vào container `touragent-api` ➔ chọn tab **Health probes**.
@@ -126,6 +133,7 @@ Bạn có thể làm theo **Cách A (Giao diện Azure Portal trực quan)** ho�
 6. Bấm **Save**.
 
 #### Bước A6: Gán Quyền AcrPull (Nếu dùng Managed Identity riêng)
+
 1. Mở trang Container App ➔ Menu **Settings** ➔ **Identity**.
 2. Tab **User assigned**: Bấm **+ Add** ➔ chọn `id-github-touragent-deploy` (hoặc identity bạn dùng) ➔ **Add**.
 3. Đảm bảo identity này đã có quyền `AcrPull` trên ACR `touragentacr`.
@@ -198,9 +206,9 @@ az containerapp create \
 👉 Truy cập: `https://github.com/taitrandev/Tour-Agent/settings/variables/actions`
 *(Settings ➔ Secrets and variables ➔ Actions ➔ Tab **Variables**)*
 
-| Tên Variable | Giá trị mẫu | Ý nghĩa |
-| :--- | :--- | :--- |
-| **`ACA_NAME`** | `touragent-api` | Tên của Azure Container App |
+| Tên Variable          | Giá trị mẫu        | Ý nghĩa                                    |
+| :--------------------- | :-------------------- | :------------------------------------------- |
+| **`ACA_NAME`** | `touragent-api`     | Tên của Azure Container App                |
 | **`AZURE_RG`** | `rg-touragent-prod` | Tên của Resource Group chứa Container App |
 
 *(Các biến `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `ACR_NAME` đã có từ Phase 1).*
@@ -214,4 +222,3 @@ az containerapp create \
    - `https://<fqdn>/health/live` ➔ Trả về: `{"status":"Healthy"}` (Process ASP.NET Core sống).
    - `https://<fqdn>/health/ready` ➔ Trả về: `{"status":"Healthy"}` (PostgreSQL Supabase kết nối thành công 100%!).
    - `https://<fqdn>/api/offers` ➔ Trả về danh sách offer mẫu đã được Seeder tự động nạp vào Supabase!
-
