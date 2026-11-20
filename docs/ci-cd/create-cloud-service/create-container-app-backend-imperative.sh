@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Script: create-container-app.sh
-# Mục đích: Khởi tạo (Day-0) hoặc Cập nhật TourAgent API lên Azure Container Apps
-# Tiêu chuẩn: 80/20 Cloud-Ready, 100% Cấu hình YAML (Probes + Env Vars + Identity)
+# Script: create-container-app-backend-imperative.sh
+# Mục đích: Khởi tạo hoặc Cập nhật TourAgent Backend API lên Azure Container Apps
+# Phong cách: Hybrid Modular (Micro-YAML cho Probes/Env + Imperative CLI cho Identity/Ingress/Scale)
 # ==============================================================================
 set -euo pipefail
 
@@ -11,27 +11,28 @@ RG="rg-touragent-prod"
 LOCATION="southeastasia"
 ACR_NAME="touragentacr"
 APP_NAME="touragent-api"
+REPOSITORY_NAME="touragent-api"
 ENV_NAME="cae-touragent-prod"
 IDENTITY_NAME="id-github-touragent-deploy"
 TARGET_PORT=8080
 
 # Các biến bảo mật & kết nối ứng dụng
-DB_CONN=""
-DEEPSEEK_KEY=""
-TELEGRAM_TOKEN=""
-ALLOWED_CORS="https://toidicopydao.io.vn"
+DB_CONN="Host=aws-1-ap-northeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.wdsfssenfbesfmevifkf;Password=Taitrantien123456;SSL Mode=Require;Trust Server Certificate=true"
+DEEPSEEK_KEY="sk-92e03f3300c7429389be0a047169e06a"
+TELEGRAM_TOKEN="8195824138:AAENOM5ujl4bzs9ceixW7wIggDFY8OHekAM"
+ALLOWED_CORS="https://touragent-frontend.gentlecliff-410d3b6b.southeastasia.azurecontainerapps.io"
 
-echo "==> [1/4] Thu thập thông tin định danh từ Azure..."
+echo "==> [1/5] Thu thập thông tin định danh từ Azure..."
 IDENTITY_ID=$(az identity show -g "$RG" -n "$IDENTITY_NAME" --query id -o tsv)
 IDENTITY_PRINCIPAL=$(az identity show -g "$RG" -n "$IDENTITY_NAME" --query principalId -o tsv)
 ACR_ID=$(az acr show -n "$ACR_NAME" -g "$RG" --query id -o tsv)
 
 # --- 2. ĐẢM BẢO CONTAINER APPS ENVIRONMENT TỒN TẠI ---
 if ! az containerapp env show -n "$ENV_NAME" -g "$RG" &>/dev/null; then
-  echo "==> [2/4] Tạo mới Container App Environment: $ENV_NAME..."
+  echo "==> [2/5] Tạo mới Container App Environment: $ENV_NAME..."
   az containerapp env create -n "$ENV_NAME" -g "$RG" -l "$LOCATION" --logs-destination none
 else
-  echo "==> [2/4] Container App Environment [$ENV_NAME] đã sẵn sàng."
+  echo "==> [2/5] Container App Environment [$ENV_NAME] đã sẵn sàng."
 fi
 ENV_ID=$(az containerapp env show -n "$ENV_NAME" -g "$RG" --query id -o tsv)
 
@@ -43,25 +44,30 @@ ASSIGNMENT_EXISTS=$(az role assignment list \
   --query "[0].id" -o tsv 2>/dev/null || true)
 
 if [ -z "$ASSIGNMENT_EXISTS" ]; then
-  echo "==> [3/4] Gán quyền AcrPull cho Managed Identity..."
+  echo "==> [3/5] Gán quyền AcrPull cho Managed Identity..."
   az role assignment create \
     --assignee-object-id "$IDENTITY_PRINCIPAL" \
     --assignee-principal-type ServicePrincipal \
     --role AcrPull \
     --scope "$ACR_ID"
 else
-  echo "==> [3/4] Quyền AcrPull đã tồn tại trên ACR."
+  echo "==> [3/5] Quyền AcrPull đã tồn tại trên ACR."
 fi
 
-# --- 4. TỔNG HỢP CẤU HÌNH VÀO FILE YAML (ENV VARS + HEALTH PROBES HTTP) ---
-echo "==> [4/4] Khởi tạo / Cập nhật Container App bằng cấu hình YAML chuẩn..."
-LATEST_TAG=$(az acr repository show-tags -n "$ACR_NAME" --repository touragent-api --orderby time_desc --top 1 -o tsv)
-IMAGE_URI="${ACR_NAME}.azurecr.io/touragent-api:${LATEST_TAG}"
-echo "    -> Image tag: $IMAGE_URI"
+# --- 4. ÁP DỤNG MICRO-YAML (CHỈ CHỨA CONTAINER, ENV VARS VÀ PROBES) ---
+echo "==> [4/5] Áp dụng cấu hình Container & HTTP Health Probes..."
+LATEST_TAG=$(az acr repository show-tags -n "$ACR_NAME" --repository "$REPOSITORY_NAME" --orderby time_desc --top 1 -o tsv 2>/dev/null || true)
 
-# Sinh file YAML cấu hình hoàn chỉnh: Giải quyết triệt để vấn đề ký tự đặc biệt trong Env Vars
-# và cấu hình chính xác HTTP Probes (/health/live, /health/ready) ngay trong 1 bước duy nhất!
-cat << EOF > app-config.yaml
+if [ -n "$LATEST_TAG" ]; then
+  IMAGE_URI="${ACR_NAME}.azurecr.io/${REPOSITORY_NAME}:${LATEST_TAG}"
+  echo "    -> Image tag: $IMAGE_URI"
+else
+  IMAGE_URI="mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+  echo "    -> Dùng image tạm: $IMAGE_URI"
+fi
+
+# File Micro-YAML: Chứa Container Template + Identity & Registry để Azure có chìa khóa kéo image từ ACR lúc khởi tạo
+cat << EOF > backend-container.yaml
 location: ${LOCATION}
 name: ${APP_NAME}
 identity:
@@ -72,11 +78,6 @@ properties:
   environmentId: ${ENV_ID}
   configuration:
     activeRevisionsMode: Single
-    ingress:
-      external: true
-      targetPort: ${TARGET_PORT}
-      transport: auto
-      allowInsecure: false
     registries:
       - server: ${ACR_NAME}.azurecr.io
         identity: ${IDENTITY_ID}
@@ -117,25 +118,50 @@ properties:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
-    scale:
-      minReplicas: 0
-      maxReplicas: 1
 EOF
 
-# Triển khai cấu hình bằng lệnh CLI
 if ! az containerapp show -n "$APP_NAME" -g "$RG" &>/dev/null; then
-  echo "    -> Đang TẠO MỚI Container App..."
-  az containerapp create --name "$APP_NAME" --resource-group "$RG" --environment "$ENV_NAME" --yaml app-config.yaml
+  echo "    -> Đang TẠO MỚI Container App [${APP_NAME}]..."
+  az containerapp create --name "$APP_NAME" --resource-group "$RG" --yaml backend-container.yaml
 else
-  echo "    -> Đang CẬP NHẬT Container App (đồng bộ Env Vars & Health Probes HTTP)..."
-  az containerapp update --name "$APP_NAME" --resource-group "$RG" --yaml app-config.yaml
+  echo "    -> Đang CẬP NHẬT Container App [${APP_NAME}]..."
+  az containerapp update --name "$APP_NAME" --resource-group "$RG" --yaml backend-container.yaml
 fi
 
-# Dọn dẹp file tạm
-rm -f app-config.yaml
+rm -f backend-container.yaml
+
+# --- 5. ĐỒNG BỘ CẤU HÌNH HẠ TẦNG BẰNG CÁC LỆNH IMPERATIVE CLI CHUYÊN BIỆT ---
+echo "==> [5/5] Cấu hình Mạng (Ingress), Auto-Scaling và Định danh ACR..."
+
+echo "    -> 1. Cấu hình Ingress External Port ${TARGET_PORT}..."
+az containerapp ingress enable \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --type external \
+  --target-port "$TARGET_PORT"
+
+echo "    -> 2. Cấu hình Scaling (Min: 0, Max: 1)..."
+az containerapp update \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --min-replicas 0 \
+  --max-replicas 1
+
+echo "    -> 3. Gán User-Assigned Managed Identity..."
+az containerapp identity assign \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --user-assigned "$IDENTITY_ID"
+
+echo "    -> 4. Cấu hình xác thực ACR với Managed Identity..."
+az containerapp registry set \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --server "${ACR_NAME}.azurecr.io" \
+  --identity "$IDENTITY_ID"
 
 echo "=============================================================================="
-echo "  HOÀN TẤT THÀNH CÔNG! ĐƯỜNG DẪN TRUY CẬP (FQDN):"
+echo "  HOÀN TẤT THÀNH CÔNG! ĐƯỜNG DẪN TRUY CẬP BACKEND API (FQDN):"
 FQDN=$(az containerapp show -n "$APP_NAME" -g "$RG" --query "properties.configuration.ingress.fqdn" -o tsv)
 echo "  https://${FQDN}"
 echo "=============================================================================="
