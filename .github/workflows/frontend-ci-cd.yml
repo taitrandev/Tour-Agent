@@ -106,30 +106,8 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Configure Container App Registry and Identity
-        run: |
-          echo "==> Lấy Resource ID của Managed Identity..."
-          IDENTITY_ID=$(az identity show \
-            --name id-github-touragent-deploy \
-            --resource-group ${{ vars.AZURE_RG }} \
-            --query id -o tsv)
-
-          echo "==> Gán User-Assigned Managed Identity cho Container App..."
-          az containerapp identity assign \
-            --name touragent-frontend \
-            --resource-group ${{ vars.AZURE_RG }} \
-            --user-assigned "$IDENTITY_ID"
-
-          echo "==> Cấu hình xác thực ACR bằng Managed Identity..."
-          az containerapp registry set \
-            --name touragent-frontend \
-            --resource-group ${{ vars.AZURE_RG }} \
-            --server ${{ vars.ACR_NAME }}.azurecr.io \
-            --identity "$IDENTITY_ID"
-
       - name: Deploy Image to Azure Container Apps
         run: |
-          echo "==> Cập nhật Container App lên Image mới..."
           az containerapp update \
             --name touragent-frontend \
             --resource-group ${{ vars.AZURE_RG }} \

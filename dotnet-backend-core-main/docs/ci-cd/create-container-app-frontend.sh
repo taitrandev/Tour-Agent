@@ -127,6 +127,19 @@ fi
 # Dọn dẹp file YAML tạm
 rm -f frontend-config.yaml
 
+# Đảm bảo 100% Identity và Registry được liên kết tường minh (khắc phục điểm yếu update --yaml của Azure CLI)
+echo "==> [Bổ sung] Đảm bảo Managed Identity và Registry ACR được gán vào Container App..."
+az containerapp identity assign \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --user-assigned "$IDENTITY_ID"
+
+az containerapp registry set \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --server "${ACR_NAME}.azurecr.io" \
+  --identity "$IDENTITY_ID"
+
 echo "=============================================================================="
 echo "  HOÀN TẤT THÀNH CÔNG! ĐƯỜNG DẪN TRUY CẬP FRONTEND (FQDN):"
 FQDN=$(az containerapp show -n "$APP_NAME" -g "$RG" --query "properties.configuration.ingress.fqdn" -o tsv)
