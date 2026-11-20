@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
+import { AdminLayout } from '../components/admin/AdminLayout';
 
 interface EscalationTicket {
   id: number;
@@ -98,64 +99,20 @@ export const AdminEscalationsPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-black">
-      {/* Top Navigation Header */}
-      <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur px-6 flex items-center justify-between shrink-0 z-20">
-        <div className="flex items-center gap-4">
-          <Link
-            to="/admin"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition shadow-sm"
-          >
-            <span>← Dashboard Quản Trị</span>
-          </Link>
-
-          <div className="h-6 w-px bg-slate-800" />
-
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center font-bold text-white text-base shadow-lg shadow-amber-500/20">
-              🛎️
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-sm sm:text-base font-bold text-white tracking-tight">
-                  Bàn Quyết Định (Human-in-the-Loop)
-                </h1>
-                <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  Escalations Desk
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Tiếp nhận khách nóng (Hot Lead), duyệt chiết khấu và gọi điện tư vấn trực tiếp
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchTickets}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition"
-            title="Làm mới danh sách"
-          >
-            <span>🔄 Làm mới</span>
-          </button>
-          <Link
-            to="/admin/channels/telegram"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 text-xs font-semibold border border-sky-500/30 transition"
-          >
-            <span>📱 Kênh Telegram</span>
-          </Link>
-          <Link
-            to="/admin/conversations"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 text-xs font-semibold border border-purple-500/30 transition"
-          >
-            <span>💬 Giám Sát Chat</span>
-          </Link>
-        </div>
-      </header>
-
-      {/* Main Workspace */}
-      <main className="flex-1 overflow-y-auto p-6 max-w-7xl w-full mx-auto space-y-6">
+    <AdminLayout
+      subtitle="Bàn Quyết Định (Escalations Desk) • Tiếp nhận khách nóng, duyệt chiết khấu & gọi điện tư vấn"
+      icon="🛎️"
+      headerActions={
+        <button
+          onClick={fetchTickets}
+          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-[#222f49] transition flex items-center gap-1.5"
+          title="Làm mới danh sách"
+        >
+          <span>🔄 Làm mới</span>
+        </button>
+      }
+    >
+      <div className="p-6 space-y-6">
         {/* 4 KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-5 rounded-2xl bg-[#131a2b] border border-[#222f49] space-y-1 shadow-lg">
@@ -313,7 +270,7 @@ export const AdminEscalationsPage: React.FC = () => {
             </table>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </AdminLayout>
   );
 };

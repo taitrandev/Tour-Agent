@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
+import { AdminLayout } from '../components/admin/AdminLayout';
 
 /**
  * Định nghĩa cấu trúc dữ liệu cấu hình LLM Gateway nhận từ API.
@@ -256,69 +256,18 @@ export const AdminLlmSettingsPage: React.FC = () => {
   const availableModels = isClaudeActive ? CLAUDE_MODELS : DEEPSEEK_MODELS;
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-slate-950 text-slate-100">
-      {/* Top Navigation Header */}
-      <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur px-6 flex items-center justify-between shrink-0 z-20 sticky top-0">
-        <div className="flex items-center gap-4">
-          <Link
-            to="/admin"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition shadow-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            <span>← Dashboard Quản Trị</span>
-          </Link>
-
-          <div className="h-6 w-px bg-slate-800" />
-
-          <div className="flex items-center gap-3">
-            <div
-              className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white text-base shadow-lg transition-colors ${
-                isClaudeActive
-                  ? 'bg-gradient-to-tr from-amber-500 to-purple-600 shadow-purple-500/20'
-                  : 'bg-gradient-to-tr from-indigo-500 to-blue-600 shadow-indigo-500/20'
-              }`}
-            >
-              {isClaudeActive ? '✨' : '🧠'}
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-sm sm:text-base font-bold text-white tracking-tight">
-                  Cấu Hình Cổng LLM Gateway ({isClaudeActive ? 'Claude / Fable AI' : 'DeepSeek'})
-                </h1>
-                <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  Module LlmSetting
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Quản trị API Keys, lựa chọn Model suy luận, nhiệt độ và kiểm tra độ trễ mạng thực tế
-              </p>
-            </div>
-          </div>
+    <AdminLayout
+      title="AI Agent Travel — Quản Trị Hệ Thống"
+      subtitle={`Cấu Hình Cổng LLM Gateway (${isClaudeActive ? 'Claude / Fable AI' : 'DeepSeek'})`}
+      icon={isClaudeActive ? '✨' : '🧠'}
+      headerActions={
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-xs shrink-0">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-slate-300 font-medium">Server Driver:</span>
+          <span className="text-emerald-400 font-mono font-semibold uppercase">{config?.driver || 'deepseek'}</span>
         </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            to="/admin/escalations"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-semibold border border-amber-500/30 transition"
-          >
-            <span>🛎️ Bàn Quyết Định</span>
-          </Link>
-          <Link
-            to="/admin/channels/telegram"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 text-xs font-semibold border border-sky-500/30 transition"
-          >
-            <span>📱 Kênh Telegram</span>
-          </Link>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-slate-300 font-medium">Server Driver:</span>
-            <span className="text-emerald-400 font-mono font-semibold uppercase">{config?.driver || 'deepseek'}</span>
-          </div>
-        </div>
-      </header>
-
+      }
+    >
       {/* Main Workspace */}
       <main className="flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
         {/* Banner Thông Tin & Resilient Fallback */}
@@ -720,7 +669,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
           </div>
         </div>
       </main>
-    </div>
+    </AdminLayout>
   );
 };
 

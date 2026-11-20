@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
+import { AdminLayout } from '../components/admin/AdminLayout';
 
 /**
  * Định nghĩa cấu trúc dữ liệu Bot Account nhận về từ Telegram API (getMe).
@@ -327,82 +327,30 @@ export const AdminTelegramPage: React.FC = () => {
   const webhookData = config?.webhook_info?.result;
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-slate-950 text-slate-100 selection:bg-sky-500 selection:text-white">
-      {/* Top Navigation Header */}
-      <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur px-6 flex items-center justify-between shrink-0 z-20 sticky top-0">
-        <div className="flex items-center gap-4">
-          <Link
-            to="/admin/products"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition shadow-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            <span>← Dashboard Quản Trị</span>
-          </Link>
-
-          <div className="h-6 w-px bg-slate-800" />
-
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center font-bold text-white text-base shadow-lg shadow-sky-500/20">
-              📱
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-sm sm:text-base font-bold text-white tracking-tight">
-                  Kênh Telegram Bot & Thông Báo Quản Lý
-                </h1>
-                {loadingStatus ? (
-                  <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400">
-                    Đang kiểm tra...
-                  </span>
-                ) : isBotOnline ? (
-                  <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    ONLINE
-                  </span>
-                ) : (
-                  <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    Chưa Kết Nối
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-slate-400 hidden sm:block">
-                Kết nối bot tư vấn tour du lịch 24/7 và cấu hình Chat ID Quản lý nhận duyệt deal
-              </p>
-            </div>
-          </div>
+    <AdminLayout
+      title="AI Agent Travel — Quản Trị Hệ Thống"
+      subtitle="Kênh Telegram Bot & Thông Báo Quản Lý Tiếp Nhận Lead"
+      icon="📱"
+      headerActions={
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-xs shrink-0">
+          {loadingStatus ? (
+            <span className="text-slate-400 font-mono text-[11px]">Đang kiểm tra...</span>
+          ) : isBotOnline ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-emerald-400 font-mono font-bold text-[11px]">BOT ONLINE</span>
+            </>
+          ) : (
+            <>
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              <span className="text-amber-300 font-mono text-[11px]">CHƯA KẾT NỐI</span>
+            </>
+          )}
         </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            to="/admin/settings/llm"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 text-xs font-semibold border border-indigo-500/30 transition"
-          >
-            <span>🧠 Cấu Hình LLM</span>
-          </Link>
-          <Link
-            to="/admin/conversations"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 text-xs font-semibold border border-purple-500/30 transition"
-          >
-            <span>💬 Giám Sát Chat</span>
-          </Link>
-          <Link
-            to="/admin/escalations"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-semibold border border-amber-500/30 transition"
-          >
-            <span>🛎️ Bàn Quyết Định</span>
-          </Link>
-          <Link
-            to="/admin/offers"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-xs font-semibold border border-emerald-500/30 transition"
-          >
-            <span>🎁 Grand Slam Offers</span>
-          </Link>
-        </div>
-      </header>
-
+      }
+    >
       {/* Main Workspace */}
-      <main className="flex-1 overflow-y-auto p-6 max-w-6xl w-full mx-auto space-y-6">
+      <main className="flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
         {/* 3-Step Quick Guide Alert */}
         <div className="p-4 rounded-2xl bg-[#0e1526] border border-sky-500/30 space-y-2 text-xs">
           <div className="text-[11px] font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -711,7 +659,7 @@ export const AdminTelegramPage: React.FC = () => {
           </div>
         </div>
       </main>
-    </div>
+    </AdminLayout>
   );
 };
 

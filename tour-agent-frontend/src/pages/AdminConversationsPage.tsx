@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../api/client';
+import { AdminLayout } from '../components/admin/AdminLayout';
 
 /**
  * Định nghĩa cấu trúc dữ liệu một phiên hội thoại tóm tắt từ backend.
@@ -335,68 +336,11 @@ export const AdminConversationsPage: React.FC = () => {
   const factsCount = Array.isArray(agentState?.confirmed_facts) ? agentState.confirmed_facts.length : 0;
 
   return (
-    <div className="bg-[#0b0f19] text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-purple-500/30 selection:text-purple-200">
-      {/* Top Navigation Header */}
-      <header className="border-b border-[#1f2937] bg-[#111827]/80 backdrop-blur sticky top-0 z-40 px-4 sm:px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to="/admin/products" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 font-bold group-hover:scale-105 transition">
-              💬
-            </div>
-            <div>
-              <h1 className="text-sm font-bold text-white flex items-center gap-2">
-                Giám Sát Hội Thoại & Nhật Ký LLM
-                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                  Live Inspector
-                </span>
-              </h1>
-              <p className="text-[11px] text-slate-400 hidden sm:block">
-                Theo dõi chi tiết từng lượt chat, tool executions, prompt DeepSeek và chi phí token
-              </p>
-            </div>
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            to="/admin/products"
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700"
-          >
-            <span>✈️ Sản Phẩm Tour</span>
-          </Link>
-          <Link
-            to="/admin/offers"
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700"
-          >
-            <span>🎁 Grand Slam Offers</span>
-          </Link>
-          <Link
-            to="/admin/contacts"
-            className="px-3 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 text-xs font-semibold transition flex items-center gap-1.5 border border-teal-500/30"
-          >
-            <span>👥 Khách Hàng (CRM)</span>
-          </Link>
-          <Link
-            to="/admin/orders"
-            className="px-3 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 text-xs font-semibold transition flex items-center gap-1.5 border border-sky-500/30"
-          >
-            <span>📦 Đơn Tour & Visa</span>
-          </Link>
-          <Link
-            to="/admin/escalations"
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700"
-          >
-            <span>⚡ Bàn Quyết Định</span>
-          </Link>
-          <Link
-            to="/admin/channels/telegram"
-            className="px-3 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-xs font-semibold transition flex items-center gap-1.5 border border-sky-500/30"
-          >
-            <span>📱 Kênh Telegram</span>
-          </Link>
-        </div>
-      </header>
-
+    <AdminLayout
+      title="AI Agent Travel — Quản Trị Hệ Thống"
+      subtitle="Giám Sát Hội Thoại & Nhật Ký LLM (Live Observability Inspector)"
+      icon="💬"
+    >
       {/* Main Inspector Workspace (Two-Column Layout) */}
       <main className="flex-1 p-3 sm:p-4 flex flex-col md:flex-row gap-4 overflow-hidden min-h-[calc(100vh-60px)]">
         {/* Left Column: Conversations List & Filters */}
@@ -936,7 +880,7 @@ export const AdminConversationsPage: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

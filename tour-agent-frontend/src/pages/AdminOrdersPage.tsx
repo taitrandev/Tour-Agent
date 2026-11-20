@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
+import { AdminLayout } from '../components/admin/AdminLayout';
 
 /**
  * Interface biểu diễn thông tin khách hàng gắn với đơn hàng.
@@ -533,89 +533,40 @@ export const AdminOrdersPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased selection:bg-sky-500 selection:text-white">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 px-4 py-2.5 rounded-xl bg-slate-900 border border-sky-500/40 text-white shadow-2xl text-xs flex items-center gap-2 animate-bounce">
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
-      {/* Top Navigation Header */}
-      <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur px-6 flex items-center justify-between shrink-0 z-20 sticky top-0">
-        <div className="flex items-center gap-4">
-          <Link
-            to="/admin/products"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition shadow-sm"
-          >
-            <span>← Dashboard</span>
-          </Link>
-
-          <div className="h-6 w-px bg-slate-800"></div>
-
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-white text-base shadow-lg shadow-sky-500/20">
-              📦
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-sm sm:text-base font-bold text-white tracking-tight">
-                  Quản Lý Đơn Tour & Tiến Trình Visa
-                </h1>
-                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                  Mô Hình Agency B2B2C
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Quy trình Cọc 50% ➔ Làm Visa qua Cty Du Lịch ➔ Thu 50% ➔ Điều phối HDV trước 3 ngày
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <Link
-            to="/admin/contacts"
-            className="px-3 py-1.5 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 text-xs font-semibold border border-teal-500/30 transition flex items-center gap-1.5"
-          >
-            <span>👥 Khách Hàng (CRM)</span>
-          </Link>
-
-          <Link
-            to="/admin/conversations"
-            className="px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 text-xs font-semibold border border-purple-500/30 transition flex items-center gap-1.5"
-          >
-            <span>💬 Giám Sát Chat</span>
-          </Link>
-
-          <Link
-            to="/admin/offers"
-            className="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold border border-amber-500/30 transition flex items-center gap-1.5"
-          >
-            <span>🎁 Grand Slam Offers</span>
-          </Link>
-
+    <AdminLayout
+      title="AI Agent Travel — Quản Trị Hệ Thống"
+      subtitle="Quản Lý Đơn Tour & Tiến Trình Visa (Agency Pipeline B2B2C)"
+      icon="📦"
+      headerActions={
+        <>
           <button
             onClick={openCreateModal}
-            className="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm shadow-sky-600/20"
+            className="px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm shadow-sky-600/20 shrink-0"
           >
             <span>+ Thêm Đơn Thủ Công</span>
           </button>
 
           <button
             onClick={fetchOrders}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition flex items-center gap-1.5 shrink-0"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             <span className="hidden sm:inline">Làm mới</span>
           </button>
+        </>
+      }
+    >
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-20 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 border border-sky-500/40 text-white shadow-2xl text-xs flex items-center gap-2 animate-bounce">
+          <span>{toastMessage}</span>
         </div>
-      </header>
+      )}
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-6 max-w-7xl w-full mx-auto space-y-6">
+      <main className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
         {/* Real-time Pipeline Metrics Overview Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
           <div
@@ -1596,7 +1547,7 @@ export const AdminOrdersPage: React.FC = () => {
           </form>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
+import { AdminLayout } from '../components/admin/AdminLayout';
 
 /**
  * Định nghĩa cấu trúc dữ liệu cho một hạng mục trong Bảng xếp chồng giá trị (Value Stack).
@@ -417,179 +418,32 @@ export const AdminOffersPage: React.FC = () => {
   const firstOffer = offers.length > 0 ? offers[0] : null;
 
   return (
-    <div className="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-orange-500 selection:text-white relative">
-      {/* Top Navigation Bar */}
-      <header className="bg-[#111726] border-b border-[#222f49] px-6 py-3.5 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-500 to-rose-500 flex items-center justify-center shadow-lg shadow-orange-500/20 font-bold text-white text-lg">
-            💎
-          </div>
-          <div>
-            <span className="font-extrabold text-white text-base tracking-tight flex items-center gap-2">
-              AI Agent Travel — Quản Trị Hệ Thống
-              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                .NET 10 Core
-              </span>
-            </span>
-            <p className="text-xs text-slate-400">Trụ cột Offer • AI Agent Commander & Value Stack Management</p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2.5">
-          <Link
-            to="/admin/escalations"
-            className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold text-xs border border-amber-500/30 transition flex items-center gap-1.5 shadow-sm shadow-amber-500/10"
-          >
-            <span>🛎️ Bàn Quyết Định</span>
-          </Link>
-          <Link
-            to="/admin/contacts"
-            className="px-3 py-2 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 font-semibold text-xs border border-teal-500/30 transition flex items-center gap-1.5 shadow-sm shadow-teal-500/10"
-          >
-            <span>👥 Khách Hàng (CRM)</span>
-          </Link>
-          <Link
-            to="/admin/orders"
-            className="px-3 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-semibold text-xs border border-sky-500/30 transition flex items-center gap-1.5 shadow-sm shadow-sky-500/10"
-          >
-            <span>📦 Đơn Tour & Visa</span>
-          </Link>
-          <Link
-            to="/admin/conversations"
-            className="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-semibold text-xs border border-purple-500/30 transition flex items-center gap-1.5"
-          >
-            <span>💬 Giám Sát Hội Thoại</span>
-          </Link>
-          <Link
-            to="/admin/channels/telegram"
-            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-[#222f49] transition flex items-center gap-1.5"
-          >
-            <span>📱 Telegram</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          </Link>
+    <AdminLayout
+      title="AI Agent Travel — Quản Trị Hệ Thống"
+      subtitle="Trụ cột Offer • AI Agent Commander & Value Stack Management"
+      badge=".NET 10 Core"
+      icon="💎"
+      onOpenAgentDrawer={() => setShowAgentDrawer(true)}
+      headerActions={
+        <>
           <Link
             to="/"
             target="_blank"
-            className="px-3 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-semibold text-xs border border-cyan-500/30 transition flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-semibold text-xs border border-cyan-500/30 transition flex items-center gap-1.5 shrink-0"
           >
             <span>🌐 Xem Landing Page</span>
           </Link>
           <button
             onClick={handleOpenCreateModal}
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-bold text-xs shadow-lg shadow-orange-500/20 transition-all flex items-center gap-1.5"
+            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-bold text-xs shadow-lg shadow-orange-500/20 transition-all flex items-center gap-1.5 shrink-0"
           >
             <span>+ Thêm Offer</span>
           </button>
-        </div>
-      </header>
-
-      {/* Main Container */}
-      <div className="flex-1 flex flex-col lg:flex-row">
-        {/* Sidebar Navigation */}
-        <aside className="w-full lg:w-64 bg-[#0e1422] border-b lg:border-b-0 lg:border-r border-[#222f49] p-4 space-y-6">
-          <div className="space-y-1">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">
-              Trụ cột Nghiệp Vụ
-            </div>
-
-            <Link
-              to="/admin/offers"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">💎</span>
-              <span className="flex-1">Quản lý Offers (Grand Slam)</span>
-            </Link>
-
-            <Link
-              to="/admin/products"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 border border-transparent font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">📦</span>
-              <span className="flex-1">Quản lý Sản Phẩm (Tours)</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold">
-                Catalog
-              </span>
-            </Link>
-
-            <Link
-              to="/admin/escalations"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-amber-400 hover:bg-amber-500/10 border border-amber-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">🛎️</span>
-              <span className="flex-1">Bàn Quyết Định</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">
-                Deal Desk
-              </span>
-            </Link>
-
-            <Link
-              to="/admin/contacts"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-teal-400 hover:bg-teal-500/10 border border-teal-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">👥</span>
-              <span className="flex-1">Quản Lý Khách Hàng (CRM)</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-bold">
-                Leads
-              </span>
-            </Link>
-
-            <Link
-              to="/admin/orders"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sky-400 hover:bg-sky-500/10 border border-sky-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">📦</span>
-              <span className="flex-1">Đơn Tour & Visa</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-bold">
-                Pipeline
-              </span>
-            </Link>
-
-            <button
-              onClick={() => setShowAgentDrawer(true)}
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">🤖</span>
-              <span className="flex-1">AI Agent Commander</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            </button>
-
-            <Link
-              to="/admin/conversations"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-purple-400 hover:bg-purple-500/10 border border-purple-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">💬</span>
-              <span className="flex-1">Giám Sát Hội Thoại</span>
-            </Link>
-
-            <Link
-              to="/admin/channels/telegram"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sky-400 hover:bg-sky-500/10 border border-sky-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">📱</span>
-              <span className="flex-1">Quản Trị Kênh Telegram</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
-                Bot Hub
-              </span>
-            </Link>
-          </div>
-
-          {/* Model Relationship Card */}
-          <div className="p-3.5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-2 text-xs">
-            <div className="font-bold text-slate-200 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span>ASSP 05 — Offer Architect</span>
-            </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Mô hình <strong>1 Tour (Product) ──&lt; N Offers</strong> theo chuẩn Alex Hormozi $100M Offers & Sabri Suby.
-            </p>
-            <div className="pt-1 text-[11px] font-mono text-slate-400">
-              Database: <strong className="text-emerald-400">PostgreSQL (offers & offer_items)</strong>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <main className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto">
+        </>
+      }
+    >
+      {/* Main Content Area */}
+      <main className="flex-1 p-6 lg:p-8 space-y-6">
           {/* Metrics / KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-1">
@@ -791,7 +645,6 @@ export const AdminOffersPage: React.FC = () => {
             </div>
           </div>
         </main>
-      </div>
 
       {/* MODAL 1: XEM CHI TIẾT OFFER & VALUE STACK */}
       {viewingOffer && (
@@ -1247,6 +1100,6 @@ export const AdminOffersPage: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };

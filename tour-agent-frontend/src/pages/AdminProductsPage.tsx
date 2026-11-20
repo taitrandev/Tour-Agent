@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
 import type { TravelProduct, TourDeparture, ItineraryDay, TravelReview, TravelFaq } from '../types/travel';
+import { AdminLayout } from '../components/admin/AdminLayout';
 
 /**
  * Trang Quản lý Danh mục Sản Phẩm Tour Du Lịch (Core Product Base).
@@ -393,203 +393,23 @@ export const AdminProductsPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-orange-500 selection:text-white">
-      {/* ── TOP NAVIGATION BAR ── */}
-      <header className="bg-[#111726] border-b border-[#222f49] px-6 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-md">
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-500 to-rose-500 flex items-center justify-center shadow-lg shadow-orange-500/20 font-bold text-white text-lg">
-            💎
-          </div>
-          <div>
-            <span className="font-extrabold text-white text-base tracking-tight flex items-center gap-2">
-              AI Agent Travel — Quản Trị Hệ Thống
-              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                Backend Core .NET 10
-              </span>
-            </span>
-            <p className="text-xs text-slate-400">Trụ cột Sản Phẩm (Tours) • Catalog Base & 4 Bộ Chính Sách Cam Kết</p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2.5">
-          <Link
-            to="/admin/escalations"
-            className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold text-xs border border-amber-500/30 transition flex items-center gap-1.5 shadow-sm shadow-amber-500/10"
-          >
-            <span>🛎️ Bàn Quyết Định</span>
-          </Link>
-          <Link
-            to="/admin/contacts"
-            className="px-3 py-2 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 font-semibold text-xs border border-teal-500/30 transition flex items-center gap-1.5 shadow-sm shadow-teal-500/10"
-          >
-            <span>👥 Khách Hàng (CRM)</span>
-          </Link>
-          <Link
-            to="/admin/orders"
-            className="px-3 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-semibold text-xs border border-sky-500/30 transition flex items-center gap-1.5 shadow-sm shadow-sky-500/10"
-          >
-            <span>📦 Đơn Tour & Visa</span>
-          </Link>
-          <Link
-            to="/admin/settings/llm"
-            className="px-3 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 font-semibold text-xs border border-indigo-500/30 transition flex items-center gap-1.5 shadow-sm shadow-indigo-500/10"
-          >
-            <span>⚙️ Cấu Hình LLM</span>
-          </Link>
-          <Link
-            to="/admin/conversations"
-            className="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-semibold text-xs border border-purple-500/30 transition flex items-center gap-1.5"
-          >
-            <span>💬 Giám Sát Hội Thoại</span>
-          </Link>
-          <Link
-            to="/admin/channels/telegram"
-            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-[#222f49] transition flex items-center gap-1.5"
-          >
-            <span>📱 Telegram</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-          </Link>
-          <button
-            onClick={handleOpenCreateModal}
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-500/20 transition-all flex items-center gap-1.5"
-          >
-            <span>➕ Thêm Tour Mới</span>
-          </button>
-        </div>
-      </header>
-
-      {/* ── MAIN WORKSPACE CONTAINER ── */}
-      <div className="flex-1 flex flex-col lg:flex-row">
-        {/* SIDEBAR NAVIGATION */}
-        <aside className="w-full lg:w-64 bg-[#0e1422] border-b lg:border-b-0 lg:border-r border-[#222f49] p-4 space-y-6">
-          <div className="space-y-1">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">
-              Trụ cột Nghiệp Vụ
-            </div>
-
-            <Link
-              to="/admin/offers"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 border border-transparent font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">💎</span>
-              <span className="flex-1">Quản lý Offers (Grand Slam)</span>
-            </Link>
-
-            <Link
-              to="/admin/products"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">📦</span>
-              <span className="flex-1">Quản lý Sản Phẩm (Tours)</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold">
-                Catalog
-              </span>
-            </Link>
-
-            <Link
-              to="/admin/escalations"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-amber-400 hover:bg-amber-500/10 border border-amber-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">🛎️</span>
-              <span className="flex-1">Bàn Quyết Định</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">
-                Deal Desk
-              </span>
-            </Link>
-
-            <Link
-              to="/admin/contacts"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-teal-400 hover:bg-teal-500/10 border border-teal-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">👥</span>
-              <span className="flex-1">Quản Lý Khách Hàng (CRM)</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-bold">
-                Leads
-              </span>
-            </Link>
-
-            <Link
-              to="/admin/orders"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sky-400 hover:bg-sky-500/10 border border-sky-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">📦</span>
-              <span className="flex-1">Đơn Tour & Visa</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-bold">
-                Pipeline
-              </span>
-            </Link>
-
-            <button
-              onClick={() => setShowAgentDrawer(true)}
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">🤖</span>
-              <span className="flex-1">AI Agent Commander</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            </button>
-
-            <Link
-              to="/admin/settings/llm"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-indigo-400 hover:bg-indigo-500/10 border border-indigo-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">⚙️</span>
-              <span className="flex-1">Cấu Hình LLM DeepSeek</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold">
-                Gateway
-              </span>
-            </Link>
-
-            <Link
-              to="/admin/channels/telegram"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sky-400 hover:bg-sky-500/10 border border-sky-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">📱</span>
-              <span className="flex-1">Quản Trị Kênh Telegram</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
-                Bot Hub
-              </span>
-            </Link>
-
-            <Link
-              to="/admin/conversations"
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-purple-400 hover:bg-purple-500/10 border border-purple-500/20 font-semibold text-xs transition text-left"
-            >
-              <span className="text-base">💬</span>
-              <span className="flex-1">Giám Sát Hội Thoại & LLM</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
-                Live
-              </span>
-            </Link>
-
-            <a
-              href="/api/v1/travels"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 text-xs transition"
-            >
-              <span className="text-base">🗺️</span>
-              <span>API Product Catalog</span>
-            </a>
-          </div>
-
-          {/* Framework Info Card */}
-          <div className="p-3.5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-2 text-xs">
-            <div className="font-bold text-slate-200 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span>ASSP 05 — Product Base</span>
-            </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Cơ sở dữ liệu sản phẩm chuẩn hóa (Docx Catalog gốc). Cung cấp dữ liệu kỹ thuật và chính sách cho AI Agent
-              tra cứu qua 5 Tools.
-            </p>
-            <div className="pt-1 text-[11px] font-mono text-slate-400">
-              Database: <strong className="text-emerald-400">PostgreSQL (tour_agent_db)</strong>
-            </div>
-          </div>
-        </aside>
-
-        {/* MAIN WORKSPACE CONTENT AREA */}
-        <main className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto">
+    <AdminLayout
+      title="AI Agent Travel — Quản Trị Hệ Thống"
+      subtitle="Catalog Base & 4 Bộ Chính Sách Cam Kết"
+      badge="Backend Core .NET 10"
+      icon="💎"
+      onOpenAgentDrawer={() => setShowAgentDrawer(true)}
+      headerActions={
+        <button
+          onClick={handleOpenCreateModal}
+          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-500/20 transition-all flex items-center gap-1.5 shrink-0"
+        >
+          <span>➕ Thêm Tour Mới</span>
+        </button>
+      }
+    >
+      {/* MAIN WORKSPACE CONTENT AREA */}
+      <main className="flex-1 p-6 lg:p-8 space-y-6">
           {/* KPI CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-1">
@@ -851,7 +671,6 @@ export const AdminProductsPage: React.FC = () => {
             </div>
           </div>
         </main>
-      </div>
 
       {/* ── MODAL: PRODUCT ITINERARY TIMELINE ── */}
       {showItineraryModal && selectedProduct && (
@@ -1864,6 +1683,6 @@ export const AdminProductsPage: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </AdminLayout>
   );
 };

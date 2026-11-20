@@ -53,6 +53,12 @@ public class TelegramIntegrationTests
     public async Task TelegramAdapter_WithoutBotToken_ShouldSimulateAndReturnTrue()
     {
         // Arrange
+        var testFilePath = Path.Combine(AppContext.BaseDirectory, "telegram_settings.json");
+        if (File.Exists(testFilePath))
+        {
+            try { File.Delete(testFilePath); } catch { /* Ignore */ }
+        }
+
         var config = new ConfigurationBuilder().Build(); // Cấu hình rỗng không có token
         var httpClient = new HttpClient();
         var logger = NullLogger<TelegramAdapter>.Instance;
