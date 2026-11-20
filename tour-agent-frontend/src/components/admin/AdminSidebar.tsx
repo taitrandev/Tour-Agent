@@ -36,7 +36,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ onOpenAgentDrawer })
           className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-xs transition text-left ${
             isOffersActive
               ? 'bg-orange-500/10 border border-orange-500/30 text-orange-400'
-              : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 border border-transparent'
+              : 'text-orange-400 hover:bg-orange-800/60 hover:text-orange-200 border'
           }`}
         >
           <span className="text-base">💎</span>
@@ -49,7 +49,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ onOpenAgentDrawer })
           className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-xs transition text-left ${
             isProductsActive
               ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
-              : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 border border-transparent'
+              : 'text-blue-400 hover:bg-blue-800/60 hover:text-blue-200 border'
           }`}
         >
           <span className="text-base">📦</span>

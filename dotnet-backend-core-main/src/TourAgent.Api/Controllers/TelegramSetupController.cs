@@ -78,21 +78,46 @@ public sealed class TelegramSetupController : ControllerBase
 
         if (hasToken)
         {
-            var meResult = await _telegramAdapter.GetMeAsync(cancellationToken: cancellationToken);
-            botInfo = new
+            try
             {
-                ok = meResult.Ok,
-                description = meResult.Description,
-                result = meResult.Result
-            };
+                // Giới hạn timeout 5 giây để tránh treo request nếu mạng quốc tế tới api.telegram.org bị chậm
+                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
 
-            var whResult = await _telegramAdapter.GetWebhookInfoAsync(cancellationToken: cancellationToken);
-            webhookInfo = new
+                // Thực thi đồng thời cả 2 tác vụ mạng để giảm 50% thời gian phản hồi
+                var getMeTask = _telegramAdapter.GetMeAsync(cancellationToken: timeoutCts.Token);
+                var getWebhookTask = _telegramAdapter.GetWebhookInfoAsync(cancellationToken: timeoutCts.Token);
+
+                await Task.WhenAll(getMeTask, getWebhookTask);
+
+                var meResult = await getMeTask;
+                botInfo = new
+                {
+                    ok = meResult.Ok,
+                    description = meResult.Description,
+                    result = meResult.Result
+                };
+
+                var whResult = await getWebhookTask;
+                webhookInfo = new
+                {
+                    ok = whResult.Ok,
+                    description = whResult.Description,
+                    result = whResult.Result
+                };
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                ok = whResult.Ok,
-                description = whResult.Description,
-                result = whResult.Result
-            };
+                _logger.LogWarning("Kiểm tra trạng thái Telegram Bot bị quá thời gian chờ (Timeout 5s).");
+                botInfo = new { ok = false, description = "Hết thời gian chờ kết nối máy chủ Telegram (Timeout 5s)." };
+                webhookInfo = new { ok = false, description = "Hết thời gian chờ kết nối máy chủ Telegram (Timeout 5s)." };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi kết nối khi kiểm tra trạng thái Telegram Bot: {Message}", ex.Message);
+                botInfo = new { ok = false, description = ex.Message };
+                webhookInfo = new { ok = false, description = ex.Message };
+            }
         }
 
         var request = HttpContext.Request;
