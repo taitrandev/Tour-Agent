@@ -1,0 +1,130 @@
+name: Frontend CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'tour-agent-frontend/**'
+      - '.github/workflows/frontend-ci-cd.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'tour-agent-frontend/**'
+
+# Yêu cầu bắt buộc để GitHub cấp token OIDC không cần lưu trữ secret
+permissions:
+  id-token: write  # Cấp JWT từ GitHub OIDC provider cho Azure federated credential
+  contents: read   # Đọc source code
+
+jobs:
+  build-and-lint:
+    name: Build, Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: tour-agent-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: tour-agent-frontend
+        run: npm ci
+
+      - name: Lint source code
+        working-directory: tour-agent-frontend
+        run: npm run lint
+
+      - name: Typecheck and Build (Vite)
+        working-directory: tour-agent-frontend
+        env:
+          VITE_API_BASE_URL: https://touragent-api.gentlecliff-410d3b6b.southeastasia.azurecontainerapps.io/api/v1
+        run: npm run build
+
+  docker-build-and-push:
+    name: Docker Build & ACR Push
+    needs: build-and-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Nếu là Pull Request: Chỉ test compile Dockerfile, không login Azure, không push image
+      - name: Build Docker Image (PR Validation Only)
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./tour-agent-frontend
+          file: ./tour-agent-frontend/Dockerfile
+          push: false
+          build-args: |
+            VITE_API_BASE_URL=https://touragent-api.gentlecliff-410d3b6b.southeastasia.azurecontainerapps.io/api/v1
+          tags: touragent-frontend:test
+
+      # Nếu là Push nhánh main: Đăng nhập Azure OIDC và Push Image lên ACR
+      - name: Azure Login via OIDC
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to Azure Container Registry
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: az acr login --name ${{ vars.ACR_NAME }}
+
+      - name: Build and Push Docker Image to ACR
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./tour-agent-frontend
+          file: ./tour-agent-frontend/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL || 'https://touragent-api.gentlecliff-410d3b6b.southeastasia.azurecontainerapps.io/api/v1' }}
+          tags: |
+            ${{ vars.ACR_NAME }}.azurecr.io/touragent-frontend:${{ github.sha }}
+
+  deploy:
+    name: Deploy to Azure Container Apps
+    needs: docker-build-and-push
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure Login via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Image to Azure Container Apps
+        run: |
+          az containerapp update \
+            --name touragent-frontend \
+            --resource-group ${{ vars.AZURE_RG }} \
+            --image ${{ vars.ACR_NAME }}.azurecr.io/touragent-frontend:${{ github.sha }}
+
+      - name: Get Container App FQDN
+        id: get-fqdn
+        run: |
+          FQDN=$(az containerapp show --name touragent-frontend --resource-group ${{ vars.AZURE_RG }} --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "fqdn=$FQDN" >> $GITHUB_OUTPUT
+
+      - name: Smoke Test Readiness
+        run: |
+          echo "Testing frontend web server readiness at: https://${{ steps.get-fqdn.outputs.fqdn }}/"
+          curl -f "https://${{ steps.get-fqdn.outputs.fqdn }}/" \
+            --retry 6 \
+            --retry-delay 10 \
+            --retry-all-errors \
+            --max-time 15
+
