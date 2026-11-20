@@ -71,6 +71,11 @@ public sealed class AppDbContext : DbContext, IAppDbContext
     public DbSet<TourAgent.Domain.Escalations.AgentEscalation> Escalations => Set<TourAgent.Domain.Escalations.AgentEscalation>();
 
     /// <summary>
+    /// Bảng quản lý các cấu hình hệ thống bền vững (LLM Gateway, Telegram Bot, Webhook, v.v.).
+    /// </summary>
+    public DbSet<TourAgent.Domain.Settings.SystemSetting> SystemSettings => Set<TourAgent.Domain.Settings.SystemSetting>();
+
+    /// <summary>
     /// Đăng ký tự động các IEntityTypeConfiguration trong cùng Assembly của Infrastructure.
     /// </summary>
     /// <param name="modelBuilder">Đối tượng ModelBuilder để cấu hình Fluent API.</param>

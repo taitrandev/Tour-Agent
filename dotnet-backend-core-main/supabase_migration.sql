@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
     "MigrationId" character varying(150) NOT NULL,
     "ProductVersion" character varying(32) NOT NULL,
     CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
@@ -270,6 +270,13 @@ CREATE INDEX "IX_tour_orders_travel_id" ON tour_orders (travel_id);
 CREATE INDEX "IX_tour_orders_visa_status" ON tour_orders (visa_status);
 
 CREATE INDEX "IX_travel_departures_travel_id" ON travel_departures (travel_id);
+
+CREATE TABLE IF NOT EXISTS system_settings (
+    key character varying(100) NOT NULL,
+    value text NOT NULL,
+    updated_at_utc timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "PK_system_settings" PRIMARY KEY (key)
+);
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20261118113347_InitialSupabaseSchema', '10.0.12');

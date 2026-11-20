@@ -61,6 +61,11 @@ public interface IAppDbContext
     DbSet<TourAgent.Domain.Escalations.AgentEscalation> Escalations { get; }
 
     /// <summary>
+    /// Bảng quản lý các cấu hình hệ thống bền vững (LLM Gateway, Telegram Bot, Webhook, v.v.).
+    /// </summary>
+    DbSet<TourAgent.Domain.Settings.SystemSetting> SystemSettings { get; }
+
+    /// <summary>
     /// Lưu tất cả các thay đổi trên DbContext vào cơ sở dữ liệu PostgreSQL.
     /// </summary>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>

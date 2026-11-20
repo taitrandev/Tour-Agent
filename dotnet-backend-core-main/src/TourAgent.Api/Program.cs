@@ -96,6 +96,7 @@ app.UseAuthorization();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<TourAgent.Infrastructure.Persistence.AppDbContext>();
+    await TourAgent.Infrastructure.Persistence.SystemSettingDataSeeder.EnsureSeededAsync(dbContext);
     await TourAgent.Infrastructure.Persistence.OfferDataSeeder.EnsureSeededAsync(dbContext);
     await TourAgent.Infrastructure.Persistence.ContactDataSeeder.EnsureSeededAsync(dbContext);
     await TourAgent.Infrastructure.Persistence.OrderDataSeeder.EnsureSeededAsync(dbContext);

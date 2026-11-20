@@ -1,57 +1,92 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TourAgent.Application.Abstractions;
+using TourAgent.Domain.Settings;
 
 namespace TourAgent.Infrastructure.Llm;
 
 /// <summary>
-/// Thực thi lưu trữ và đồng bộ cấu hình LLM vào file JSON cục bộ bảo đảm dữ liệu luôn bền vững.
+/// Thực thi lưu trữ và đồng bộ cấu hình LLM vào cơ sở dữ liệu PostgreSQL/Supabase (bền vững trên Cloud)
+/// và file JSON cục bộ bảo đảm dữ liệu luôn được ghi nhớ bền vững kể cả khi container restart.
 /// </summary>
 public sealed class LlmSettingsStore : ILlmSettingsStore
 {
+    private const string SettingKey = "llm_settings";
     private readonly string _filePath;
     private readonly ILogger<LlmSettingsStore> _logger;
+    private readonly IServiceScopeFactory? _serviceScopeFactory;
     private LlmSettings _settings;
     private readonly object _lockObject = new();
 
     /// <summary>
-    /// Khởi tạo LlmSettingsStore, nạp cấu hình từ file json hoặc từ appsettings/fallback ban đầu.
+    /// Khởi tạo LlmSettingsStore với IServiceScopeFactory để lưu trữ bền vững vào CSDL PostgreSQL/Supabase.
     /// </summary>
     /// <param name="configuration">Cấu hình ứng dụng IConfiguration.</param>
     /// <param name="logger">Logger ghi log hoạt động.</param>
-    public LlmSettingsStore(IConfiguration configuration, ILogger<LlmSettingsStore> logger)
+    /// <param name="serviceScopeFactory">Factory cấp phát scope truy cập DbContext.</param>
+    [Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]
+    public LlmSettingsStore(
+        IConfiguration configuration,
+        ILogger<LlmSettingsStore> logger,
+        IServiceScopeFactory? serviceScopeFactory = null)
     {
         _logger = logger;
+        _serviceScopeFactory = serviceScopeFactory;
         _filePath = Path.Combine(AppContext.BaseDirectory, "llm_settings.json");
         _settings = LoadSettings(configuration);
     }
 
     /// <summary>
-    /// Nạp cấu hình từ file JSON cục bộ hoặc từ cấu hình IConfiguration.
-    /// Ưu tiên biến môi trường và IConfiguration trên môi trường Cloud.
+    /// Constructor tương thích ngược phục vụ kiểm thử đơn vị độc lập.
+    /// </summary>
+    /// <param name="configuration">Cấu hình ứng dụng IConfiguration.</param>
+    /// <param name="logger">Logger ghi log hoạt động.</param>
+    public LlmSettingsStore(
+        IConfiguration configuration,
+        ILogger<LlmSettingsStore> logger)
+        : this(configuration, logger, null)
+    {
+    }
+
+    /// <summary>
+    /// Nạp cấu hình từ CSDL PostgreSQL, file JSON cục bộ hoặc từ biến môi trường Cloud.
     /// </summary>
     /// <param name="configuration">Đối tượng IConfiguration.</param>
     /// <returns>Đối tượng LlmSettings đã nạp.</returns>
     private LlmSettings LoadSettings(IConfiguration configuration)
     {
-        LlmSettings? loadedSettings = null;
+        // 1. Thử nạp từ Cơ Sở Dữ Liệu (PostgreSQL / Supabase) trước để bảo đảm tính bền vững trên Cloud
+        var loadedFromDb = TryLoadFromDatabase();
+        if (loadedFromDb is not null && !string.IsNullOrWhiteSpace(loadedFromDb.ApiKey))
+        {
+            _logger.LogInformation("Đã nạp thành công cấu hình LLM từ CSDL PostgreSQL: Driver={Driver}, Model={Model}", loadedFromDb.Driver, loadedFromDb.Model);
+            return loadedFromDb;
+        }
+
+        // 2. Thử nạp từ file JSON cục bộ
+        LlmSettings? loadedFromFile = null;
         try
         {
             if (File.Exists(_filePath))
             {
                 var fileContent = File.ReadAllText(_filePath);
-                loadedSettings = JsonSerializer.Deserialize<LlmSettings>(fileContent);
+                loadedFromFile = JsonSerializer.Deserialize<LlmSettings>(fileContent);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Không thể đọc file {FilePath}, đang sử dụng cấu hình mặc định.", _filePath);
+            _logger.LogWarning(ex, "Không thể đọc file {FilePath}, chuyển sang nạp từ biến môi trường.", _filePath);
         }
 
+        var source = loadedFromDb ?? loadedFromFile;
+
+        // 3. Đọc biến môi trường và IConfiguration trên môi trường Cloud
         var explicitDriver = configuration["Llm:Driver"]
             ?? Environment.GetEnvironmentVariable("LLM_DRIVER")
-            ?? loadedSettings?.Driver;
+            ?? source?.Driver;
 
         var claudeKey = configuration["Claude:ApiKey"]
             ?? Environment.GetEnvironmentVariable("CLAUDE_API_KEY")
@@ -63,16 +98,16 @@ public sealed class LlmSettingsStore : ILlmSettingsStore
 
         var isClaude = string.Equals(explicitDriver, "claude", StringComparison.OrdinalIgnoreCase)
             || (string.IsNullOrWhiteSpace(explicitDriver) && !string.IsNullOrWhiteSpace(claudeKey) && string.IsNullOrWhiteSpace(deepseekKey))
-            || (loadedSettings?.Model?.Contains("claude", StringComparison.OrdinalIgnoreCase) == true)
-            || (loadedSettings?.Model?.Contains("haiku", StringComparison.OrdinalIgnoreCase) == true)
-            || (loadedSettings?.BaseUrl?.Contains("fableai", StringComparison.OrdinalIgnoreCase) == true)
-            || (loadedSettings?.ApiKey?.StartsWith("sk-ant-", StringComparison.OrdinalIgnoreCase) == true);
+            || (source?.Model?.Contains("claude", StringComparison.OrdinalIgnoreCase) == true)
+            || (source?.Model?.Contains("haiku", StringComparison.OrdinalIgnoreCase) == true)
+            || (source?.BaseUrl?.Contains("fableai", StringComparison.OrdinalIgnoreCase) == true)
+            || (source?.ApiKey?.StartsWith("sk-ant-", StringComparison.OrdinalIgnoreCase) == true);
 
         var driver = isClaude ? "claude" : "deepseek";
 
         var apiKey = isClaude
-            ? (claudeKey ?? (!string.IsNullOrWhiteSpace(loadedSettings?.ApiKey) ? loadedSettings.ApiKey : string.Empty))
-            : (deepseekKey ?? (!string.IsNullOrWhiteSpace(loadedSettings?.ApiKey) ? loadedSettings.ApiKey : string.Empty));
+            ? (claudeKey ?? (!string.IsNullOrWhiteSpace(source?.ApiKey) ? source.ApiKey : string.Empty))
+            : (deepseekKey ?? (!string.IsNullOrWhiteSpace(source?.ApiKey) ? source.ApiKey : string.Empty));
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
@@ -82,15 +117,15 @@ public sealed class LlmSettingsStore : ILlmSettingsStore
 
         var defaultModel = isClaude ? "claude-3-5-haiku-20241022" : "deepseek-reasoner";
         var model = isClaude
-            ? (configuration["Claude:Model"] ?? Environment.GetEnvironmentVariable("CLAUDE_MODEL") ?? Environment.GetEnvironmentVariable("ANTHROPIC_MODEL") ?? loadedSettings?.Model ?? defaultModel)
-            : (configuration["DeepSeek:Model"] ?? Environment.GetEnvironmentVariable("DEEPSEEK_MODEL") ?? loadedSettings?.Model ?? defaultModel);
+            ? (configuration["Claude:Model"] ?? Environment.GetEnvironmentVariable("CLAUDE_MODEL") ?? Environment.GetEnvironmentVariable("ANTHROPIC_MODEL") ?? source?.Model ?? defaultModel)
+            : (configuration["DeepSeek:Model"] ?? Environment.GetEnvironmentVariable("DEEPSEEK_MODEL") ?? source?.Model ?? defaultModel);
 
         var defaultBaseUrl = isClaude ? "https://api.fableaiapi.com" : "https://api.deepseek.com";
         var baseUrl = isClaude
-            ? (configuration["Claude:BaseUrl"] ?? Environment.GetEnvironmentVariable("CLAUDE_BASE_URL") ?? Environment.GetEnvironmentVariable("ANTHROPIC_BASE_URL") ?? loadedSettings?.BaseUrl ?? defaultBaseUrl)
-            : (configuration["DeepSeek:BaseUrl"] ?? Environment.GetEnvironmentVariable("DEEPSEEK_BASE_URL") ?? loadedSettings?.BaseUrl ?? defaultBaseUrl);
+            ? (configuration["Claude:BaseUrl"] ?? Environment.GetEnvironmentVariable("CLAUDE_BASE_URL") ?? Environment.GetEnvironmentVariable("ANTHROPIC_BASE_URL") ?? source?.BaseUrl ?? defaultBaseUrl)
+            : (configuration["DeepSeek:BaseUrl"] ?? Environment.GetEnvironmentVariable("DEEPSEEK_BASE_URL") ?? source?.BaseUrl ?? defaultBaseUrl);
 
-        float temperature = loadedSettings?.Temperature ?? 0.2f;
+        float temperature = source?.Temperature ?? 0.2f;
         var tempConfig = isClaude
             ? (configuration["Claude:Temperature"] ?? Environment.GetEnvironmentVariable("CLAUDE_TEMPERATURE"))
             : (configuration["DeepSeek:Temperature"] ?? Environment.GetEnvironmentVariable("DEEPSEEK_TEMPERATURE"));
@@ -100,7 +135,7 @@ public sealed class LlmSettingsStore : ILlmSettingsStore
             temperature = parsedTemp;
         }
 
-        return new LlmSettings
+        var resolved = new LlmSettings
         {
             Driver = driver,
             ApiKey = apiKey,
@@ -108,6 +143,115 @@ public sealed class LlmSettingsStore : ILlmSettingsStore
             BaseUrl = baseUrl,
             Temperature = temperature
         };
+
+        // Đồng bộ lưu xuống file và CSDL nếu có key
+        if (!string.IsNullOrWhiteSpace(resolved.ApiKey))
+        {
+            SaveToFile(resolved);
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await SaveToDatabaseAsync(resolved, CancellationToken.None);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Chưa thể đồng bộ ban đầu cấu hình LLM vào CSDL.");
+                }
+            });
+        }
+
+        return resolved;
+    }
+
+    /// <summary>
+    /// Thử đọc cấu hình LLM từ bảng 'system_settings' trong CSDL PostgreSQL.
+    /// </summary>
+    /// <returns>Đối tượng LlmSettings nếu tìm thấy trong CSDL, ngược lại là null.</returns>
+    private LlmSettings? TryLoadFromDatabase()
+    {
+        if (_serviceScopeFactory is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
+
+            var setting = dbContext.SystemSettings
+                .AsNoTracking()
+                .FirstOrDefault(s => s.Key == SettingKey);
+
+            if (setting is not null && !string.IsNullOrWhiteSpace(setting.Value))
+            {
+                return JsonSerializer.Deserialize<LlmSettings>(setting.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Chưa thể nạp cấu hình LLM từ CSDL PostgreSQL (có thể do bảng chưa khởi tạo hoặc đang migration).");
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Lưu cấu hình LLM ra file JSON cục bộ.
+    /// </summary>
+    /// <param name="settings">Đối tượng cấu hình LLM.</param>
+    private void SaveToFile(LlmSettings settings)
+    {
+        try
+        {
+            var jsonText = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_filePath, jsonText);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Không thể lưu file cấu hình LLM cục bộ: {FilePath}", _filePath);
+        }
+    }
+
+    /// <summary>
+    /// Lưu cấu hình LLM vào bảng 'system_settings' trong CSDL PostgreSQL/Supabase.
+    /// </summary>
+    /// <param name="settings">Đối tượng cấu hình LLM.</param>
+    /// <param name="cancellationToken">Token hủy thao tác.</param>
+    private async Task SaveToDatabaseAsync(LlmSettings settings, CancellationToken cancellationToken)
+    {
+        if (_serviceScopeFactory is null)
+        {
+            return;
+        }
+
+        try
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
+
+            var jsonText = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+
+            var existingSetting = await dbContext.SystemSettings
+                .FirstOrDefaultAsync(s => s.Key == SettingKey, cancellationToken);
+
+            if (existingSetting is not null)
+            {
+                existingSetting.UpdateValue(jsonText);
+            }
+            else
+            {
+                dbContext.SystemSettings.Add(new SystemSetting(SettingKey, jsonText));
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Đã lưu cấu hình LLM thành công vào CSDL PostgreSQL (Bảng system_settings).");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi xảy ra khi lưu cấu hình LLM vào CSDL PostgreSQL.");
+        }
     }
 
     /// <inheritdoc />
@@ -152,6 +296,7 @@ public sealed class LlmSettingsStore : ILlmSettingsStore
         string? driver = null,
         CancellationToken cancellationToken = default)
     {
+        LlmSettings snapshot;
         lock (_lockObject)
         {
             if (!string.IsNullOrWhiteSpace(driver))
@@ -178,23 +323,21 @@ public sealed class LlmSettingsStore : ILlmSettingsStore
             {
                 _settings.Temperature = Math.Clamp(temperature.Value, 0.0f, 1.0f);
             }
-        }
 
-        try
-        {
-            string jsonText;
-            lock (_lockObject)
+            snapshot = new LlmSettings
             {
-                jsonText = JsonSerializer.Serialize(_settings, new JsonSerializerOptions { WriteIndented = true });
-            }
+                Driver = _settings.Driver,
+                ApiKey = _settings.ApiKey,
+                Model = _settings.Model,
+                BaseUrl = _settings.BaseUrl,
+                Temperature = _settings.Temperature
+            };
+        }
 
-            await File.WriteAllTextAsync(_filePath, jsonText, cancellationToken);
-            _logger.LogInformation("Đã lưu cấu hình LLM thành công vào file: {FilePath}", _filePath);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Lỗi xảy ra khi lưu file cấu hình LLM {FilePath}", _filePath);
-            throw;
-        }
+        // 1. Lưu ra file cục bộ
+        SaveToFile(snapshot);
+
+        // 2. Lưu vào CSDL PostgreSQL/Supabase bền vững trên Cloud
+        await SaveToDatabaseAsync(snapshot, cancellationToken);
     }
 }
