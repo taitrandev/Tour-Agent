@@ -17,9 +17,9 @@ IDENTITY_NAME="id-github-touragent-deploy"
 TARGET_PORT=8080
 
 # Các biến bảo mật & kết nối ứng dụng
-DB_CONN="Host=aws-1-ap-northeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.wdsfssenfbesfmevifkf;Password=Taitrantien123456;SSL Mode=Require;Trust Server Certificate=true"
-DEEPSEEK_KEY="sk-92e03f3300c7429389be0a047169e06a"
-TELEGRAM_TOKEN="8195824138:AAENOM5ujl4bzs9ceixW7wIggDFY8OHekAM"
+DB_CONN=""
+DEEPSEEK_KEY=""
+TELEGRAM_TOKEN=""
 ALLOWED_CORS="https://touragent-frontend.gentlecliff-410d3b6b.southeastasia.azurecontainerapps.io"
 
 echo "==> [1/5] Thu thập thông tin định danh từ Azure..."
