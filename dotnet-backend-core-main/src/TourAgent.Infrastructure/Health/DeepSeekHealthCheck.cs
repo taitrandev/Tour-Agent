@@ -37,12 +37,15 @@ public sealed class DeepSeekHealthCheck : IHealthCheck
         CancellationToken cancellationToken = default)
     {
         var settings = _settingsStore.GetSettings();
+        var isClaude = string.Equals(settings.Driver, "claude", StringComparison.OrdinalIgnoreCase)
+            || (!string.IsNullOrWhiteSpace(settings.Model) && settings.Model.Contains("claude", StringComparison.OrdinalIgnoreCase));
+        var providerName = isClaude ? "Claude" : "DeepSeek";
 
         // 1. Nếu chưa có API Key, đánh dấu Degraded (tính năng AI suy giảm, nhưng app chính vẫn chạy)
         if (string.IsNullOrWhiteSpace(settings.ApiKey))
         {
             return HealthCheckResult.Degraded(
-                "DeepSeek API Key chưa được cấu hình. Tính năng AI Agent sẽ tạm thời không khả dụng.");
+                $"{providerName} API Key chưa được cấu hình. Tính năng AI Agent sẽ tạm thời không khả dụng.");
         }
 
         // 2. Giới hạn thời gian probe tối đa 5 giây để tránh làm nghẽn toàn bộ pipeline /health
@@ -52,40 +55,53 @@ public sealed class DeepSeekHealthCheck : IHealthCheck
         try
         {
             var httpClient = _httpClientFactory.CreateClient("DeepSeekHealthProbe");
-            var baseUrl = (settings.BaseUrl ?? "https://api.deepseek.com").TrimEnd('/');
-            var requestUri = $"{baseUrl}/models";
+            var defaultBaseUrl = isClaude ? "https://api.anthropic.com" : "https://api.deepseek.com";
+            var baseUrl = (settings.BaseUrl ?? defaultBaseUrl).TrimEnd('/');
+
+            var requestUri = isClaude
+                ? (baseUrl.EndsWith("/v1", StringComparison.OrdinalIgnoreCase) ? $"{baseUrl}/models" : $"{baseUrl}/v1/models")
+                : $"{baseUrl}/models";
 
             using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey.Trim());
+
+            if (isClaude)
+            {
+                request.Headers.Add("x-api-key", settings.ApiKey.Trim());
+                request.Headers.Add("anthropic-version", "2023-06-01");
+            }
+            else
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey.Trim());
+            }
 
             using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedCts.Token);
 
             if (response.IsSuccessStatusCode)
             {
                 return HealthCheckResult.Healthy(
-                    $"DeepSeek API kết nối thành công. Mô hình kích hoạt: {settings.Model}.");
+                    $"{providerName} API kết nối thành công. Mô hình kích hoạt: {settings.Model}.");
             }
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                return HealthCheckResult.Degraded("DeepSeek API Key không hợp lệ hoặc đã hết hạn (HTTP 401). Tính năng AI tạm suy giảm.");
+                return HealthCheckResult.Degraded($"{providerName} API Key không hợp lệ hoặc đã hết hạn (HTTP 401). Tính năng AI tạm suy giảm.");
             }
 
             if (response.StatusCode == HttpStatusCode.TooManyRequests)
             {
-                return HealthCheckResult.Degraded("DeepSeek API vượt ngưỡng giới hạn tần suất hoặc cạn quota (HTTP 429).");
+                return HealthCheckResult.Degraded($"{providerName} API vượt ngưỡng giới hạn tần suất hoặc cạn quota (HTTP 429).");
             }
 
             return HealthCheckResult.Degraded(
-                $"DeepSeek API phản hồi mã trạng thái bất thường: {(int)response.StatusCode} {response.ReasonPhrase}.");
+                $"{providerName} API phản hồi mã trạng thái bất thường: {(int)response.StatusCode} {response.ReasonPhrase}.");
         }
         catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
         {
-            return HealthCheckResult.Degraded("DeepSeek API phản hồi quá thời gian quy định (Timeout > 5s).");
+            return HealthCheckResult.Degraded($"{providerName} API phản hồi quá thời gian quy định (Timeout > 5s).");
         }
         catch (Exception ex)
         {
-            return HealthCheckResult.Degraded($"Không thể kết nối tới DeepSeek API (Tính năng AI tạm suy giảm): {ex.Message}", ex);
+            return HealthCheckResult.Degraded($"Không thể kết nối tới {providerName} API (Tính năng AI tạm suy giảm): {ex.Message}", ex);
         }
     }
 }

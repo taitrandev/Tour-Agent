@@ -33,8 +33,12 @@ public static class DependencyInjection
         // Đăng ký Cửa hàng cấu hình LLM runtime bền vững
         services.AddSingleton<Application.Abstractions.ILlmSettingsStore, Llm.LlmSettingsStore>();
 
-        // Đăng ký HttpClient và DeepSeekLlmClient
-        services.AddHttpClient<ILlmClient, Llm.DeepSeekLlmClient>();
+        // Đăng ký HttpClient cho các LLM Provider Clients
+        services.AddHttpClient<Llm.DeepSeekLlmClient>();
+        services.AddHttpClient<Llm.ClaudeLlmClient>();
+
+        // Đăng ký Cổng điều phối đa mô hình RoutingLlmClient làm ILlmClient chính
+        services.AddTransient<ILlmClient, Llm.RoutingLlmClient>();
 
         // Đăng ký In-Process Telegram Channel Queue
         services.AddSingleton<Application.Channels.Telegram.ITelegramMessageQueue, Channels.TelegramMessageQueue>();

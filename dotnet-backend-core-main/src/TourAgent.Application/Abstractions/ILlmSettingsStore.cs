@@ -55,11 +55,13 @@ public interface ILlmSettingsStore
     /// <param name="model">Tên Model suy luận AI.</param>
     /// <param name="baseUrl">Địa chỉ Base URL của Gateway.</param>
     /// <param name="temperature">Nhiệt độ sáng tạo.</param>
+    /// <param name="driver">Tên driver nhà cung cấp AI (deepseek, claude).</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     Task UpdateSettingsAsync(
         string? apiKey,
         string model,
         string? baseUrl,
         float? temperature,
+        string? driver = null,
         CancellationToken cancellationToken = default);
 }

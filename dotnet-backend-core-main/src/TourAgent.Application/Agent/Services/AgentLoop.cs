@@ -217,7 +217,7 @@ public sealed class AgentLoop : IAgentLoop
                 toolsCalledJson: completion.ToolCalls.Count > 0
                     ? JsonSerializer.Serialize(completion.ToolCalls.Select(t => t.FunctionName))
                     : null,
-                provider: "deepseek",
+                provider: (completion.Model.Contains("claude", StringComparison.OrdinalIgnoreCase) || completion.Model.Contains("haiku", StringComparison.OrdinalIgnoreCase)) ? "claude" : "deepseek",
                 finishReason: completion.FinishReason ?? "stop",
                 toolPayloadsJson: completion.ToolCalls.Count > 0
                     ? JsonSerializer.Serialize(completion.ToolCalls, JsonOptions)

@@ -49,35 +49,61 @@ public sealed class LlmSettingsStore : ILlmSettingsStore
             _logger.LogWarning(ex, "Không thể đọc file {FilePath}, đang sử dụng cấu hình mặc định.", _filePath);
         }
 
-        var apiKey = configuration["DeepSeek:ApiKey"]
+        var explicitDriver = configuration["Llm:Driver"]
+            ?? Environment.GetEnvironmentVariable("LLM_DRIVER")
+            ?? loadedSettings?.Driver;
+
+        var claudeKey = configuration["Claude:ApiKey"]
+            ?? Environment.GetEnvironmentVariable("CLAUDE_API_KEY")
+            ?? Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY")
+            ?? Environment.GetEnvironmentVariable("ANTHROPIC_AUTH_TOKEN");
+
+        var deepseekKey = configuration["DeepSeek:ApiKey"]
             ?? Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY");
 
-        var effectiveApiKey = !string.IsNullOrWhiteSpace(apiKey) ? apiKey : (loadedSettings?.ApiKey ?? string.Empty);
-        if (string.IsNullOrWhiteSpace(effectiveApiKey))
+        var isClaude = string.Equals(explicitDriver, "claude", StringComparison.OrdinalIgnoreCase)
+            || (string.IsNullOrWhiteSpace(explicitDriver) && !string.IsNullOrWhiteSpace(claudeKey) && string.IsNullOrWhiteSpace(deepseekKey))
+            || (loadedSettings?.Model?.Contains("claude", StringComparison.OrdinalIgnoreCase) == true)
+            || (loadedSettings?.Model?.Contains("haiku", StringComparison.OrdinalIgnoreCase) == true)
+            || (loadedSettings?.BaseUrl?.Contains("fableai", StringComparison.OrdinalIgnoreCase) == true)
+            || (loadedSettings?.ApiKey?.StartsWith("sk-ant-", StringComparison.OrdinalIgnoreCase) == true);
+
+        var driver = isClaude ? "claude" : "deepseek";
+
+        var apiKey = isClaude
+            ? (claudeKey ?? (!string.IsNullOrWhiteSpace(loadedSettings?.ApiKey) ? loadedSettings.ApiKey : string.Empty))
+            : (deepseekKey ?? (!string.IsNullOrWhiteSpace(loadedSettings?.ApiKey) ? loadedSettings.ApiKey : string.Empty));
+
+        if (string.IsNullOrWhiteSpace(apiKey))
         {
-            _logger.LogWarning("Chưa cấu hình API Key cho DeepSeek qua 'DeepSeek:ApiKey' hoặc biến môi trường 'DEEPSEEK_API_KEY'.");
+            var keyName = isClaude ? "Claude (ANTHROPIC_AUTH_TOKEN, CLAUDE_API_KEY hoặc ANTHROPIC_API_KEY)" : "DeepSeek (DEEPSEEK_API_KEY)";
+            _logger.LogWarning("Chưa cấu hình API Key cho {KeyName}.", keyName);
         }
 
-        var model = configuration["DeepSeek:Model"]
-            ?? Environment.GetEnvironmentVariable("DEEPSEEK_MODEL")
-            ?? loadedSettings?.Model
-            ?? "deepseek-reasoner";
+        var defaultModel = isClaude ? "claude-3-5-haiku-20241022" : "deepseek-reasoner";
+        var model = isClaude
+            ? (configuration["Claude:Model"] ?? Environment.GetEnvironmentVariable("CLAUDE_MODEL") ?? Environment.GetEnvironmentVariable("ANTHROPIC_MODEL") ?? loadedSettings?.Model ?? defaultModel)
+            : (configuration["DeepSeek:Model"] ?? Environment.GetEnvironmentVariable("DEEPSEEK_MODEL") ?? loadedSettings?.Model ?? defaultModel);
 
-        var baseUrl = configuration["DeepSeek:BaseUrl"]
-            ?? Environment.GetEnvironmentVariable("DEEPSEEK_BASE_URL")
-            ?? loadedSettings?.BaseUrl
-            ?? "https://api.deepseek.com";
+        var defaultBaseUrl = isClaude ? "https://api.fableaiapi.com" : "https://api.deepseek.com";
+        var baseUrl = isClaude
+            ? (configuration["Claude:BaseUrl"] ?? Environment.GetEnvironmentVariable("CLAUDE_BASE_URL") ?? Environment.GetEnvironmentVariable("ANTHROPIC_BASE_URL") ?? loadedSettings?.BaseUrl ?? defaultBaseUrl)
+            : (configuration["DeepSeek:BaseUrl"] ?? Environment.GetEnvironmentVariable("DEEPSEEK_BASE_URL") ?? loadedSettings?.BaseUrl ?? defaultBaseUrl);
 
         float temperature = loadedSettings?.Temperature ?? 0.2f;
-        if (float.TryParse(configuration["DeepSeek:Temperature"] ?? Environment.GetEnvironmentVariable("DEEPSEEK_TEMPERATURE"), out var parsedTemp))
+        var tempConfig = isClaude
+            ? (configuration["Claude:Temperature"] ?? Environment.GetEnvironmentVariable("CLAUDE_TEMPERATURE"))
+            : (configuration["DeepSeek:Temperature"] ?? Environment.GetEnvironmentVariable("DEEPSEEK_TEMPERATURE"));
+
+        if (float.TryParse(tempConfig, out var parsedTemp))
         {
             temperature = parsedTemp;
         }
 
         return new LlmSettings
         {
-            Driver = "deepseek",
-            ApiKey = effectiveApiKey,
+            Driver = driver,
+            ApiKey = apiKey,
             Model = model,
             BaseUrl = baseUrl,
             Temperature = temperature
@@ -123,10 +149,16 @@ public sealed class LlmSettingsStore : ILlmSettingsStore
         string model,
         string? baseUrl,
         float? temperature,
+        string? driver = null,
         CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
+            if (!string.IsNullOrWhiteSpace(driver))
+            {
+                _settings.Driver = driver.Trim().ToLowerInvariant();
+            }
+
             if (!string.IsNullOrWhiteSpace(apiKey))
             {
                 _settings.ApiKey = apiKey.Trim();
