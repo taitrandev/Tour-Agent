@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { notify } from '../lib/notify';
+import { useConfirm } from '../components/common/ConfirmModal';
 import { apiFetch } from '../api/client';
 import type { TravelProduct, TourDeparture, ItineraryDay, TravelReview, TravelFaq } from '../types/travel';
 import { AdminLayout } from '../components/admin/AdminLayout';
@@ -8,6 +10,8 @@ import { AdminLayout } from '../components/admin/AdminLayout';
  * Tái hiện 100% giao diện, layout và logic từ tab-products trong welcome.blade.php của PHP.
  */
 export const AdminProductsPage: React.FC = () => {
+  const confirm = useConfirm();
+
   // State danh sách tour và tìm kiếm
   const [products, setProducts] = useState<TravelProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -213,14 +217,14 @@ export const AdminProductsPage: React.FC = () => {
 
       const result = await res.json();
       if (res.ok && result.success) {
-        alert(editingId ? '✅ Cập nhật Tour thành công!' : '🎉 Đã tạo Tour mới thành công!');
+        notify.success(editingId ? 'Cập nhật Tour thành công!' : 'Đã tạo Tour mới thành công!');
         setShowEntryModal(false);
         fetchProducts();
       } else {
-        alert('❌ Lỗi: ' + (result.message || 'Không thể lưu Tour'));
+        notify.error(result.message || 'Không thể lưu Tour');
       }
     } catch (err: unknown) {
-      alert('❌ Lỗi kết nối máy chủ: ' + (err instanceof Error ? err.message : String(err)));
+      notify.error('Lỗi kết nối máy chủ: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -228,7 +232,14 @@ export const AdminProductsPage: React.FC = () => {
    * Xóa một Tour khỏi CSDL.
    */
   const handleDeleteProduct = async (id: number, title: string) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa tour "${title}" không?`)) return;
+    const isConfirmed = await confirm({
+      title: 'Xác nhận xóa Tour du lịch',
+      message: `Bạn có chắc chắn muốn xóa tour "${title}" không? Hành động này sẽ gỡ bỏ thông tin tour và các lịch trình liên quan.`,
+      confirmText: 'Xóa vĩnh viễn',
+      cancelText: 'Hủy bỏ',
+      variant: 'danger',
+    });
+    if (!isConfirmed) return;
 
     try {
       const res = await apiFetch(`/api/v1/travels/${id}`, {
@@ -237,13 +248,13 @@ export const AdminProductsPage: React.FC = () => {
       });
       const result = await res.json();
       if (res.ok && result.success) {
-        alert('Đã xóa Tour thành công!');
+        notify.success('Đã xóa Tour thành công!');
         fetchProducts();
       } else {
-        alert('Lỗi: ' + (result.message || 'Không thể xóa'));
+        notify.error(result.message || 'Không thể xóa');
       }
     } catch (err: unknown) {
-      alert('Lỗi: ' + (err instanceof Error ? err.message : String(err)));
+      notify.error('Lỗi kết nối máy chủ: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -286,16 +297,17 @@ export const AdminProductsPage: React.FC = () => {
       });
       const json = await res.json();
       if (res.ok && json.success) {
+        notify.success('Lưu đánh giá thành công!');
         setShowAddReviewForm(false);
         setReviewName('');
         setReviewDate('');
         setReviewContent('');
         handleOpenReviewsModal(selectedProduct);
       } else {
-        alert(json.message || 'Lỗi lưu review');
+        notify.error(json.message || 'Lỗi lưu review');
       }
     } catch (err: unknown) {
-      alert('Lỗi: ' + (err instanceof Error ? err.message : String(err)));
+      notify.error('Lỗi: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -337,15 +349,16 @@ export const AdminProductsPage: React.FC = () => {
       });
       const json = await res.json();
       if (res.ok && json.success) {
+        notify.success('Lưu FAQ thành công!');
         setShowAddFaqForm(false);
         setFaqQuestion('');
         setFaqAnswer('');
         handleOpenFaqsModal(selectedProduct);
       } else {
-        alert(json.message || 'Lỗi lưu FAQ');
+        notify.error(json.message || 'Lỗi lưu FAQ');
       }
     } catch (err: unknown) {
-      alert('Lỗi: ' + (err instanceof Error ? err.message : String(err)));
+      notify.error('Lỗi: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 

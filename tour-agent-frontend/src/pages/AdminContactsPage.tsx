@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { notify } from '../lib/notify';
+import { useConfirm } from '../components/common/ConfirmModal';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
 
@@ -48,6 +50,8 @@ interface ContactDetailData extends CrmContactItem {
  * Tái hiện 100% UI Glassmorphism & Logic tương tác từ contacts.blade.php của PHP core.
  */
 export const AdminContactsPage: React.FC = () => {
+  const confirm = useConfirm();
+
   // State danh sách khách hàng và trạng thái tải
   const [contacts, setContacts] = useState<CrmContactItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -81,25 +85,6 @@ export const AdminContactsPage: React.FC = () => {
     notes: '',
   });
 
-  // State Toast Notification
-  const [toast, setToast] = useState<{ show: boolean; msg: string; isError: boolean }>({
-    show: false,
-    msg: '',
-    isError: false,
-  });
-
-  /**
-   * Hiển thị thông báo Toast nhanh góc màn hình và tự tắt sau 3 giây.
-   * @param msg Nội dung thông báo
-   * @param isError Cờ báo lỗi
-   */
-  const showToast = useCallback((msg: string, isError = false) => {
-    setToast({ show: true, msg, isError });
-    setTimeout(() => {
-      setToast(prev => ({ ...prev, show: false }));
-    }, 3000);
-  }, []);
-
   /**
    * Tải danh sách khách hàng từ API backend kèm các tham số lọc stage và tìm kiếm.
    */
@@ -118,16 +103,16 @@ export const AdminContactsPage: React.FC = () => {
         setContacts(json.data);
       } else {
         setContacts([]);
-        showToast(json.message || 'Không thể tải danh bạ khách hàng.', true);
+        notify.error(json.message || 'Không thể tải danh bạ khách hàng.');
       }
     } catch (err: any) {
       console.error('Lỗi kết nối API contacts:', err);
-      showToast('Lỗi kết nối máy chủ.', true);
+      notify.error('Lỗi kết nối máy chủ.');
       setContacts([]);
     } finally {
       setLoading(false);
     }
-  }, [currentStage, searchKeyword, showToast]);
+  }, [currentStage, searchKeyword]);
 
   // Tự động tải danh sách khi đổi stage hoặc từ khóa tìm kiếm
   useEffect(() => {
@@ -160,12 +145,12 @@ export const AdminContactsPage: React.FC = () => {
       if (json.success && json.data) {
         setDetailData(json.data);
       } else {
-        showToast(json.message || 'Không tìm thấy hồ sơ khách hàng.', true);
+        notify.error(json.message || 'Không tìm thấy hồ sơ khách hàng.');
         setDetailModalOpen(false);
       }
     } catch (err: any) {
       console.error(err);
-      showToast('Lỗi khi tải chi tiết khách hàng.', true);
+      notify.error('Lỗi khi tải chi tiết khách hàng.');
       setDetailModalOpen(false);
     } finally {
       setLoadingDetail(false);
@@ -219,17 +204,17 @@ export const AdminContactsPage: React.FC = () => {
 
       const json = await res.json();
       if (json.success) {
-        showToast('Cập nhật hồ sơ khách hàng thành công!');
+        notify.success('Cập nhật hồ sơ khách hàng thành công!');
         setEditModalOpen(false);
         fetchContacts();
         if (detailModalOpen && detailData?.id === editForm.id) {
           handleOpenDetailModal(editForm.id);
         }
       } else {
-        showToast(json.message || 'Không thể cập nhật hồ sơ.', true);
+        notify.error(json.message || 'Không thể cập nhật hồ sơ.');
       }
     } catch (err: any) {
-      showToast('Lỗi kết nối khi cập nhật: ' + err.message, true);
+      notify.error('Lỗi kết nối khi cập nhật: ' + err.message);
     }
   };
 
@@ -255,7 +240,7 @@ export const AdminContactsPage: React.FC = () => {
   const handleSubmitCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!createForm.phone.trim()) {
-      showToast('Vui lòng nhập số điện thoại khách hàng.', true);
+      notify.warning('Vui lòng nhập số điện thoại khách hàng.');
       return;
     }
 
@@ -277,14 +262,14 @@ export const AdminContactsPage: React.FC = () => {
 
       const json = await res.json();
       if (json.success) {
-        showToast('Tạo hồ sơ khách hàng mới thành công!');
+        notify.success('Tạo hồ sơ khách hàng mới thành công!');
         setCreateModalOpen(false);
         fetchContacts();
       } else {
-        showToast(json.message || 'Không thể tạo mới khách hàng.', true);
+        notify.error(json.message || 'Không thể tạo mới khách hàng.');
       }
     } catch (err: any) {
-      showToast('Lỗi kết nối khi tạo mới: ' + err.message, true);
+      notify.error('Lỗi kết nối khi tạo mới: ' + err.message);
     }
   };
 
@@ -294,9 +279,14 @@ export const AdminContactsPage: React.FC = () => {
    * @param contactName Tên khách hàng
    */
   const handleDeleteContact = async (contactId: number, contactName: string) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa hồ sơ khách hàng "${contactName}" (ID #${contactId}) không?`)) {
-      return;
-    }
+    const isConfirmed = await confirm({
+      title: 'Xác nhận xóa hồ sơ khách hàng',
+      message: `Bạn có chắc chắn muốn xóa hồ sơ khách hàng "${contactName}" (ID #${contactId}) không? Mọi thông tin liên hệ và lịch sử của khách hàng sẽ bị gỡ bỏ.`,
+      confirmText: 'Xóa hồ sơ',
+      cancelText: 'Hủy bỏ',
+      variant: 'danger',
+    });
+    if (!isConfirmed) return;
 
     try {
       const res = await apiFetch(`/api/v1/admin/contacts/${contactId}`, {
@@ -305,13 +295,13 @@ export const AdminContactsPage: React.FC = () => {
       const json = await res.json();
 
       if (json.success) {
-        showToast(`Đã xóa khách hàng #${contactId} thành công!`);
+        notify.success(`Đã xóa khách hàng #${contactId} thành công!`);
         fetchContacts();
       } else {
-        showToast(json.message || 'Không thể xóa hồ sơ.', true);
+        notify.error(json.message || 'Không thể xóa hồ sơ.');
       }
     } catch (err: any) {
-      showToast('Lỗi khi xóa: ' + err.message, true);
+      notify.error('Lỗi khi xóa: ' + err.message);
     }
   };
 
@@ -914,21 +904,7 @@ export const AdminContactsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Toast Notification */}
-      <div
-        className={`fixed bottom-5 right-5 z-50 transform transition-all duration-300 pointer-events-none ${
-          toast.show ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
-        }`}
-      >
-        <div
-          className={`bg-slate-900 border px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold ${
-            toast.isError ? 'border-rose-500/40 text-rose-300' : 'border-teal-500/40 text-teal-300'
-          }`}
-        >
-          <span>{toast.isError ? '⚠️' : '✅'}</span>
-          <span>{toast.msg}</span>
-        </div>
-      </div>
+      {/* Modal tạo khách hàng kết thúc */}
     </AdminLayout>
   );
 };

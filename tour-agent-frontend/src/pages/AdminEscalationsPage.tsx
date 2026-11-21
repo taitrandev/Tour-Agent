@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { notify } from '../lib/notify';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
 
@@ -50,7 +51,6 @@ export const AdminEscalationsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<EscalationTicket | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [stats, setStats] = useState({
     total: 0,
@@ -59,14 +59,9 @@ export const AdminEscalationsPage: React.FC = () => {
     approved: 0,
   });
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    showToast(`📋 Đã sao chép ${label}!`);
+    notify.success(`Đã sao chép ${label}!`);
   };
 
   // Helper getters hỗ trợ cả snake_case (từ backend .NET) và camelCase
@@ -134,18 +129,18 @@ export const AdminEscalationsPage: React.FC = () => {
         throw new Error(`Cập nhật trạng thái thất bại: ${res.statusText}`);
       }
 
-      showToast(
+      notify.success(
         action === 'contacting'
-          ? '📞 Đã tiếp nhận ticket và bắt đầu tư vấn!'
+          ? 'Đã tiếp nhận ticket và bắt đầu tư vấn!'
           : action === 'approve'
-          ? '✅ Đã duyệt ưu đãi thành công!'
-          : '📁 Đã đóng ticket.'
+          ? 'Đã duyệt ưu đãi thành công!'
+          : 'Đã đóng ticket.'
       );
 
       // Tải lại danh sách sau khi thao tác
       await fetchTickets();
     } catch (err: any) {
-      showToast(`❌ ${err.message || 'Lỗi cập nhật ticket'}`);
+      notify.error(err.message || 'Lỗi cập nhật ticket');
     }
   };
 
@@ -164,13 +159,6 @@ export const AdminEscalationsPage: React.FC = () => {
         </button>
       }
     >
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 border border-amber-500/50 text-white shadow-2xl text-xs flex items-center gap-2 animate-bounce">
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
       <div className="p-6 space-y-6">
         {/* 4 KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

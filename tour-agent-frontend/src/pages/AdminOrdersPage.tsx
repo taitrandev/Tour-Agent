@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { notify } from '../lib/notify';
+import { useConfirm } from '../components/common/ConfirmModal';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
 
@@ -81,6 +83,8 @@ interface OrderMetrics {
  * Tái hiện 100% UI Dark Glassmorphism và đầy đủ logic từ orders.blade.php.
  */
 export const AdminOrdersPage: React.FC = () => {
+  const confirm = useConfirm();
+
   // State dữ liệu danh sách và bộ lọc
   const [orders, setOrders] = useState<TourOrderItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -141,16 +145,6 @@ export const AdminOrdersPage: React.FC = () => {
   const [formNotes, setFormNotes] = useState<string>('');
   const [submittingForm, setSubmittingForm] = useState<boolean>(false);
 
-  // State Toast Notification
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const showToast = useCallback((msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 4000);
-  }, []);
-
   /**
    * Gọi API tải danh sách đơn hàng tour kèm bộ lọc và chỉ số thống kê.
    */
@@ -173,11 +167,11 @@ export const AdminOrdersPage: React.FC = () => {
       }
     } catch (err) {
       console.error('Lỗi khi tải danh sách đơn hàng tour:', err);
-      showToast('❌ Không thể tải danh sách đơn hàng tour. Hãy thử lại.');
+      notify.error('Không thể tải danh sách đơn hàng tour. Hãy thử lại.');
     } finally {
       setLoading(false);
     }
-  }, [currentStatus, searchKeyword, showToast]);
+  }, [currentStatus, searchKeyword]);
 
   useEffect(() => {
     fetchOrders();
@@ -235,15 +229,15 @@ export const AdminOrdersPage: React.FC = () => {
       });
       const json = await res.json();
       if (json.success) {
-        showToast(`✅ Đã xác nhận cọc 50% thành công cho đơn #${depositOrder.order_code}!`);
+        notify.success(`Đã xác nhận cọc 50% thành công cho đơn #${depositOrder.order_code}!`);
         setDepositModalOpen(false);
         fetchOrders();
       } else {
-        showToast(`❌ ${json.message || 'Lỗi khi xác nhận cọc'}`);
+        notify.error(json.message || 'Lỗi khi xác nhận cọc');
       }
     } catch (err) {
       console.error(err);
-      showToast('❌ Lỗi kết nối khi xác nhận cọc.');
+      notify.error('Lỗi kết nối khi xác nhận cọc.');
     } finally {
       setSubmittingDeposit(false);
     }
@@ -281,7 +275,7 @@ export const AdminOrdersPage: React.FC = () => {
       });
       const json = await res.json();
       if (json.success) {
-        showToast(`✅ Cập nhật tiến trình Visa thành công cho đơn #${visaOrder.order_code}!`);
+        notify.success(`Cập nhật tiến trình Visa thành công cho đơn #${visaOrder.order_code}!`);
         if (json.zalo_message) {
           setZaloVisaMessage(json.zalo_message);
         } else {
@@ -289,11 +283,11 @@ export const AdminOrdersPage: React.FC = () => {
         }
         fetchOrders();
       } else {
-        showToast(`❌ ${json.message || 'Lỗi khi cập nhật visa'}`);
+        notify.error(json.message || 'Lỗi khi cập nhật visa');
       }
     } catch (err) {
       console.error(err);
-      showToast('❌ Lỗi kết nối khi cập nhật visa.');
+      notify.error('Lỗi kết nối khi cập nhật visa.');
     } finally {
       setSubmittingVisa(false);
     }
@@ -319,15 +313,15 @@ export const AdminOrdersPage: React.FC = () => {
       });
       const json = await res.json();
       if (json.success) {
-        showToast(`🎉 Đã xác nhận thu đủ 100% cho đơn #${finalPaymentOrder.order_code}! Sẵn sàng khởi hành.`);
+        notify.success(`Đã xác nhận thu đủ 100% cho đơn #${finalPaymentOrder.order_code}! Sẵn sàng khởi hành.`);
         setFinalPaymentModalOpen(false);
         fetchOrders();
       } else {
-        showToast(`❌ ${json.message || 'Lỗi khi xác nhận thanh toán'}`);
+        notify.error(json.message || 'Lỗi khi xác nhận thanh toán');
       }
     } catch (err) {
       console.error(err);
-      showToast('❌ Lỗi kết nối khi xác nhận thanh toán.');
+      notify.error('Lỗi kết nối khi xác nhận thanh toán.');
     } finally {
       setSubmittingFinalPayment(false);
     }
@@ -363,7 +357,7 @@ export const AdminOrdersPage: React.FC = () => {
       });
       const json = await res.json();
       if (json.success) {
-        showToast(`✈️ Đã lưu thông tin HDV và đánh dấu dặn dò T-3 cho đơn #${t3Order.order_code}!`);
+        notify.success(`Đã lưu thông tin HDV và đánh dấu dặn dò T-3 cho đơn #${t3Order.order_code}!`);
         if (json.zalo_message) {
           setZaloT3Message(json.zalo_message);
         } else {
@@ -371,11 +365,11 @@ export const AdminOrdersPage: React.FC = () => {
         }
         fetchOrders();
       } else {
-        showToast(`❌ ${json.message || 'Lỗi khi lưu thông tin HDV'}`);
+        notify.error(json.message || 'Lỗi khi lưu thông tin HDV');
       }
     } catch (err) {
       console.error(err);
-      showToast('❌ Lỗi kết nối khi dặn dò T-3.');
+      notify.error('Lỗi kết nối khi dặn dò T-3.');
     } finally {
       setSubmittingT3(false);
     }
@@ -386,28 +380,35 @@ export const AdminOrdersPage: React.FC = () => {
    */
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    showToast(`📋 Đã sao chép ${label} vào bộ nhớ tạm!`);
+    notify.success(`Đã sao chép ${label} vào bộ nhớ tạm!`);
   };
 
   /**
    * Xóa đơn hàng (soft delete).
    */
   const handleDeleteOrder = async (order: TourOrderItem) => {
-    if (!window.confirm(`Bạn có chắc muốn xóa đơn hàng #${order.order_code} không?`)) return;
+    const isConfirmed = await confirm({
+      title: 'Xác nhận xóa đơn hàng',
+      message: `Bạn có chắc muốn xóa đơn hàng #${order.order_code} không? Dữ liệu đơn hàng và tiến trình thanh toán sẽ bị xóa.`,
+      confirmText: 'Xóa đơn hàng',
+      cancelText: 'Hủy bỏ',
+      variant: 'danger',
+    });
+    if (!isConfirmed) return;
     try {
       const res = await apiFetch(`/api/v1/admin/orders/${order.id}`, {
         method: 'DELETE',
       });
       const json = await res.json();
       if (json.success) {
-        showToast(`🗑️ Đã xóa đơn hàng #${order.order_code} thành công.`);
+        notify.success(`Đã xóa đơn hàng #${order.order_code} thành công.`);
         fetchOrders();
       } else {
-        showToast(`❌ ${json.message || 'Lỗi khi xóa đơn hàng'}`);
+        notify.error(json.message || 'Lỗi khi xóa đơn hàng');
       }
     } catch (err) {
       console.error(err);
-      showToast('❌ Lỗi kết nối khi xóa đơn hàng.');
+      notify.error('Lỗi kết nối khi xóa đơn hàng.');
     }
   };
 
@@ -472,15 +473,15 @@ export const AdminOrdersPage: React.FC = () => {
       });
       const json = await res.json();
       if (json.success) {
-        showToast(formIsEditing ? '✅ Đã cập nhật đơn hàng thành công!' : '🎉 Đã tạo đơn hàng mới thành công!');
+        notify.success(formIsEditing ? 'Đã cập nhật đơn hàng thành công!' : 'Đã tạo đơn hàng mới thành công!');
         setFormModalOpen(false);
         fetchOrders();
       } else {
-        showToast(`❌ ${json.message || 'Lỗi khi lưu đơn hàng'}`);
+        notify.error(json.message || 'Lỗi khi lưu đơn hàng');
       }
     } catch (err) {
       console.error(err);
-      showToast('❌ Lỗi kết nối khi lưu đơn hàng.');
+      notify.error('Lỗi kết nối khi lưu đơn hàng.');
     } finally {
       setSubmittingForm(false);
     }
@@ -558,13 +559,6 @@ export const AdminOrdersPage: React.FC = () => {
         </>
       }
     >
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 border border-sky-500/40 text-white shadow-2xl text-xs flex items-center gap-2 animate-bounce">
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
       {/* Main Content Area */}
       <main className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
         {/* Real-time Pipeline Metrics Overview Grid */}

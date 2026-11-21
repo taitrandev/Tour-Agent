@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { notify } from '../lib/notify';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
 
@@ -178,7 +179,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
     const finalModel = isCustomModel ? customModelInput.trim() : selectedModel;
 
     if (!finalModel) {
-      alert('Vui lòng chọn hoặc nhập tên mô hình AI (Model name).');
+      notify.warning('Vui lòng chọn hoặc nhập tên mô hình AI (Model name).');
       setIsSaving(false);
       return;
     }
@@ -204,13 +205,13 @@ export const AdminLlmSettingsPage: React.FC = () => {
         throw new Error(json.message || 'Lỗi khi lưu cấu hình.');
       }
 
-      alert('✅ ' + json.message);
+      notify.success(json.message || 'Lưu cấu hình LLM thành công!');
       setApiKeyInput('');
       await loadLlmStatus();
       addLog(`Đã cập nhật cấu hình [${selectedDriver.toUpperCase()}] thành công! Model: ${finalModel}`, 'success');
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      alert('❌ Lỗi: ' + errorMsg);
+      notify.error('Lỗi: ' + errorMsg);
       addLog(`Lỗi lưu cấu hình: ${errorMsg}`, 'error');
     } finally {
       setIsSaving(false);

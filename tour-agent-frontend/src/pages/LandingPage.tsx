@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { notify } from '../lib/notify';
 import { FloatingChatWidget } from '../components/chat/FloatingChatWidget';
 import { searchTours } from '../api/toursApi';
 import type { TourSummary } from '../types/tour';
@@ -399,7 +400,7 @@ export const LandingPage: React.FC = () => {
 
             <button
               onClick={() => {
-                alert('Đã ghi nhận yêu cầu đặt chỗ. Chuyên viên tư vấn sẽ liên hệ ngay!');
+                notify.success('Đã ghi nhận yêu cầu đặt chỗ. Chuyên viên tư vấn sẽ liên hệ ngay!');
               }}
               className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 hover:brightness-110 text-[#080c14] font-bold text-base shadow-xl shadow-amber-500/30 transition-all flex items-center justify-center gap-2 active:scale-95"
             >

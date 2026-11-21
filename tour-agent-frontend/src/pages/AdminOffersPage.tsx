@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { notify } from '../lib/notify';
+import { useConfirm } from '../components/common/ConfirmModal';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
 
@@ -81,6 +83,8 @@ interface TravelOption {
  * Tái hiện 100% giao diện và nghiệp vụ từ welcome.blade.php của PHP core.
  */
 export const AdminOffersPage: React.FC = () => {
+  const confirm = useConfirm();
+
   // State danh sách
   const [offers, setOffers] = useState<OfferData[]>([]);
   const [travels, setTravels] = useState<TravelOption[]>([]);
@@ -341,14 +345,14 @@ export const AdminOffersPage: React.FC = () => {
 
       const result = await res.json();
       if (res.ok && result.success) {
-        alert(editingId ? '✅ Cập nhật Offer & Value Stack thành công!' : '🎉 Đã tạo Offer mới thành công!');
+        notify.success(editingId ? 'Cập nhật Offer & Value Stack thành công!' : 'Đã tạo Offer mới thành công!');
         setShowEditModal(false);
         fetchOffers();
       } else {
-        alert('❌ Lỗi: ' + (result.message || 'Không thể lưu Offer'));
+        notify.error(result.message || 'Không thể lưu Offer');
       }
     } catch (err: unknown) {
-      alert('❌ Lỗi kết nối máy chủ: ' + (err instanceof Error ? err.message : String(err)));
+      notify.error('Lỗi kết nối máy chủ: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -356,7 +360,14 @@ export const AdminOffersPage: React.FC = () => {
    * Xóa một gói Offer khỏi CSDL.
    */
   const handleDeleteOffer = async (id: number, title: string) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa gói Offer "${title}" không?`)) return;
+    const isConfirmed = await confirm({
+      title: 'Xác nhận xóa gói Offer',
+      message: `Bạn có chắc chắn muốn xóa gói Offer "${title}" không? Toàn bộ các ưu đãi và chính sách kèm theo sẽ bị xóa vĩnh viễn.`,
+      confirmText: 'Xóa vĩnh viễn',
+      cancelText: 'Hủy bỏ',
+      variant: 'danger',
+    });
+    if (!isConfirmed) return;
 
     try {
       const res = await apiFetch(`/api/v1/offers/${id}`, {
@@ -365,13 +376,13 @@ export const AdminOffersPage: React.FC = () => {
       });
       const result = await res.json();
       if (res.ok && result.success) {
-        alert('Đã xóa Offer thành công!');
+        notify.success('Đã xóa Offer thành công!');
         fetchOffers();
       } else {
-        alert('Lỗi: ' + (result.message || 'Không thể xóa'));
+        notify.error(result.message || 'Không thể xóa');
       }
     } catch (err: unknown) {
-      alert('Lỗi: ' + (err instanceof Error ? err.message : String(err)));
+      notify.error('Lỗi kết nối máy chủ: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 

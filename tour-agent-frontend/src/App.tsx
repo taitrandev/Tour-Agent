@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { NotificationContainer } from './lib/notify';
+import { ConfirmProvider } from './components/common/ConfirmModal';
 import { LandingPage } from './pages/LandingPage';
 import { AdminConversationsPage } from './pages/AdminConversationsPage';
 import { AdminEscalationsPage } from './pages/AdminEscalationsPage';
@@ -18,7 +20,11 @@ import { AdminLlmSettingsPage } from './pages/AdminLlmSettingsPage';
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <Routes>
+      {/* Provider quản lý Modal xác nhận thao tác toàn cục */}
+      <ConfirmProvider>
+        {/* Container thông báo toàn cục hệ thống */}
+        <NotificationContainer />
+        <Routes>
         {/* Phân hệ Client: Landing Page bán hàng & AI Sakura Consultation */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/tour/:slug" element={<LandingPage />} />
@@ -42,6 +48,7 @@ export const App: React.FC = () => {
         {/* Redirect mặc định */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </ConfirmProvider>
     </BrowserRouter>
   );
 };

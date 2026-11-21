@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { notify } from '../lib/notify';
+import { useConfirm } from '../components/common/ConfirmModal';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
 
@@ -112,6 +114,7 @@ function renderMarkdown(raw?: string | null): string {
  * Tái hiện 100% giao diện và nghiệp vụ từ resources/views/admin/conversations.blade.php của PHP core.
  */
 export const AdminConversationsPage: React.FC = () => {
+  const confirm = useConfirm();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // State danh sách hội thoại
@@ -259,10 +262,14 @@ export const AdminConversationsPage: React.FC = () => {
       event.stopPropagation();
     }
 
-    const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn xóa vĩnh viễn cuộc hội thoại #${convId} cùng toàn bộ tin nhắn và nhật ký LLM liên quan?`
-    );
-    if (!confirmed) return;
+    const isConfirmed = await confirm({
+      title: 'Xóa phiên hội thoại',
+      message: `Bạn có chắc chắn muốn xóa vĩnh viễn cuộc hội thoại #${convId} cùng toàn bộ tin nhắn và nhật ký LLM liên quan?`,
+      confirmText: 'Xóa vĩnh viễn',
+      cancelText: 'Hủy bỏ',
+      variant: 'danger',
+    });
+    if (!isConfirmed) return;
 
     try {
       const response = await apiFetch(`/api/v1/agent/consultant/conversations/${convId}`, {
@@ -271,16 +278,17 @@ export const AdminConversationsPage: React.FC = () => {
       });
       const json = await response.json();
       if (json.success) {
+        notify.success('Đã xóa phiên hội thoại thành công!');
         if (selectedConvId === convId) {
           setDetailData(null);
           setSearchParams({}, { replace: true });
         }
         await loadConversations(false);
       } else {
-        alert(json.message || 'Không thể xóa hội thoại.');
+        notify.error(json.message || 'Không thể xóa hội thoại.');
       }
     } catch (error: any) {
-      alert('Lỗi kết nối khi xóa hội thoại: ' + error.message);
+      notify.error('Lỗi kết nối khi xóa hội thoại: ' + error.message);
     }
   };
 
@@ -330,10 +338,11 @@ export const AdminConversationsPage: React.FC = () => {
       .writeText(snapshotModalContent)
       .then(() => {
         setCopyFeedback(true);
+        notify.success('Đã sao chép nội dung vào Clipboard!');
         setTimeout(() => setCopyFeedback(false), 2000);
       })
       .catch(() => {
-        alert('Không thể sao chép vào bộ nhớ đệm.');
+        notify.error('Không thể sao chép vào bộ nhớ đệm.');
       });
   };
 

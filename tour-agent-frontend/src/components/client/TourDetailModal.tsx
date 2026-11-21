@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { notify } from '../../lib/notify';
 import { X, Calendar, MapPin, CheckCircle, AlertCircle, ShieldAlert, Sparkles, PhoneCall } from 'lucide-react';
 import type { TourDetail } from '../../types/tour';
 
@@ -260,7 +261,7 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
-                alert(`Đã ghi nhận yêu cầu đặt cọc cho tour: ${tour.name}. Chuyên viên tư vấn sẽ liên hệ ngay!`);
+                notify.success(`Đã ghi nhận yêu cầu đặt cọc cho tour: ${tour.name}. Chuyên viên tư vấn sẽ liên hệ ngay!`);
                 onClose();
               }}
               className="px-6 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 flex items-center gap-2 shadow-lg shadow-amber-500/25 transition active:scale-95"

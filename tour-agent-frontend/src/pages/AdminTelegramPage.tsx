@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { notify } from '../lib/notify';
+import { useConfirm } from '../components/common/ConfirmModal';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
 
@@ -53,6 +55,8 @@ interface TelegramConfigStatus {
  * Tái hiện 100% giao diện và nghiệp vụ từ resources/views/admin/telegram.blade.php của PHP core.
  */
 export const AdminTelegramPage: React.FC = () => {
+  const confirm = useConfirm();
+
   // State cấu hình Telegram
   const [config, setConfig] = useState<TelegramConfigStatus | null>(null);
   const [loadingStatus, setLoadingStatus] = useState<boolean>(true);
@@ -134,7 +138,7 @@ export const AdminTelegramPage: React.FC = () => {
   const handleSaveToken = async () => {
     const trimmed = botTokenInput.trim();
     if (!trimmed) {
-      alert('Vui lòng nhập Telegram Bot Token.');
+      notify.warning('Vui lòng nhập Telegram Bot Token.');
       return;
     }
 
@@ -150,11 +154,11 @@ export const AdminTelegramPage: React.FC = () => {
         throw new Error(data.message || 'Lỗi khi lưu token.');
       }
 
-      alert('🎉 ' + data.message);
+      notify.success(data.message || 'Lưu Telegram Bot Token thành công!');
       setBotTokenInput('');
       await loadTelegramStatus();
     } catch (err: any) {
-      alert('❌ ' + err.message);
+      notify.error(err.message || 'Lỗi khi lưu token.');
     } finally {
       setSavingToken(false);
     }
@@ -166,7 +170,7 @@ export const AdminTelegramPage: React.FC = () => {
   const handleActivateWebhook = async () => {
     const trimmed = webhookUrlInput.trim();
     if (!trimmed) {
-      alert('Vui lòng nhập Webhook URL.');
+      notify.warning('Vui lòng nhập Webhook URL.');
       return;
     }
 
@@ -182,10 +186,10 @@ export const AdminTelegramPage: React.FC = () => {
         throw new Error(data.message || 'Lỗi khi kích hoạt Webhook.');
       }
 
-      alert('✅ ' + data.message);
+      notify.success(data.message || 'Kích hoạt Webhook thành công!');
       await loadTelegramStatus();
     } catch (err: any) {
-      alert('❌ ' + err.message);
+      notify.error(err.message || 'Lỗi kích hoạt Webhook.');
     } finally {
       setActivatingWebhook(false);
     }
@@ -195,8 +199,14 @@ export const AdminTelegramPage: React.FC = () => {
    * Hủy bỏ Webhook Telegram đang hoạt động.
    */
   const handleRemoveWebhook = async () => {
-    const confirmed = window.confirm('Bạn có chắc chắn muốn hủy Webhook này không?');
-    if (!confirmed) return;
+    const isConfirmed = await confirm({
+      title: 'Hủy Webhook Telegram',
+      message: 'Bạn có chắc chắn muốn hủy Webhook này không? Sau khi hủy, bot sẽ tạm ngừng nhận tin nhắn từ người dùng Telegram cho tới khi được cấu hình lại.',
+      confirmText: 'Hủy Webhook',
+      cancelText: 'Quay lại',
+      variant: 'warning',
+    });
+    if (!isConfirmed) return;
 
     setRemovingWebhook(true);
     try {
@@ -209,10 +219,10 @@ export const AdminTelegramPage: React.FC = () => {
         throw new Error(data.message || 'Lỗi khi gỡ Webhook.');
       }
 
-      alert('✅ ' + data.message);
+      notify.success(data.message || 'Đã gỡ Webhook thành công!');
       await loadTelegramStatus();
     } catch (err: any) {
-      alert('❌ ' + err.message);
+      notify.error(err.message || 'Lỗi khi gỡ Webhook.');
     } finally {
       setRemovingWebhook(false);
     }
@@ -224,7 +234,7 @@ export const AdminTelegramPage: React.FC = () => {
   const handleSaveAdminChatId = async () => {
     const trimmed = adminChatIdInput.trim();
     if (!trimmed) {
-      alert('Vui lòng nhập Admin Chat ID.');
+      notify.warning('Vui lòng nhập Admin Chat ID.');
       return;
     }
 
@@ -240,11 +250,11 @@ export const AdminTelegramPage: React.FC = () => {
         throw new Error(data.message || 'Lỗi khi lưu Chat ID.');
       }
 
-      alert('🎉 ' + data.message);
+      notify.success(data.message || 'Lưu Admin Chat ID thành công!');
       setTestChatIdInput(trimmed);
       await loadTelegramStatus();
     } catch (err: any) {
-      alert('❌ ' + err.message);
+      notify.error(err.message || 'Lỗi khi lưu Chat ID.');
     } finally {
       setSavingAdminChatId(false);
     }
@@ -289,7 +299,7 @@ export const AdminTelegramPage: React.FC = () => {
   const handleSendTestMessage = async () => {
     const trimmed = testChatIdInput.trim();
     if (!trimmed) {
-      alert('Vui lòng nhập Chat ID.');
+      notify.warning('Vui lòng nhập Chat ID.');
       return;
     }
 
