@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Bot } from 'lucide-react';
 import { AdminSidebar } from './AdminSidebar';
+import { AdminCommanderDrawer } from './AdminCommanderDrawer';
 
 interface AdminLayoutProps {
   title?: string;
@@ -9,7 +11,6 @@ interface AdminLayoutProps {
   icon?: string;
   headerActions?: React.ReactNode;
   children: React.ReactNode;
-  onOpenAgentDrawer?: () => void;
   contentClassName?: string;
 }
 
@@ -25,11 +26,21 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   icon = '💎',
   headerActions,
   children,
-  onOpenAgentDrawer,
   contentClassName,
 }) => {
+  // State quản lý mở/đóng AI Agent Commander toàn cục
+  const [isCommanderOpen, setIsCommanderOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenEvent = () => setIsCommanderOpen(true);
+    window.addEventListener('open-agent-commander', handleOpenEvent);
+    return () => window.removeEventListener('open-agent-commander', handleOpenEvent);
+  }, []);
+
+  const handleCloseCommander = () => setIsCommanderOpen(false);
+
   return (
-    <div className="h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans overflow-hidden">
+    <div className="h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans overflow-hidden relative">
       {/* ── TOP UNIFIED HEADER ── */}
       <header className="h-16 border-b border-[#222f49] bg-[#0e1422]/90 backdrop-blur px-6 flex items-center justify-between shrink-0 z-20 sticky top-0 shadow-md">
         {/* Left: Brand & Page Subtitle */}
@@ -104,13 +115,27 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       {/* ── MAIN WORKSPACE CONTAINER ── */}
       <div className="flex-1 flex flex-col lg:flex-row min-w-0 overflow-hidden">
         {/* Shared Persistent Sidebar */}
-        <AdminSidebar onOpenAgentDrawer={onOpenAgentDrawer} />
+        <AdminSidebar />
 
         {/* Content Area */}
         <div className={`flex-1 flex flex-col min-w-0 h-full ${contentClassName ?? 'overflow-y-auto'}`}>
           {children}
         </div>
       </div>
+
+      {/* ── GLOBAL AI AGENT COMMANDER COPILOT DRAWER ── */}
+      <AdminCommanderDrawer isOpen={isCommanderOpen} onClose={handleCloseCommander} />
+
+      {/* Floating Action Button mở nhanh AI Commander ở góc phải dưới */}
+      <button
+        type="button"
+        onClick={() => setIsCommanderOpen((prev) => !prev)}
+        className="fixed bottom-6 right-6 z-40 w-13 h-13 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 hover:scale-105 active:scale-95 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 border border-emerald-400/40 transition-all group"
+        title="Mở AI Agent Commander"
+      >
+        <Bot className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#0b0f19] animate-pulse" />
+      </button>
     </div>
   );
 };

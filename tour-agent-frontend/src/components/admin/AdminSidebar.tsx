@@ -1,15 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-interface AdminSidebarProps {
-  onOpenAgentDrawer?: () => void;
-}
-
-/**
- * Sidebar Điều Hướng Chuẩn Dùng Chung Cho Toàn Bộ Phân Hệ Quản Trị (Admin Portal).
- * Tự động nhận diện đường dẫn (useLocation) để kích hoạt trạng thái Active tương ứng.
- */
-export const AdminSidebar: React.FC<AdminSidebarProps> = ({ onOpenAgentDrawer }) => {
+export const AdminSidebar: React.FC = () => {
   const location = useLocation();
   const path = location.pathname;
 
@@ -107,29 +99,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ onOpenAgentDrawer })
           </span>
         </Link>
 
-        {/* 6. AI Agent Commander */}
-        {onOpenAgentDrawer ? (
-          <button
-            type="button"
-            onClick={onOpenAgentDrawer}
-            className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20 font-semibold text-xs transition text-left"
-          >
-            <span className="text-base">🤖</span>
-            <span className="flex-1">AI Agent Commander</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          </button>
-        ) : (
-          <Link
-            to="/admin/conversations"
-            className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20 font-semibold text-xs transition text-left"
-          >
-            <span className="text-base">🤖</span>
-            <span className="flex-1">AI Agent Commander</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          </Link>
-        )}
-
-        {/* 7. Cấu Hình LLM Gateway */}
+        {/* 6. Cấu Hình LLM Gateway */}
         <Link
           to="/admin/settings/llm"
           className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-semibold text-xs transition text-left ${

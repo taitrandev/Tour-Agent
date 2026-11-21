@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { notify } from '../lib/notify';
 import { useConfirm } from '../components/common/ConfirmModal';
+import { openAgentCommander } from '../components/admin/AdminCommanderDrawer';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
 
@@ -111,14 +112,6 @@ export const AdminOffersPage: React.FC = () => {
   const [formUrgencyHours, setFormUrgencyHours] = useState<number>(24);
   const [formStatus, setFormStatus] = useState<'active' | 'draft' | 'archived'>('active');
   const [formItems, setFormItems] = useState<ValueStackItem[]>([]);
-
-  // State AI Commander Drawer
-  const [showAgentDrawer, setShowAgentDrawer] = useState<boolean>(false);
-  const [agentMessages, setAgentMessages] = useState<Array<{ sender: 'user' | 'agent'; text: string }>>([
-    { sender: 'agent', text: '🤖 Chào bạn! Tôi là Tyler AI Agent Commander. Tôi có thể thực thi các lệnh cập nhật giá, điều chỉnh slot khan hiếm hoặc bổ sung quà tặng bonus vào Offer.' }
-  ]);
-  const [agentInput, setAgentInput] = useState<string>('');
-  const [isAgentTyping, setIsAgentTyping] = useState<boolean>(false);
 
   /**
    * Tải danh sách Offers từ Backend .NET API.
@@ -386,47 +379,9 @@ export const AdminOffersPage: React.FC = () => {
     }
   };
 
-  /**
-   * Xử lý gửi tin nhắn hoặc câu lệnh cho AI Agent.
-   */
-  const handleSendAgentMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!agentInput.trim()) return;
-
-    const userText = agentInput;
-    setAgentInput('');
-    setAgentMessages(prev => [...prev, { sender: 'user', text: userText }]);
-    setIsAgentTyping(true);
-
-    try {
-      const res = await apiFetch('/api/v1/agent/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText, stream: false }),
-      });
-      const json = await res.json();
-      if (json.reply) {
-        setAgentMessages(prev => [...prev, { sender: 'agent', text: json.reply }]);
-        fetchOffers();
-      } else {
-        setAgentMessages(prev => [...prev, { sender: 'agent', text: '⚡ Lệnh đã được tiếp nhận và xử lý.' }]);
-      }
-    } catch (err: unknown) {
-      setAgentMessages(prev => [
-        ...prev,
-        { sender: 'agent', text: `⚠️ Đã thực thi lệnh mô phỏng cho: "${userText}". Kết nối trực tiếp LLM hoạt động qua DeepSeek V3.` }
-      ]);
-    } finally {
-      setIsAgentTyping(false);
-    }
-  };
-
   const formatCurrency = (val: number): string => {
     return new Intl.NumberFormat('vi-VN').format(val) + ' đ';
   };
-
-  // Tính toán số liệu thống kê cho KPI cards
-  const firstOffer = offers.length > 0 ? offers[0] : null;
 
   return (
     <AdminLayout
@@ -434,7 +389,6 @@ export const AdminOffersPage: React.FC = () => {
       subtitle="Trụ cột Offer • AI Agent Commander & Value Stack Management"
       badge=".NET 10 Core"
       icon="💎"
-      onOpenAgentDrawer={() => setShowAgentDrawer(true)}
       headerActions={
         <>
           <Link
@@ -456,39 +410,6 @@ export const AdminOffersPage: React.FC = () => {
       {/* Main Content Area */}
       <main className="flex-1 p-6 lg:p-8 space-y-6">
           {/* Metrics / KPI Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-1">
-              <span className="text-xs text-slate-400 font-semibold uppercase">Tổng số Offer</span>
-              <div className="text-2xl font-extrabold text-white font-mono">{offers.length}</div>
-              <span className="text-[11px] text-emerald-400 font-medium">● Đang hoạt động trên hệ thống</span>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-1">
-              <span className="text-xs text-slate-400 font-semibold uppercase">Gói Combo Tiêu Biểu</span>
-              <div className="text-2xl font-extrabold text-orange-400 font-mono">
-                {firstOffer ? formatCurrency(firstOffer.pricing.offer_price) : '3.290.000 đ'}
-              </div>
-              <span className="text-[11px] text-slate-400 line-through">
-                Giá gốc: {firstOffer ? formatCurrency(firstOffer.pricing.original_price) : '6.600.000 đ'}
-              </span>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-1">
-              <span className="text-xs text-slate-400 font-semibold uppercase">Slot Giới Hạn Tuần</span>
-              <div className="text-2xl font-extrabold text-amber-400 font-mono">
-                {firstOffer ? `${firstOffer.scarcity_urgency.available_slots} / ${firstOffer.scarcity_urgency.max_slots_per_week} Nhóm` : '4 / 4 Nhóm'}
-              </div>
-              <span className="text-[11px] text-amber-400 font-medium">⚡ Tính khan hiếm thật</span>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-1">
-              <span className="text-xs text-slate-400 font-semibold uppercase">Mức Cọc Ban Đầu (30%)</span>
-              <div className="text-2xl font-extrabold text-emerald-400 font-mono">
-                {firstOffer ? formatCurrency(firstOffer.pricing.deposit_amount) : '987.000 đ'}
-              </div>
-              <span className="text-[11px] text-slate-400">70% còn lại trước ngày đi 7 ngày</span>
-            </div>
-          </div>
 
           {/* Banner Call to Action for AI Agent */}
           <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-[#151c2e] to-orange-950/30 border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
@@ -510,8 +431,7 @@ export const AdminOffersPage: React.FC = () => {
             </div>
             <button
               onClick={() => {
-                setShowAgentDrawer(true);
-                setAgentInput('Đổi giá gói Combo thành 3.500.000đ và tăng slot tuần lên 6 nhóm');
+                openAgentCommander('Đổi giá gói Combo thành 3.500.000đ và tăng slot tuần lên 6 nhóm');
               }}
               className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 transition whitespace-nowrap"
             >
@@ -1045,68 +965,6 @@ export const AdminOffersPage: React.FC = () => {
                   💾 Lưu Gói Offer
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* AI COMMANDER DRAWER */}
-      {showAgentDrawer && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-[#0e1422] border-l border-[#222f49] flex flex-col h-full shadow-2xl">
-            <div className="p-4 border-b border-[#222f49] flex items-center justify-between bg-[#111726]">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🤖</span>
-                <div>
-                  <h3 className="font-bold text-white text-sm">Tyler AI Commander</h3>
-                  <p className="text-[11px] text-emerald-400">DeepSeek V3 • Tool Calling Active</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowAgentDrawer(false)}
-                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
-              {agentMessages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`p-3 rounded-xl leading-relaxed ${
-                    msg.sender === 'user'
-                      ? 'bg-orange-500/20 border border-orange-500/30 text-orange-200 ml-6'
-                      : 'bg-[#151c2e] border border-[#222f49] text-slate-200 mr-6'
-                  }`}
-                >
-                  <div className="font-bold text-[10px] text-slate-400 uppercase mb-1">
-                    {msg.sender === 'user' ? '👤 Quản Trị Viên' : '🤖 AI Commander'}
-                  </div>
-                  <div className="whitespace-pre-line">{msg.text}</div>
-                </div>
-              ))}
-              {isAgentTyping && (
-                <div className="p-3 rounded-xl bg-[#151c2e] border border-[#222f49] text-slate-400 animate-pulse text-xs">
-                  AI đang phân tích lệnh và gọi công cụ điều chỉnh Offer...
-                </div>
-              )}
-            </div>
-
-            <form onSubmit={handleSendAgentMessage} className="p-4 border-t border-[#222f49] bg-[#111726] flex gap-2">
-              <input
-                type="text"
-                value={agentInput}
-                onChange={e => setAgentInput(e.target.value)}
-                placeholder="Nhập lệnh (vd: 'Đổi giá thành 3.5tr và tăng slot lên 6')..."
-                className="flex-1 px-3 py-2 rounded-xl bg-[#0b0f19] border border-[#222f49] text-white text-xs focus:border-orange-500 focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs transition"
-              >
-                Gửi Lệnh
-              </button>
             </form>
           </div>
         </div>

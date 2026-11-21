@@ -69,15 +69,6 @@ export const AdminProductsPage: React.FC = () => {
   const [entryVisaPolicy, setEntryVisaPolicy] = useState<string>('Hộ chiếu gốc còn hạn trên 6 tháng; 02 ảnh 3.5x4.5 nền trắng; CCCD; Hợp đồng lao động & sao kê');
   const [entryNotes, setEntryNotes] = useState<string>('1. Hạn chót nộp hồ sơ trước 15 ngày.\n2. Giá có thể thay đổi tùy đợt bay.');
 
-  // State AI Commander Drawer
-  const [showAgentDrawer, setShowAgentDrawer] = useState<boolean>(false);
-  const [agentMode, setAgentMode] = useState<'consultant' | 'commander'>('consultant');
-  const [agentMessages, setAgentMessages] = useState<Array<{ sender: 'user' | 'agent'; text: string }>>([
-    { sender: 'agent', text: 'Dạ em chào anh/chị! Em là Chuyên viên AI Tư Vấn Du Lịch 24/7. Em có thể hỗ trợ tra cứu danh sách tour, lịch trình, ngày bay và chính sách hoàn hủy.' }
-  ]);
-  const [agentInput, setAgentInput] = useState<string>('');
-  const [isAgentTyping, setIsAgentTyping] = useState<boolean>(false);
-
   /**
    * Tải danh mục tour trực tiếp từ Backend API.
    */
@@ -362,56 +353,12 @@ export const AdminProductsPage: React.FC = () => {
     }
   };
 
-  /**
-   * Gửi tin nhắn chat đến AI Agent.
-   */
-  const handleAgentChat = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!agentInput.trim()) return;
-
-    const userText = agentInput.trim();
-    setAgentMessages(prev => [...prev, { sender: 'user', text: userText }]);
-    setAgentInput('');
-    setIsAgentTyping(true);
-
-    try {
-      const res = await apiFetch('/api/v1/agent/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          message: userText,
-          conversation_id: 'admin_session',
-        }),
-      });
-      const data = await res.json();
-      if (data.reply || (data.data && data.data.reply)) {
-        setAgentMessages(prev => [
-          ...prev,
-          { sender: 'agent', text: data.reply || data.data.reply },
-        ]);
-      } else {
-        setAgentMessages(prev => [
-          ...prev,
-          { sender: 'agent', text: 'Dạ hệ thống đã nhận thông tin và đang xử lý.' },
-        ]);
-      }
-    } catch {
-      setAgentMessages(prev => [
-        ...prev,
-        { sender: 'agent', text: '⚠️ Lỗi kết nối dịch vụ AI. Vui lòng thử lại sau.' },
-      ]);
-    } finally {
-      setIsAgentTyping(false);
-    }
-  };
-
   return (
     <AdminLayout
       title="AI Agent Travel — Quản Trị Hệ Thống"
       subtitle="Catalog Base & 4 Bộ Chính Sách Cam Kết"
       badge="Backend Core .NET 10"
       icon="💎"
-      onOpenAgentDrawer={() => setShowAgentDrawer(true)}
       headerActions={
         <button
           onClick={handleOpenCreateModal}
@@ -424,31 +371,6 @@ export const AdminProductsPage: React.FC = () => {
       {/* MAIN WORKSPACE CONTENT AREA */}
       <main className="flex-1 p-6 lg:p-8 space-y-6">
           {/* KPI CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-1">
-              <span className="text-xs text-slate-400 font-semibold uppercase">Tổng Tour Trong Catalog</span>
-              <div className="text-2xl font-extrabold text-white font-mono">{products.length}</div>
-              <span className="text-[11px] text-blue-400 font-medium">● Đã đồng bộ từ Docx gốc</span>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-1">
-              <span className="text-xs text-slate-400 font-semibold uppercase">Thời Lượng Tiêu Chuẩn</span>
-              <div className="text-2xl font-extrabold text-blue-400 font-mono">6N5Đ (Bay Thẳng)</div>
-              <span className="text-[11px] text-slate-400">Osaka - Kyoto - Shirakawago - Tokyo</span>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-1">
-              <span className="text-xs text-slate-400 font-semibold uppercase">Hệ Thống Nghỉ Dưỡng</span>
-              <div className="text-2xl font-extrabold text-emerald-400 font-mono">3–4★ Có Onsen</div>
-              <span className="text-[11px] text-emerald-400 font-medium">♨️ Tắm khoáng nóng thiên nhiên</span>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#151c2e] border border-[#222f49] space-y-1">
-              <span className="text-xs text-slate-400 font-semibold uppercase">Mô hình Phân Tách</span>
-              <div className="text-2xl font-extrabold text-amber-400 font-mono">1 Product ──&lt; N Offers</div>
-              <span className="text-[11px] text-slate-400">1 Tour đóng gói thành nhiều Offer</span>
-            </div>
-          </div>
 
           {/* PRODUCT CATALOG TABLE SECTION */}
           <div className="bg-[#151c2e] border border-[#222f49] rounded-2xl overflow-hidden shadow-xl space-y-4 p-5 sm:p-6">
@@ -1551,151 +1473,6 @@ export const AdminProductsPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* ── AI COMMANDER FLOATING CHAT DRAWER ── */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <button
-          onClick={() => setShowAgentDrawer(!showAgentDrawer)}
-          className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-2xl shadow-emerald-500/40 flex items-center justify-center hover:scale-110 transition-all font-bold text-2xl"
-          title="Mở AI Agent Commander"
-        >
-          🤖
-        </button>
-
-        {showAgentDrawer && (
-          <div className="absolute bottom-16 right-0 w-[380px] sm:w-[480px] h-[600px] rounded-3xl bg-[#111726] border border-[#222f49] shadow-2xl flex flex-col overflow-hidden">
-            {/* Header */}
-            <div className="px-4 py-3 bg-[#0e1422] border-b border-[#222f49] flex items-center justify-between">
-              <div className="flex items-center space-x-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/40 flex items-center justify-center text-lg">
-                  🏖️
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                    AI Tư Vấn Du Lịch 24/7
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  </div>
-                  <div className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
-                    <span>⚡ DeepSeek V3 • 5 Travel Tools</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowAgentDrawer(false)}
-                className="text-slate-400 hover:text-white text-2xl font-bold leading-none"
-              >
-                &times;
-              </button>
-            </div>
-
-            {/* Mode Switcher */}
-            <div className="px-3 py-1.5 bg-[#090d19] border-b border-[#222f49] flex gap-1.5 text-[11px]">
-              <button
-                type="button"
-                onClick={() => setAgentMode('consultant')}
-                className={`flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 ${
-                  agentMode === 'consultant'
-                    ? 'bg-blue-600/30 text-blue-300 border border-blue-500/40'
-                    : 'bg-[#151c2e]/40 text-slate-400 hover:text-slate-200 border border-[#222f49]'
-                }`}
-              >
-                <span>🏖️ Tư Vấn Tour</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAgentMode('commander')}
-                className={`flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 ${
-                  agentMode === 'commander'
-                    ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/40'
-                    : 'bg-[#151c2e]/40 text-slate-400 hover:text-slate-200 border border-[#222f49]'
-                }`}
-              >
-                <span>⚡ Tyler Commander</span>
-              </button>
-            </div>
-
-            {/* Message Stream */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
-              {agentMessages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex items-start space-x-2 ${msg.sender === 'user' ? 'justify-end' : ''}`}
-                >
-                  {msg.sender === 'agent' && (
-                    <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs shrink-0">
-                      🏖️
-                    </div>
-                  )}
-                  <div
-                    className={`p-3.5 rounded-2xl ${
-                      msg.sender === 'user'
-                        ? 'bg-blue-600 text-white rounded-tr-none max-w-[85%]'
-                        : 'bg-[#151c2e] text-slate-200 rounded-tl-none border border-[#222f49] max-w-[90%]'
-                    } leading-relaxed whitespace-pre-line`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              {isAgentTyping && (
-                <div className="flex items-start space-x-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs shrink-0">
-                    🏖️
-                  </div>
-                  <div className="p-3 rounded-2xl rounded-tl-none bg-[#151c2e] text-slate-400 text-[11px] flex items-center gap-1 border border-[#222f49]">
-                    <span>Đang suy nghĩ & tra cứu</span>
-                    <span className="animate-bounce">.</span>
-                    <span className="animate-bounce delay-100">.</span>
-                    <span className="animate-bounce delay-200">.</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Quick Pills */}
-            <div className="px-3 py-2 bg-[#0a0f1d] border-t border-[#222f49] flex gap-1.5 overflow-x-auto text-[11px]">
-              <button
-                type="button"
-                onClick={() => setAgentInput('Hiện tại có bao nhiêu tour?')}
-                className="px-2.5 py-1 rounded-full bg-[#151c2e] hover:bg-slate-800 text-slate-300 border border-[#222f49] whitespace-nowrap"
-              >
-                Có bao nhiêu tour?
-              </button>
-              <button
-                type="button"
-                onClick={() => setAgentInput('Tour Nhật Bản có những ngày nào đi?')}
-                className="px-2.5 py-1 rounded-full bg-[#151c2e] hover:bg-slate-800 text-slate-300 border border-[#222f49] whitespace-nowrap"
-              >
-                Lịch bay tour Nhật
-              </button>
-              <button
-                type="button"
-                onClick={() => setAgentInput('Lịch trình ngày 2 tour Nhật Bản đi đâu?')}
-                className="px-2.5 py-1 rounded-full bg-[#151c2e] hover:bg-slate-800 text-slate-300 border border-[#222f49] whitespace-nowrap"
-              >
-                Lịch trình Ngày 2
-              </button>
-            </div>
-
-            {/* Input Bar */}
-            <form onSubmit={handleAgentChat} className="p-3 bg-[#0e1422] border-t border-[#222f49] flex items-center gap-2">
-              <input
-                type="text"
-                value={agentInput}
-                onChange={e => setAgentInput(e.target.value)}
-                placeholder="Hỏi AI về tour (vd: có bao nhiêu tour? lịch bay tháng 10?)..."
-                className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#0b0f19] border border-[#222f49] text-white text-xs focus:border-blue-500 focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold transition shadow-lg shadow-blue-500/20"
-              >
-                Gửi
-              </button>
-            </form>
-          </div>
-        )}
-      </div>
     </AdminLayout>
   );
 };
