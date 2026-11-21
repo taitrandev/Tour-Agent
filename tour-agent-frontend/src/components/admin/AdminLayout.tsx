@@ -10,6 +10,7 @@ interface AdminLayoutProps {
   headerActions?: React.ReactNode;
   children: React.ReactNode;
   onOpenAgentDrawer?: () => void;
+  contentClassName?: string;
 }
 
 /**
@@ -25,9 +26,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   headerActions,
   children,
   onOpenAgentDrawer,
+  contentClassName,
 }) => {
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans">
+    <div className="h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans overflow-hidden">
       {/* ── TOP UNIFIED HEADER ── */}
       <header className="h-16 border-b border-[#222f49] bg-[#0e1422]/90 backdrop-blur px-6 flex items-center justify-between shrink-0 z-20 sticky top-0 shadow-md">
         {/* Left: Brand & Page Subtitle */}
@@ -100,12 +102,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       </header>
 
       {/* ── MAIN WORKSPACE CONTAINER ── */}
-      <div className="flex-1 flex flex-col lg:flex-row min-w-0">
+      <div className="flex-1 flex flex-col lg:flex-row min-w-0 overflow-hidden">
         {/* Shared Persistent Sidebar */}
         <AdminSidebar onOpenAgentDrawer={onOpenAgentDrawer} />
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <div className={`flex-1 flex flex-col min-w-0 h-full ${contentClassName ?? 'overflow-y-auto'}`}>
           {children}
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
@@ -134,6 +134,27 @@ export const AdminConversationsPage: React.FC = () => {
   const [snapshotModalIcon, setSnapshotModalIcon] = useState<string>('📋');
   const [snapshotModalContent, setSnapshotModalContent] = useState<string>('');
   const [copyFeedback, setCopyFeedback] = useState<boolean>(false);
+
+  // Ref container và bottom marker cho danh sách tin nhắn để hỗ trợ cuộn tự động
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Tự động scroll xuống tin nhắn mới nhất ở cuối danh sách
+   * mỗi khi người dùng mở phiên hội thoại mới hoặc khi có tin nhắn mới được tải.
+   */
+  useEffect(() => {
+    if (activeTab === 'msgs' && detailData?.messages && detailData.messages.length > 0) {
+      const timer = setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        } else if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
+        }
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+  }, [detailData?.conversation?.id, detailData?.messages?.length, activeTab]);
 
   /**
    * Gọi API tải danh sách toàn bộ phiên hội thoại từ .NET backend.
@@ -340,11 +361,12 @@ export const AdminConversationsPage: React.FC = () => {
       title="AI Agent Travel — Quản Trị Hệ Thống"
       subtitle="Giám Sát Hội Thoại & Nhật Ký LLM (Live Observability Inspector)"
       icon="💬"
+      contentClassName="overflow-hidden"
     >
       {/* Main Inspector Workspace (Two-Column Layout) */}
-      <main className="flex-1 p-3 sm:p-4 flex flex-col md:flex-row gap-4 overflow-hidden min-h-[calc(100vh-60px)]">
+      <main className="flex-1 p-3 sm:p-4 flex flex-col md:flex-row gap-4 overflow-hidden h-full min-h-0">
         {/* Left Column: Conversations List & Filters */}
-        <aside className="w-full md:w-80 lg:w-96 flex flex-col rounded-2xl bg-[#111827] border border-[#1f2937] overflow-hidden shadow-xl">
+        <aside className="w-full md:w-80 lg:w-96 flex flex-col rounded-2xl bg-[#111827] border border-[#1f2937] overflow-hidden shadow-xl h-full shrink-0">
           {/* Filter & Search Bar */}
           <div className="p-3 border-b border-[#1f2937] bg-[#0e1422] space-y-2">
             <div className="flex items-center justify-between">
@@ -507,7 +529,7 @@ export const AdminConversationsPage: React.FC = () => {
         </aside>
 
         {/* Right Column: Inspector Details */}
-        <section className="flex-1 flex flex-col rounded-2xl bg-[#111827] border border-[#1f2937] overflow-hidden shadow-xl">
+        <section className="flex-1 flex flex-col rounded-2xl bg-[#111827] border border-[#1f2937] overflow-hidden shadow-xl h-full min-w-0 min-h-0">
           {/* Header & Action Tabs */}
           <div className="p-3 border-b border-[#1f2937] flex flex-wrap items-center justify-between gap-2 bg-[#0e1422]">
             <div className="flex items-center gap-2">
@@ -615,7 +637,10 @@ export const AdminConversationsPage: React.FC = () => {
             <>
               {/* Tab 1: Messages History */}
               {activeTab === 'msgs' && (
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+                <div
+                  ref={messagesContainerRef}
+                  className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3 min-h-0"
+                >
                   {/* Clean Chat Notice */}
                   <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs flex items-center justify-between">
                     <span>
@@ -695,6 +720,9 @@ export const AdminConversationsPage: React.FC = () => {
                       return null;
                     })
                   )}
+
+                  {/* Vị trí đáy danh sách tin nhắn để cuộn tới */}
+                  <div ref={messagesEndRef} />
                 </div>
               )}
 
