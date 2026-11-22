@@ -53,6 +53,7 @@ export const AdminCommanderDrawer: React.FC<AdminCommanderDrawerProps> = ({
       time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
+  const [conversationId, setConversationId] = useState<number | null>(null);
   const [input, setInput] = useState<string>('');
   const [isTyping, setIsTyping] = useState<boolean>(false);
 
@@ -63,7 +64,17 @@ export const AdminCommanderDrawer: React.FC<AdminCommanderDrawerProps> = ({
     try {
       setLoadingLlm(true);
       const res = await apiFetch('/api/v1/llm-setting');
-      const json = await res.json();
+      let json: any = null;
+      try {
+        json = await res.json();
+      } catch {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || `Máy chủ phản hồi mã lỗi HTTP ${res.status}`);
+      }
+
+      if (!res.ok) {
+        throw new Error(json?.error || json?.message || `Máy chủ phản hồi mã lỗi HTTP ${res.status}`);
+      }
       if (json.success && json.data) {
         setLlmInfo({
           driver: json.data.driver,
@@ -149,17 +160,48 @@ export const AdminCommanderDrawer: React.FC<AdminCommanderDrawerProps> = ({
       const res = await apiFetch('/api/v1/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText }),
+        body: JSON.stringify({
+          conversationId,
+          message: userText,
+        }),
       });
-      const json = await res.json();
+      let json: any = null;
+      try {
+        json = await res.json();
+      } catch {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || `Máy chủ phản hồi mã lỗi HTTP ${res.status}`);
+      }
+
+      if (!res.ok) {
+        throw new Error(json?.error || json?.message || `Máy chủ phản hồi mã lỗi HTTP ${res.status}`);
+      }
+
+      // Lưu lại conversationId để giữ mạch đối thoại đa lượt (Multi-turn disambiguation)
+      if (json.conversationId) {
+        setConversationId(json.conversationId);
+      }
 
       const replyText =
+        json.responseText ||
         json.reply ||
         json.response ||
         json.message ||
-        (json.tool_calls && json.tool_calls.length > 0
-          ? `⚡ Đã kích hoạt công cụ: ${json.tool_calls.join(', ')}.`
+        (Array.isArray(json.toolsExecuted) && json.toolsExecuted.length > 0
+          ? `⚡ Đã kích hoạt công cụ: ${json.toolsExecuted.join(', ')}.`
           : '⚡ Lệnh đã được tiếp nhận và ghi nhận vào hệ thống.');
+
+      // Tự động phát sự kiện làm mới dữ liệu cho các bảng quản trị (Products / Offers) khi công cụ ghi được gọi
+      const executed = json.toolsExecuted || [];
+      if (
+        Array.isArray(executed) &&
+        (executed.includes('update_travel_title') ||
+         executed.includes('update_offer_price') ||
+         executed.some((t: string) => typeof t === 'string' && t.startsWith('update_')))
+      ) {
+        window.dispatchEvent(new CustomEvent('refresh-admin-data'));
+        notify.success('AI Commander đã cập nhật dữ liệu thành công!');
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -175,7 +217,7 @@ export const AdminCommanderDrawer: React.FC<AdminCommanderDrawerProps> = ({
         ...prev,
         {
           sender: 'agent',
-          text: `⚠️ Chưa thể kết nối tới LLM Gateway: ${err instanceof Error ? err.message : String(err)}. Vui lòng kiểm tra lại cấu hình tại Settings LLM.`,
+          text: `⚠️ ${err instanceof Error ? err.message : String(err)}`,
           time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
         },
       ]);

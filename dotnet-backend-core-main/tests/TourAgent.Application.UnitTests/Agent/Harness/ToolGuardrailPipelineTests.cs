@@ -130,7 +130,7 @@ public class ToolGuardrailPipelineTests
         Assert.False(result.Success);
         Assert.Equal("constrain", result.GuardrailPhase);
         Assert.Contains("pre_condition_failed", result.ResultJson);
-        Assert.Contains("recovery_hint", result.ResultJson);
+        Assert.Contains("recoveryHint", result.ResultJson);
     }
 
     /// <summary>
@@ -154,7 +154,7 @@ public class ToolGuardrailPipelineTests
         Assert.False(result.Success);
         Assert.Equal("constrain", result.GuardrailPhase);
         Assert.Contains("message", result.ResultJson);
-        Assert.Contains("recovery_hint", result.ResultJson);
+        Assert.Contains("recoveryHint", result.ResultJson);
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public class ToolGuardrailPipelineTests
         // Assert
         Assert.False(result.Success);
         Assert.Contains("Lỗi kết nối cơ sở dữ liệu nội bộ", result.ResultJson);
-        Assert.Contains("recovery_hint", result.ResultJson);
+        Assert.Contains("recoveryHint", result.ResultJson);
     }
 
     /// <summary>

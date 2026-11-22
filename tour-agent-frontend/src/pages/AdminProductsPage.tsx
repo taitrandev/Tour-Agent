@@ -56,7 +56,7 @@ export const AdminProductsPage: React.FC = () => {
   const [entryStatus, setEntryStatus] = useState<'published' | 'draft'>('published');
   const [entryIsFeatured, setEntryIsFeatured] = useState<boolean>(false);
   const [entryDepartures, setEntryDepartures] = useState<TourDeparture[]>([
-    { departure_date: '2025-10-15', price_adult: 35990000, price_child: 30990000, single_supplement: 5000000, status: 'open', notes: 'Mùa thu lá đỏ' }
+    { departureDate: '2025-10-15', priceAdult: 35990000, priceChild: 30990000, singleSupplement: 5000000, status: 'open', notes: 'Mùa thu lá đỏ' }
   ]);
   const [entryItinerary, setEntryItinerary] = useState<ItineraryDay[]>([
     { day: 1, title: 'NGÀY 1: TP.HCM – OSAKA', route: 'Kansai – Osaka', content: 'Sáng: Tập trung tại sân bay Tân Sơn Nhất.\nTrưa: Đáp sân bay Kansai, dùng bữa trưa.\nTối: Nhận phòng khách sạn 4 sao tại Osaka, tự do dạo phố Dotonbori.', images: [] }
@@ -89,6 +89,9 @@ export const AdminProductsPage: React.FC = () => {
 
   useEffect(() => {
     fetchProducts();
+    const handleRefresh = () => fetchProducts();
+    window.addEventListener('refresh-admin-data', handleRefresh);
+    return () => window.removeEventListener('refresh-admin-data', handleRefresh);
   }, []);
 
   /**
@@ -124,7 +127,7 @@ export const AdminProductsPage: React.FC = () => {
     setEntryStatus('published');
     setEntryIsFeatured(false);
     setEntryDepartures([
-      { departure_date: '2025-10-15', price_adult: 35990000, price_child: 30990000, single_supplement: 5000000, status: 'open', notes: 'Mùa thu lá đỏ' }
+      { departureDate: '2025-10-15', priceAdult: 35990000, priceChild: 30990000, singleSupplement: 5000000, status: 'open', notes: 'Mùa thu lá đỏ' }
     ]);
     setEntryItinerary([
       { day: 1, title: 'NGÀY 1: TP.HCM – OSAKA', route: 'Kansai – Osaka', content: 'Sáng: Tập trung tại sân bay Tân Sơn Nhất.\nTrưa: Đáp sân bay Kansai, dùng bữa trưa.\nTối: Nhận phòng khách sạn 4 sao tại Osaka, tự do dạo phố Dotonbori.', images: [] }
@@ -140,26 +143,32 @@ export const AdminProductsPage: React.FC = () => {
     setEntryTitle(product.title);
     setEntryCode(product.code);
     setEntryCountry(product.country || 'Nhật Bản');
-    setEntryDepartureCity(product.departure_city || 'TP.HCM');
-    setEntryDays(product.duration_days || 6);
-    setEntryNights(product.duration_nights || 5);
+    setEntryDepartureCity(product.departureCity || 'TP.HCM');
+    setEntryDays(product.durationDays || 6);
+    setEntryNights(product.durationNights || 5);
     setEntryDestinations(Array.isArray(product.destinations) ? product.destinations.join(', ') : '');
     setEntryRoute(product.route || '');
     setEntryTags(Array.isArray(product.tags) ? product.tags : []);
     setEntryStatus(product.status || 'published');
-    setEntryIsFeatured(Boolean(product.is_featured));
-    setEntryDepartures(product.departures && product.departures.length > 0 ? product.departures : [
-      { departure_date: '', price_adult: product.price_from || 35990000, status: 'open' }
-    ]);
+    setEntryIsFeatured(Boolean(product.isFeatured));
+    setEntryDepartures(
+      product.departures && product.departures.length > 0
+        ? product.departures.map(d => ({
+            ...d,
+            departureDate: d.departureDate || '',
+            priceAdult: d.priceAdult ?? 0,
+          }))
+        : [{ departureDate: '', priceAdult: product.priceFrom || 35990000, status: 'open' }]
+    );
     setEntryItinerary(product.itinerary && product.itinerary.length > 0 ? product.itinerary : [
       { day: 1, title: 'NGÀY 1: KHỞI HÀNH', content: '', images: [] }
     ]);
     setEntryInclusions(Array.isArray(product.inclusions) ? product.inclusions.join('\n') : (product.inclusions || ''));
     setEntryExclusions(Array.isArray(product.exclusions) ? product.exclusions.join('\n') : (product.exclusions || ''));
-    setEntryChildPolicy(product.child_policy || '');
-    setEntryPaymentPolicy(product.payment_policy || '');
-    setEntryCancellationPolicy(product.cancellation_policy || '');
-    setEntryVisaPolicy(product.visa_policy || '');
+    setEntryChildPolicy(product.childPolicy || '');
+    setEntryPaymentPolicy(product.paymentPolicy || '');
+    setEntryCancellationPolicy(product.cancellationPolicy || '');
+    setEntryVisaPolicy(product.visaPolicy || '');
     setEntryNotes(product.notes || '');
     setShowEntryModal(true);
   };
@@ -177,22 +186,31 @@ export const AdminProductsPage: React.FC = () => {
       title: entryTitle,
       code: entryCode,
       country: entryCountry,
-      departure_city: entryDepartureCity,
-      duration_days: Number(entryDays),
-      duration_nights: Number(entryNights),
+      departureCity: entryDepartureCity,
+      durationDays: Number(entryDays),
+      durationNights: Number(entryNights),
       route: entryRoute,
       destinations: destinationsArray,
       tags: entryTags,
       status: entryStatus,
-      is_featured: entryIsFeatured,
-      departures: entryDepartures.filter(d => d.departure_date && d.price_adult > 0),
+      isFeatured: entryIsFeatured,
+      departures: entryDepartures
+        .filter(d => Boolean(d.departureDate) && (d.priceAdult ?? 0) > 0)
+        .map(d => ({
+          departureDate: d.departureDate,
+          priceAdult: Number(d.priceAdult) || 0,
+          priceChild: d.priceChild ? Number(d.priceChild) : null,
+          singleSupplement: d.singleSupplement ? Number(d.singleSupplement) : null,
+          status: d.status || 'open',
+          notes: d.notes || null,
+        })),
       itinerary: entryItinerary,
       inclusions: inclusionsArray,
       exclusions: exclusionsArray,
-      child_policy: entryChildPolicy,
-      payment_policy: entryPaymentPolicy,
-      cancellation_policy: entryCancellationPolicy,
-      visa_policy: entryVisaPolicy,
+      childPolicy: entryChildPolicy,
+      paymentPolicy: entryPaymentPolicy,
+      cancellationPolicy: entryCancellationPolicy,
+      visaPolicy: entryVisaPolicy,
       notes: entryNotes,
     };
 
@@ -454,9 +472,9 @@ export const AdminProductsPage: React.FC = () => {
                     </tr>
                   ) : (
                     filteredProducts.map(t => {
-                      const origPrice = Number(t.price_from || t.original_price || 0).toLocaleString('vi-VN');
+                      const origPrice = Number(t.priceFrom || t.originalPrice || 0).toLocaleString('vi-VN');
                       const depCount = t.departures ? t.departures.length : 0;
-                      const offersCount = t.offers_count || 0;
+                      const offersCount = t.offersCount || 0;
                       const statusBadge =
                         t.status === 'published' ? (
                           <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold uppercase">
@@ -480,7 +498,7 @@ export const AdminProductsPage: React.FC = () => {
                                   📍 {t.country}
                                 </span>
                               )}
-                              {t.is_featured && (
+                              {Boolean(t.isFeatured) && (
                                 <span className="text-amber-400 text-xs" title="Tour nổi bật">
                                   ⭐
                                 </span>
@@ -511,13 +529,13 @@ export const AdminProductsPage: React.FC = () => {
 
                           <td className="py-4 px-4">
                             <div className="text-xs font-semibold text-slate-200">
-                              {t.duration_days || 1} Ngày {t.duration_nights || 0} Đêm
+                              {t.durationDays || 1} Ngày {t.durationNights || 0} Đêm
                             </div>
                             <div className="text-[11px] text-slate-400 max-w-xs truncate mt-0.5" title={t.route || ''}>
                               🗺️ {t.route || 'Lộ trình chi tiết'}
                             </div>
                             <div className="text-[10px] text-emerald-400 font-mono mt-0.5">
-                              🛫 Khởi hành: {t.departure_city || 'TP.HCM'}
+                              🛫 Khởi hành: {t.departureCity || 'TP.HCM'}
                             </div>
                           </td>
 
@@ -569,7 +587,7 @@ export const AdminProductsPage: React.FC = () => {
                             >
                               <span>⭐ Reviews</span>
                               <span className="px-1.5 py-0.2 rounded-full bg-amber-500/30 text-[10px] font-mono font-bold">
-                                {t.reviews_count || 0}
+                                {t.reviewsCount || 0}
                               </span>
                             </button>
                             <button
@@ -579,7 +597,7 @@ export const AdminProductsPage: React.FC = () => {
                             >
                               <span>❓ FAQs</span>
                               <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/30 text-[10px] font-mono font-bold">
-                                {t.faqs_count || 0}
+                                {t.faqsCount || 0}
                               </span>
                             </button>
                             <button
@@ -618,7 +636,7 @@ export const AdminProductsPage: React.FC = () => {
                     {selectedProduct.code}
                   </span>
                   <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    {selectedProduct.duration_days} Ngày {selectedProduct.duration_nights} Đêm
+                    {selectedProduct.durationDays || 1} Ngày {selectedProduct.durationNights || 0} Đêm
                   </span>
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white">Lịch Trình Chi Tiết: {selectedProduct.title}</h3>
@@ -715,7 +733,7 @@ export const AdminProductsPage: React.FC = () => {
                   <span>👶</span> 3. Chính Sách Giá Tour Trẻ Em
                 </h4>
                 <div className="text-slate-300 whitespace-pre-line leading-relaxed bg-[#151c2e] p-3 rounded-xl">
-                  {selectedProduct.child_policy || 'Đang cập nhật'}
+                  {selectedProduct.childPolicy || 'Đang cập nhật'}
                 </div>
               </div>
 
@@ -724,7 +742,7 @@ export const AdminProductsPage: React.FC = () => {
                   <span>💳</span> 4. Quy Trình Thanh Toán & Cọc
                 </h4>
                 <div className="text-slate-300 whitespace-pre-line leading-relaxed bg-[#151c2e] p-3 rounded-xl">
-                  {selectedProduct.payment_policy || 'Đang cập nhật'}
+                  {selectedProduct.paymentPolicy || 'Đang cập nhật'}
                 </div>
               </div>
 
@@ -733,7 +751,7 @@ export const AdminProductsPage: React.FC = () => {
                   <span>🛡️</span> 5. Điều Kiện Hủy Tour & Cam Kết Visa
                 </h4>
                 <div className="text-slate-300 whitespace-pre-line leading-relaxed bg-[#151c2e] p-3 rounded-xl">
-                  {selectedProduct.cancellation_policy || 'Đang cập nhật'}
+                  {selectedProduct.cancellationPolicy || 'Đang cập nhật'}
                 </div>
               </div>
             </div>
@@ -870,11 +888,11 @@ export const AdminProductsPage: React.FC = () => {
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#222f49]/60 pb-2">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-xs">
-                          {r.reviewer_name ? r.reviewer_name.charAt(0) : 'K'}
+                          {r.reviewerName ? r.reviewerName.charAt(0) : 'K'}
                         </div>
                         <div>
-                          <div className="font-bold text-white text-xs">{r.reviewer_name}</div>
-                          <div className="text-[10px] text-slate-400">Khởi hành: {r.travel_date || 'Gần đây'}</div>
+                          <div className="font-bold text-white text-xs">{r.reviewerName}</div>
+                          <div className="text-[10px] text-slate-400">Khởi hành: {r.travelDate || 'Gần đây'}</div>
                         </div>
                       </div>
                       <div className="text-amber-400 text-xs font-bold tracking-wider">
@@ -1006,7 +1024,7 @@ export const AdminProductsPage: React.FC = () => {
                     <div className="flex items-center justify-between border-b border-[#222f49]/60 pb-2">
                       <h4 className="font-bold text-white text-xs sm:text-sm">❓ {f.question}</h4>
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-emerald-300">
-                        #{f.sort_order}
+                        #{f.sortOrder}
                       </span>
                     </div>
                     <p className="text-slate-300 text-xs leading-relaxed whitespace-pre-line bg-[#151c2e] p-3 rounded-xl">
@@ -1229,7 +1247,7 @@ export const AdminProductsPage: React.FC = () => {
                     onClick={() =>
                       setEntryDepartures([
                         ...entryDepartures,
-                        { departure_date: '', price_adult: 35990000, status: 'open' }
+                        { departureDate: '', priceAdult: 35990000, status: 'open' }
                       ])
                     }
                     className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-semibold text-xs transition flex items-center gap-1"
@@ -1245,10 +1263,10 @@ export const AdminProductsPage: React.FC = () => {
                         <label className="block text-[10px] text-slate-400 font-semibold mb-0.5">Ngày Khởi Hành *</label>
                         <input
                           type="date"
-                          value={dep.departure_date}
+                          value={dep.departureDate || ''}
                           onChange={e => {
                             const newDeps = [...entryDepartures];
-                            newDeps[idx].departure_date = e.target.value;
+                            newDeps[idx].departureDate = e.target.value;
                             setEntryDepartures(newDeps);
                           }}
                           className="w-full px-2 py-1.5 rounded-lg bg-[#151c2e] border border-[#222f49] text-white font-mono text-xs focus:border-amber-500 focus:outline-none"
@@ -1259,10 +1277,10 @@ export const AdminProductsPage: React.FC = () => {
                         <label className="block text-[10px] text-slate-400 font-semibold mb-0.5">Giá Người Lớn (đ) *</label>
                         <input
                           type="number"
-                          value={dep.price_adult}
+                          value={dep.priceAdult || ''}
                           onChange={e => {
                             const newDeps = [...entryDepartures];
-                            newDeps[idx].price_adult = Number(e.target.value);
+                            newDeps[idx].priceAdult = Number(e.target.value);
                             setEntryDepartures(newDeps);
                           }}
                           className="w-full px-2 py-1.5 rounded-lg bg-[#151c2e] border border-[#222f49] text-amber-300 font-mono font-bold text-xs focus:border-amber-500 focus:outline-none"

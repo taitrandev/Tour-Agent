@@ -262,6 +262,21 @@ public sealed class Offer : Entity<long>
     }
 
     /// <summary>
+    /// Cập nhật tiêu đề của gói Grand Slam Offer.
+    /// </summary>
+    /// <param name="newTitle">Tiêu đề mới của offer.</param>
+    public void UpdateTitle(string newTitle)
+    {
+        if (string.IsNullOrWhiteSpace(newTitle))
+        {
+            throw new ArgumentException("Tiêu đề offer không được để trống.", nameof(newTitle));
+        }
+
+        Title = newTitle.Trim();
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+    /// <summary>
     /// Cập nhật mức giá ưu đãi và tính lại số tiền cọc tương ứng.
     /// </summary>
     /// <param name="newPrice">Mức giá ưu đãi mới.</param>

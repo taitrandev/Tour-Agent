@@ -11,11 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// 2. Đăng ký Controllers đầy đủ kèm hỗ trợ snake_case và không phân biệt hoa thường
+// 2. Đăng ký Controllers đầy đủ kèm hỗ trợ camelCase chuẩn REST và không phân biệt hoa thường
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.SnakeCaseLower;
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
 
@@ -74,6 +74,9 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+// 3.9 Đăng ký Global Exception Middleware bắt tập trung mọi ngoại lệ và trả về JSON chuẩn
+app.UseMiddleware<TourAgent.Api.Middlewares.GlobalExceptionMiddleware>();
+
 // 4. Cấu hình HTTP request pipeline & Swagger UI
 if (app.Environment.IsDevelopment())
 {
@@ -126,13 +129,13 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
             var response = new
             {
                 status = report.Status.ToString(),
-                total_duration_ms = report.TotalDuration.TotalMilliseconds,
+                totalDurationMs = report.TotalDuration.TotalMilliseconds,
                 entries = report.Entries.Select(e => new
                 {
                     name = e.Key,
                     status = e.Value.Status.ToString(),
                     description = e.Value.Description,
-                    duration_ms = e.Value.Duration.TotalMilliseconds
+                    durationMs = e.Value.Duration.TotalMilliseconds
                 })
             };
             await context.Response.WriteAsJsonAsync(response);
@@ -155,13 +158,13 @@ app.MapHealthChecks("/health", new HealthCheckOptions
             var response = new
             {
                 status = report.Status.ToString(),
-                total_duration_ms = report.TotalDuration.TotalMilliseconds,
+                totalDurationMs = report.TotalDuration.TotalMilliseconds,
                 entries = report.Entries.Select(e => new
                 {
                     name = e.Key,
                     status = e.Value.Status.ToString(),
                     description = e.Value.Description,
-                    duration_ms = e.Value.Duration.TotalMilliseconds
+                    durationMs = e.Value.Duration.TotalMilliseconds
                 })
             };
             await context.Response.WriteAsJsonAsync(response);

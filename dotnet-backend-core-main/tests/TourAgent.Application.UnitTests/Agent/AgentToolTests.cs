@@ -84,7 +84,7 @@ public class AgentToolTests
         // Assert
         using var doc = JsonDocument.Parse(resultJson);
         var root = doc.RootElement;
-        Assert.Equal(1, root.GetProperty("total_found").GetInt32());
+        Assert.Equal(1, root.GetProperty("totalFound").GetInt32());
         var travels = root.GetProperty("travels");
         Assert.Equal("JP-TOK-01", travels[0].GetProperty("code").GetString());
     }

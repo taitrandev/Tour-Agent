@@ -87,14 +87,14 @@ public sealed class ToolGuardrailPipeline : IToolGuardrailPipeline
             {
                 success = false,
                 error = $"Công cụ '{toolName}' không tồn tại trong hệ thống.",
-                recovery_hint = "Hãy kiểm tra lại danh sách các công cụ có sẵn và chỉ gọi các công cụ được định nghĩa trong schema.",
-                _guardrail_status = "not_found"
+                recoveryHint = "Hãy kiểm tra lại danh sách các công cụ có sẵn và chỉ gọi các công cụ được định nghĩa trong schema.",
+                guardrailStatus = "not_found"
             }, JsonOptions);
 
             return new GuardrailExecutionResult(false, notFoundJson, 0, "tool_lookup");
         }
 
-        // Tự động làm giàu tham số với conversation_id và chat_id nếu có
+        // Tự động làm giàu tham số với conversationId và chatId nếu có
         var enrichedArguments = EnrichArgumentsWithContext(argumentsJson, conversation);
 
         // 1. PHA 1: CONSTRAIN (Tiền kiểm tham số)
@@ -105,9 +105,9 @@ public sealed class ToolGuardrailPipeline : IToolGuardrailPipeline
             {
                 success = false,
                 error = "Lỗi tiền kiểm tham số (Pre-condition Guardrail Failed).",
-                validation_errors = validation.Errors,
-                recovery_hint = validation.RecoveryHint,
-                _guardrail_status = "pre_condition_failed"
+                validationErrors = validation.Errors,
+                recoveryHint = validation.RecoveryHint,
+                guardrailStatus = "pre_condition_failed"
             }, JsonOptions);
 
             return new GuardrailExecutionResult(false, errorPayload, 0, "constrain");
@@ -129,8 +129,8 @@ public sealed class ToolGuardrailPipeline : IToolGuardrailPipeline
             {
                 success = false,
                 error = $"Sự cố thực thi công cụ '{toolName}': {ex.Message}",
-                recovery_hint = "Hệ thống ghi nhận sự cố tạm thời khi xử lý. Hãy giải thích nhẹ nhàng với khách và chuyển hướng hỗ trợ khác.",
-                _guardrail_status = "execution_exception"
+                recoveryHint = "Hệ thống ghi nhận sự cố tạm thời khi xử lý. Hãy giải thích nhẹ nhàng với khách và chuyển hướng hỗ trợ khác.",
+                guardrailStatus = "execution_exception"
             }, JsonOptions);
         }
         finally
@@ -169,14 +169,14 @@ public sealed class ToolGuardrailPipeline : IToolGuardrailPipeline
                 ? new Dictionary<string, object?>()
                 : JsonSerializer.Deserialize<Dictionary<string, object?>>(argumentsJson) ?? new Dictionary<string, object?>();
 
-            if (!dict.ContainsKey("conversation_id"))
+            if (!dict.ContainsKey("conversationId"))
             {
-                dict["conversation_id"] = conversation.Id;
+                dict["conversationId"] = conversation.Id;
             }
 
-            if (!dict.ContainsKey("chat_id") && !string.IsNullOrWhiteSpace(conversation.ChannelUserId))
+            if (!dict.ContainsKey("chatId") && !string.IsNullOrWhiteSpace(conversation.ChannelUserId))
             {
-                dict["chat_id"] = conversation.ChannelUserId;
+                dict["chatId"] = conversation.ChannelUserId;
             }
 
             return JsonSerializer.Serialize(dict);

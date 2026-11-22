@@ -386,6 +386,23 @@ public sealed class Tour : Entity
     }
 
     /// <summary>
+    /// Cập nhật tên của tour du lịch.
+    /// </summary>
+    /// <param name="newName">Tên mới của tour.</param>
+    /// <returns>Result thành công hoặc lỗi nếu tên không hợp lệ.</returns>
+    public Result UpdateName(string newName)
+    {
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            return Result.Failure(TourErrors.EmptyName);
+        }
+
+        Name = newName.Trim();
+        SetUpdatedAtUtc();
+        return Result.Success();
+    }
+
+    /// <summary>
     /// Kích hoạt trạng thái mở bán của tour.
     /// </summary>
     public void Activate()

@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using TourAgent.Application.Agent.Contracts;
 
@@ -13,11 +12,11 @@ namespace TourAgent.Api.Controllers;
 /// <param name="CurrentTravelTitle">Tiêu đề tour đang xem.</param>
 /// <param name="Country">Quốc gia của tour đang xem.</param>
 public sealed record ChatRequest(
-    [property: JsonPropertyName("conversationId")] long? ConversationId,
-    [property: JsonPropertyName("message")] string Message,
-    [property: JsonPropertyName("currentTravelId")] long? CurrentTravelId = null,
-    [property: JsonPropertyName("currentTravelTitle")] string? CurrentTravelTitle = null,
-    [property: JsonPropertyName("country")] string? Country = null);
+    long? ConversationId = null,
+    string Message = "",
+    long? CurrentTravelId = null,
+    string? CurrentTravelTitle = null,
+    string? Country = null);
 
 /// <summary>
 /// Controller cung cấp các Endpoints tương tác với AI Agent Tư vấn Du lịch (DeepSeek V3 / Multi-Turn Loop).

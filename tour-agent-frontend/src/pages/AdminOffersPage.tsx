@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { notify } from '../lib/notify';
 import { useConfirm } from '../components/common/ConfirmModal';
-import { openAgentCommander } from '../components/admin/AdminCommanderDrawer';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
 
@@ -11,13 +10,25 @@ import { AdminLayout } from '../components/admin/AdminLayout';
  */
 export interface ValueStackItem {
   id?: number;
-  offer_id?: number;
+  offerId?: number;
   name: string;
   description?: string;
   type: 'core' | 'bonus';
-  original_value: number;
-  sort_order?: number;
-  is_highlighted?: boolean;
+  originalValue: number;
+  sortOrder?: number;
+  isHighlighted?: boolean;
+}
+
+/**
+ * Định nghĩa cấu trúc dữ liệu của Grand Slam Offer trả về từ Backend API.
+ */
+export interface OfferPricing {
+  originalPrice: number;
+  offerPrice: number;
+  savingsAmount: number;
+  savingsPercentage: number;
+  depositPercentage: number;
+  depositAmount: number;
 }
 
 /**
@@ -28,44 +39,37 @@ export interface OfferData {
   title: string;
   slug: string;
   tagline?: string;
-  target_audience?: string;
-  hero_mechanism?: string;
-  core_promise?: string;
-  pricing: {
-    original_price: number;
-    offer_price: number;
-    savings_amount: number;
-    savings_percentage: number;
-    deposit_percentage: number;
-    deposit_amount: number;
-  };
-  duration: {
+  targetAudience?: string;
+  heroMechanism?: string;
+  corePromise?: string;
+  pricing: OfferPricing;
+  duration?: {
     days: number;
     nights: number;
   };
-  scarcity_urgency: {
-    max_slots_per_week: number;
-    available_slots: number;
-    urgency_hours: number;
+  scarcityUrgency?: {
+    maxSlotsPerWeek: number;
+    availableSlots: number;
+    urgencyHours: number;
   };
   guarantees?: Array<{ id: string; title: string; description: string }>;
-  payment_terms?: Array<{ phase: number; name: string; percentage: number; description: string }>;
-  sales_script?: string;
+  paymentTerms?: Array<{ phase: number; name: string; percentage: number; description: string }>;
+  salesScript?: string;
   status: 'active' | 'draft' | 'archived';
-  is_featured: boolean;
-  travel_id?: number;
+  isFeatured: boolean;
+  travelId?: number;
   travel?: {
     id: number;
     title: string;
     code: string;
     country: string;
-    price_from: number;
-    duration_days: number;
-    duration_nights: number;
+    priceFrom: number;
+    durationDays: number;
+    durationNights: number;
   };
   items: ValueStackItem[];
-  created_at?: string;
-  updated_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
@@ -76,7 +80,7 @@ interface TravelOption {
   title: string;
   code: string;
   country: string;
-  price_from: number;
+  priceFrom: number;
 }
 
 /**
@@ -149,6 +153,9 @@ export const AdminOffersPage: React.FC = () => {
   useEffect(() => {
     fetchOffers();
     fetchTravels();
+    const handleRefresh = () => fetchOffers();
+    window.addEventListener('refresh-admin-data', handleRefresh);
+    return () => window.removeEventListener('refresh-admin-data', handleRefresh);
   }, []);
 
   /**
@@ -161,7 +168,7 @@ export const AdminOffersPage: React.FC = () => {
       o =>
         o.title.toLowerCase().includes(q) ||
         (o.tagline && o.tagline.toLowerCase().includes(q)) ||
-        (o.hero_mechanism && o.hero_mechanism.toLowerCase().includes(q))
+        (o.heroMechanism && o.heroMechanism.toLowerCase().includes(q))
     );
   }, [offers, searchQuery]);
 
@@ -182,13 +189,13 @@ export const AdminOffersPage: React.FC = () => {
     setFormUrgencyHours(24);
     setFormStatus('active');
     setFormItems([
-      { name: 'Vé máy bay khứ hồi / Xe VIP Limousine', description: 'Giờ bay đẹp, bao gồm hành lý tiêu chuẩn', type: 'core', original_value: 2200000, sort_order: 1 },
-      { name: 'Khách sạn 3-4 sao trung tâm view đẹp', description: '2 đêm phòng tiêu chuẩn cao, buffet sáng miễn phí', type: 'core', original_value: 1800000, sort_order: 2 },
-      { name: 'Xe riêng đưa đón sân bay tận nơi', description: 'Tài xế đón đúng giờ, không lo bị chặt chém', type: 'core', original_value: 400000, sort_order: 3 },
-      { name: '[BONUS 1] Bản đồ 10 quán ăn ngon bản địa', description: 'Cẩm nang quán ăn chuẩn vị dân địa phương', type: 'bonus', original_value: 500000, sort_order: 4, is_highlighted: true },
-      { name: '[BONUS 2] Lịch trình May Đo Độc Quyền (PDF)', description: 'Bản lịch trình thiết kế đẹp, chia khung giờ chill', type: 'bonus', original_value: 500000, sort_order: 5, is_highlighted: true },
-      { name: '[BONUS 3] Trợ lý AI Đồng Hành 24/7', description: 'Giải đáp thắc mắc và cứu nguy sự cố trong 5 phút', type: 'bonus', original_value: 1000000, sort_order: 6, is_highlighted: true },
-      { name: '[BONUS 4] Bảo hiểm du lịch trọn gói', description: 'Bảo vệ quyền lợi y tế và hành lý toàn diện', type: 'bonus', original_value: 200000, sort_order: 7, is_highlighted: true },
+      { name: 'Vé máy bay khứ hồi / Xe VIP Limousine', description: 'Giờ bay đẹp, bao gồm hành lý tiêu chuẩn', type: 'core', originalValue: 2200000, sortOrder: 1 },
+      { name: 'Khách sạn 3-4 sao trung tâm view đẹp', description: '2 đêm phòng tiêu chuẩn cao, buffet sáng miễn phí', type: 'core', originalValue: 1800000, sortOrder: 2 },
+      { name: 'Xe riêng đưa đón sân bay tận nơi', description: 'Tài xế đón đúng giờ, không lo bị chặt chém', type: 'core', originalValue: 400000, sortOrder: 3 },
+      { name: '[BONUS 1] Bản đồ 10 quán ăn ngon bản địa', description: 'Cẩm nang quán ăn chuẩn vị dân địa phương', type: 'bonus', originalValue: 500000, sortOrder: 4, isHighlighted: true },
+      { name: '[BONUS 2] Lịch trình May Đo Độc Quyền (PDF)', description: 'Bản lịch trình thiết kế đẹp, chia khung giờ chill', type: 'bonus', originalValue: 500000, sortOrder: 5, isHighlighted: true },
+      { name: '[BONUS 3] Trợ lý AI Đồng Hành 24/7', description: 'Giải đáp thắc mắc và cứu nguy sự cố trong 5 phút', type: 'bonus', originalValue: 1000000, sortOrder: 6, isHighlighted: true },
+      { name: '[BONUS 4] Bảo hiểm du lịch trọn gói', description: 'Bảo vệ quyền lợi y tế và hành lý toàn diện', type: 'bonus', originalValue: 200000, sortOrder: 7, isHighlighted: true },
     ]);
     setShowEditModal(true);
   };
@@ -198,23 +205,23 @@ export const AdminOffersPage: React.FC = () => {
    */
   const handleOpenEditModal = (offer: OfferData) => {
     setEditingId(offer.id);
-    setFormTravelId(offer.travel_id ? String(offer.travel_id) : '');
+    setFormTravelId(offer.travelId ? String(offer.travelId) : '');
     setFormTitle(offer.title);
     setFormTagline(offer.tagline || '');
-    setFormTarget(offer.target_audience || '');
-    setFormMechanism(offer.hero_mechanism || '');
-    setFormOrigPrice(offer.pricing?.original_price || 0);
-    setFormOfferPrice(offer.pricing?.offer_price || 0);
-    setFormDepositPct(offer.pricing?.deposit_percentage || 30);
-    setFormMaxSlots(offer.scarcity_urgency?.max_slots_per_week || 4);
-    setFormUrgencyHours(offer.scarcity_urgency?.urgency_hours || 24);
+    setFormTarget(offer.targetAudience || '');
+    setFormMechanism(offer.heroMechanism || '');
+    setFormOrigPrice(offer.pricing?.originalPrice || 0);
+    setFormOfferPrice(offer.pricing?.offerPrice || 0);
+    setFormDepositPct(offer.pricing?.depositPercentage || 30);
+    setFormMaxSlots(offer.scarcityUrgency?.maxSlotsPerWeek || 4);
+    setFormUrgencyHours(offer.scarcityUrgency?.urgencyHours || 24);
     setFormStatus(offer.status || 'active');
     setFormItems(
       offer.items && offer.items.length > 0
-        ? offer.items.map((it, idx) => ({ ...it, sort_order: idx + 1 }))
+        ? offer.items.map((it, idx) => ({ ...it, originalValue: it.originalValue || 0, sortOrder: idx + 1 }))
         : [
-            { name: 'Vé máy bay khứ hồi / Xe VIP Limousine', description: '', type: 'core', original_value: 2200000 },
-            { name: '[BONUS 1] Quà tặng chào mừng', description: '', type: 'bonus', original_value: 500000 },
+            { name: 'Vé máy bay khứ hồi / Xe VIP Limousine', description: '', type: 'core', originalValue: 2200000 },
+            { name: '[BONUS 1] Quà tặng chào mừng', description: '', type: 'bonus', originalValue: 500000 },
           ]
     );
     setShowEditModal(true);
@@ -231,8 +238,8 @@ export const AdminOffersPage: React.FC = () => {
       if (!formTitle || formTitle === 'Gói Combo Đặc Quyền Tinh Hoa') {
         setFormTitle(`Gói Combo Đặc Quyền: ${t.title}`);
       }
-      if (t.price_from && formOfferPrice <= 3290000) {
-        setFormOfferPrice(t.price_from);
+      if (t.priceFrom && formOfferPrice <= 3290000) {
+        setFormOfferPrice(t.priceFrom);
       }
     }
   };
@@ -241,7 +248,7 @@ export const AdminOffersPage: React.FC = () => {
    * Tính tổng giá trị các món trong Value Stack.
    */
   const totalItemsValue = useMemo(() => {
-    return formItems.reduce((acc, curr) => acc + (Number(curr.original_value) || 0), 0);
+    return formItems.reduce((acc, curr) => acc + (Number(curr.originalValue) || 0), 0);
   }, [formItems]);
 
   /**
@@ -263,9 +270,9 @@ export const AdminOffersPage: React.FC = () => {
         name: '',
         description: '',
         type: 'bonus',
-        original_value: 500000,
-        sort_order: formItems.length + 1,
-        is_highlighted: true,
+        originalValue: 500000,
+        sortOrder: formItems.length + 1,
+        isHighlighted: true,
       },
     ]);
   };
@@ -284,7 +291,7 @@ export const AdminOffersPage: React.FC = () => {
     const updated = [...formItems];
     updated[index] = { ...updated[index], [field]: value };
     if (field === 'type') {
-      updated[index].is_highlighted = value === 'bonus';
+      updated[index].isHighlighted = value === 'bonus';
     }
     setFormItems(updated);
   };
@@ -296,31 +303,33 @@ export const AdminOffersPage: React.FC = () => {
     e.preventDefault();
 
     const payload = {
-      travel_id: formTravelId ? Number(formTravelId) : null,
+      travelId: formTravelId ? Number(formTravelId) : null,
       title: formTitle,
       tagline: formTagline,
-      target_audience: formTarget,
-      hero_mechanism: formMechanism,
-      original_price: Number(formOrigPrice),
-      offer_price: Number(formOfferPrice),
-      deposit_percentage: Number(formDepositPct),
-      max_slots_per_week: Number(formMaxSlots),
-      urgency_hours: Number(formUrgencyHours),
+      targetAudience: formTarget,
+      heroMechanism: formMechanism,
+      originalPrice: Number(formOrigPrice),
+      offerPrice: Number(formOfferPrice),
+      depositPercentage: Number(formDepositPct),
+      maxSlotsPerWeek: Number(formMaxSlots),
+      availableSlots: Number(formMaxSlots),
+      urgencyHours: Number(formUrgencyHours),
       status: formStatus,
+      isFeatured: false,
       items: formItems.filter(it => it.name.trim()).map((it, idx) => ({
         name: it.name.trim(),
-        description: it.description,
+        description: it.description || '',
         type: it.type,
-        original_value: Number(it.original_value) || 0,
-        sort_order: idx + 1,
-        is_highlighted: it.type === 'bonus',
+        originalValue: Number(it.originalValue) || 0,
+        sortOrder: idx + 1,
+        isHighlighted: it.type === 'bonus',
       })),
       guarantees: [
         { id: 'zero_scam', title: 'Cam kết an toàn cọc 100% (Zero-Scam Guarantee)', description: 'Mọi giao dịch đều có Hợp đồng điện tử có Mã số thuế công ty và chuyển khoản trực tiếp vào Số tài khoản ngân hàng doanh nghiệp.' },
         { id: 'no_hidden_fees', title: 'Cam kết minh bạch từng đồng — Không phụ phí (No Hidden Fees)', description: 'Bảng kê chi phí 2 cột rõ ràng. Nếu đến nơi phát sinh bất kỳ khoản phí dịch vụ ẩn nào nằm ngoài thỏa thuận, Tyler đền bù gấp đôi số tiền phát sinh đó.' },
         { id: 'hassle_free', title: 'Cam kết dịch vụ "Êm Ru" (Hassle-Free Guarantee)', description: 'Nếu phòng khách sạn thực tế không đúng hạng phòng và hình ảnh đã cam kết trong hợp đồng, Tyler sẽ đổi ngay khách sạn tương đương hoặc cao cấp hơn hoàn toàn miễn phí trong vòng 60 phút.' }
       ],
-      payment_terms: [
+      paymentTerms: [
         { phase: 1, name: 'Đợt 1 (Cọc giữ chỗ)', percentage: 30, description: 'Thanh toán 30% để khóa vé máy bay và phòng khách sạn giá tốt nhất.' },
         { phase: 2, name: 'Đợt 2 (Hoàn tất)', percentage: 70, description: 'Thanh toán 70% còn lại trước ngày khởi hành 7 ngày sau khi nhận đầy đủ mã vé và mã phòng.' }
       ]
@@ -411,34 +420,6 @@ export const AdminOffersPage: React.FC = () => {
       <main className="flex-1 p-6 lg:p-8 space-y-6">
           {/* Metrics / KPI Cards */}
 
-          {/* Banner Call to Action for AI Agent */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-[#151c2e] to-orange-950/30 border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
-            <div className="flex items-center space-x-3.5">
-              <div className="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-xl font-bold">
-                🤖
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  Tyler AI Agent Commander đã sẵn sàng!
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-400/20 text-emerald-300 font-bold">
-                    Tool Calling Active
-                  </span>
-                </h4>
-                <p className="text-xs text-slate-300 mt-0.5">
-                  Bạn có thể ra lệnh bằng tiếng Việt: <em>"Đổi giá thành 3.5tr"</em>, <em>"Tăng slot tuần lên 6"</em> hoặc <em>"Thêm quà tặng voucher"</em>.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                openAgentCommander('Đổi giá gói Combo thành 3.500.000đ và tăng slot tuần lên 6 nhóm');
-              }}
-              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 transition whitespace-nowrap"
-            >
-              ⚡ Thử Ra Lệnh Đổi Giá & Slot
-            </button>
-          </div>
-
           {/* Offer Management Table Section */}
           <div className="bg-[#151c2e] border border-[#222f49] rounded-2xl overflow-hidden shadow-xl space-y-4 p-5 sm:p-6">
             {/* Search & Filters */}
@@ -494,16 +475,16 @@ export const AdminOffersPage: React.FC = () => {
                     </tr>
                   ) : (
                     filteredOffers.map(offer => {
-                      const origPrice = formatCurrency(offer.pricing?.original_price || 0);
-                      const offPrice = formatCurrency(offer.pricing?.offer_price || 0);
-                      const depositAmt = formatCurrency(offer.pricing?.deposit_amount || 0);
-                      const savingsPct = offer.pricing?.savings_percentage || 0;
+                      const origPrice = formatCurrency(offer.pricing?.originalPrice || 0);
+                      const offPrice = formatCurrency(offer.pricing?.offerPrice || 0);
+                      const depositAmt = formatCurrency(offer.pricing?.depositAmount || 0);
+                      const savingsPct = offer.pricing?.savingsPercentage || 0;
 
                       return (
                         <tr key={offer.id} className="hover:bg-[#151d30] transition-colors">
                           <td className="py-4 px-4">
                             <div className="font-bold text-white text-sm">{offer.title}</div>
-                            <div className="text-[11px] text-slate-400 mt-0.5">{offer.tagline || offer.hero_mechanism || ''}</div>
+                            <div className="text-[11px] text-slate-400 mt-0.5">{offer.tagline || offer.heroMechanism || ''}</div>
                             <div className="flex flex-wrap items-center gap-2 mt-1.5 font-mono text-[10px]">
                               {offer.travel ? (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30">
@@ -525,15 +506,15 @@ export const AdminOffersPage: React.FC = () => {
                           <td className="py-4 px-4 font-mono">
                             <div className="text-sm font-bold text-emerald-400">{depositAmt}</div>
                             <div className="text-[10px] text-slate-400 font-sans">
-                              ({offer.pricing?.deposit_percentage}% đợt 1)
+                              ({offer.pricing?.depositPercentage}% đợt 1)
                             </div>
                           </td>
                           <td className="py-4 px-4 text-slate-300">
                             <div>
-                              <strong>{offer.scarcity_urgency?.available_slots || 4}</strong> / {offer.scarcity_urgency?.max_slots_per_week || 4} nhóm/tuần
+                              <strong>{offer.scarcityUrgency?.availableSlots || 4}</strong> / {offer.scarcityUrgency?.maxSlotsPerWeek || 4} nhóm/tuần
                             </div>
                             <div className="text-[10px] text-amber-400 mt-0.5">
-                              Giữ giá: {offer.scarcity_urgency?.urgency_hours || 24}h
+                              Giữ giá: {offer.scarcityUrgency?.urgencyHours || 24}h
                             </div>
                           </td>
                           <td className="py-4 px-4">
@@ -587,7 +568,7 @@ export const AdminOffersPage: React.FC = () => {
                   <span>💎</span>
                   <span>{viewingOffer.title}</span>
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">{viewingOffer.tagline || viewingOffer.hero_mechanism}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{viewingOffer.tagline || viewingOffer.heroMechanism}</p>
               </div>
               <button
                 onClick={() => setViewingOffer(null)}
@@ -605,7 +586,7 @@ export const AdminOffersPage: React.FC = () => {
                     Bảng Xếp Chồng Giá Trị (Value Stack)
                   </h4>
                   <span className="font-mono text-orange-400 font-bold">
-                    Tổng: {formatCurrency(viewingOffer.pricing.original_price)}
+                    Tổng: {formatCurrency(viewingOffer.pricing.originalPrice || 0)}
                   </span>
                 </div>
 
@@ -638,7 +619,7 @@ export const AdminOffersPage: React.FC = () => {
                           )}
                         </div>
                         <div className="font-mono font-bold text-xs whitespace-nowrap ml-2">
-                          {formatCurrency(item.original_value)}
+                          {formatCurrency(item.originalValue || 0)}
                         </div>
                       </div>
                     ))
@@ -666,13 +647,13 @@ export const AdminOffersPage: React.FC = () => {
               )}
 
               {/* Sales Script */}
-              {viewingOffer.sales_script && (
+              {viewingOffer.salesScript && (
                 <div className="space-y-2">
                   <h4 className="font-bold text-slate-200 uppercase tracking-wider text-[11px]">
                     Kịch Bản Tư Vấn & Bán Hàng (Sales Script)
                   </h4>
                   <div className="p-3.5 rounded-xl bg-[#0b0f19] border border-[#222f49] text-slate-300 whitespace-pre-line leading-relaxed">
-                    {viewingOffer.sales_script}
+                    {viewingOffer.salesScript}
                   </div>
                 </div>
               )}
@@ -729,7 +710,7 @@ export const AdminOffersPage: React.FC = () => {
                   <option value="">-- Không liên kết tour (Offer độc lập) --</option>
                   {travels.map(t => (
                     <option key={t.id} value={t.id}>
-                      [{t.code || `TOUR-#${t.id}`}] {t.title} ({t.country}) — Sàn: {formatCurrency(t.price_from)}
+                      [{t.code || `TOUR-#${t.id}`}] {t.title} ({t.country}) — Sàn: {formatCurrency(t.priceFrom)}
                     </option>
                   ))}
                 </select>
@@ -919,8 +900,8 @@ export const AdminOffersPage: React.FC = () => {
                             type="number"
                             placeholder="Giá trị (VNĐ)"
                             required
-                            value={item.original_value || ''}
-                            onChange={e => handleUpdateValueStackRow(idx, 'original_value', Number(e.target.value))}
+                            value={item.originalValue || ''}
+                            onChange={e => handleUpdateValueStackRow(idx, 'originalValue', Number(e.target.value))}
                             className="w-full px-2.5 py-1.5 rounded-lg bg-[#151c2e] border border-[#222f49] text-amber-300 font-mono text-xs focus:border-amber-500 focus:outline-none"
                           />
                         </div>

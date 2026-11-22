@@ -142,7 +142,7 @@ public sealed class TourStateReducer : ITourStateReducer
                             Id = id,
                             Code = item.TryGetProperty("code", out var cProp) ? cProp.GetString() ?? string.Empty : string.Empty,
                             Title = item.TryGetProperty("name", out var nProp) ? nProp.GetString() ?? string.Empty : string.Empty,
-                            PriceFrom = item.TryGetProperty("price_from", out var pProp) && pProp.ValueKind == JsonValueKind.Number && pProp.TryGetDecimal(out var price) ? price : 0m,
+                            PriceFrom = item.TryGetProperty("priceFrom", out var pProp) && pProp.ValueKind == JsonValueKind.Number && pProp.TryGetDecimal(out var price) ? price : 0m,
                             Country = item.TryGetProperty("country", out var countryProp) ? countryProp.GetString() : null
                         };
                         newCandidates.Add(candidate);

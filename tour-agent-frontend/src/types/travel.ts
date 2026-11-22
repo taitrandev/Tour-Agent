@@ -1,12 +1,12 @@
 /**
- * Kiểu dữ liệu một đợt khởi hành của Tour du lịch.
+ * Kiểu dữ liệu một đợt khởi hành của Tour du lịch (chuẩn camelCase).
  */
 export interface TourDeparture {
   id?: number;
-  departure_date: string;
-  price_adult: number;
-  price_child?: number | null;
-  single_supplement?: number | null;
+  departureDate?: string;
+  priceAdult?: number;
+  priceChild?: number | null;
+  singleSupplement?: number | null;
   status: 'open' | 'guaranteed' | 'full' | 'closed';
   notes?: string | null;
 }
@@ -27,14 +27,14 @@ export interface ItineraryDay {
  */
 export interface TravelReview {
   id: number;
-  travel_id: number;
-  reviewer_name: string;
-  reviewer_avatar_url?: string | null;
+  travelId: number;
+  reviewerName: string;
+  reviewerAvatarUrl?: string | null;
   rating: number;
   content: string;
-  travel_date?: string | null;
-  is_visible: boolean;
-  created_at?: string;
+  travelDate?: string | null;
+  isVisible: boolean;
+  createdAt?: string;
 }
 
 /**
@@ -42,43 +42,43 @@ export interface TravelReview {
  */
 export interface TravelFaq {
   id: number;
-  travel_id: number;
+  travelId: number;
   question: string;
   answer: string;
-  sort_order: number;
-  is_visible: boolean;
-  created_at?: string;
+  sortOrder: number;
+  isVisible: boolean;
+  createdAt?: string;
 }
 
 /**
- * Kiểu dữ liệu Sản phẩm Tour du lịch hoàn chỉnh (Product Base).
+ * Kiểu dữ liệu Sản phẩm Tour du lịch hoàn chỉnh (chuẩn camelCase).
  */
 export interface TravelProduct {
   id: number;
   title: string;
   slug?: string;
   code: string;
-  duration_days: number;
-  duration_nights: number;
+  durationDays: number;
+  durationNights: number;
   route?: string;
   country: string;
   destinations: string[];
-  departure_city: string;
+  departureCity: string;
   tags?: string[];
-  price_from: number;
-  original_price?: number;
+  priceFrom: number;
+  originalPrice?: number;
   status: 'published' | 'draft';
-  is_featured: boolean;
+  isFeatured: boolean;
   itinerary?: ItineraryDay[];
   inclusions?: string[] | string;
   exclusions?: string[] | string;
-  child_policy?: string;
-  payment_policy?: string;
-  cancellation_policy?: string;
-  visa_policy?: string;
+  childPolicy?: string;
+  paymentPolicy?: string;
+  cancellationPolicy?: string;
+  visaPolicy?: string;
   notes?: string;
   departures?: TourDeparture[];
-  offers_count?: number;
-  reviews_count?: number;
-  faqs_count?: number;
+  offersCount?: number;
+  reviewsCount?: number;
+  faqsCount?: number;
 }

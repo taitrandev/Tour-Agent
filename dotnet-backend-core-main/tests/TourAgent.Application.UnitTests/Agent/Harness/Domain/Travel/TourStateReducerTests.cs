@@ -20,21 +20,21 @@ public class TourStateReducerTests
         var state = new AgentState();
         var searchResultJson = """
         {
-            "total_found": 2,
+            "totalFound": 2,
             "travels": [
                 {
                     "id": 1,
                     "code": "JP-TOK-01",
                     "name": "Cung Đường Vàng Nhật Bản 6N5Đ",
                     "country": "Nhật Bản",
-                    "price_from": 35990000
+                    "priceFrom": 35990000
                 },
                 {
                     "id": 2,
                     "code": "JP-OSA-02",
                     "name": "Khám Phá Osaka Mùa Hoa Anh Đào 5N4Đ",
                     "country": "Nhật Bản",
-                    "price_from": 28990000
+                    "priceFrom": 28990000
                 }
             ]
         }
@@ -61,14 +61,14 @@ public class TourStateReducerTests
         var state = new AgentState();
         var searchResultJson = """
         {
-            "total_found": 1,
+            "totalFound": 1,
             "travels": [
                 {
                     "id": 10,
                     "code": "THAI-BKK-01",
                     "name": "Bangkok - Pattaya 5N4Đ",
                     "country": "Thái Lan",
-                    "price_from": 6990000
+                    "priceFrom": 6990000
                 }
             ]
         }

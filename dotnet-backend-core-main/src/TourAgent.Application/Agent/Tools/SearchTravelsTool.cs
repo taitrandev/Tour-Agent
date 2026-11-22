@@ -25,7 +25,7 @@ public sealed class SearchTravelsTool : IAgentTool
                 "type": "string",
                 "description": "Tên địa danh/điểm tham quan cụ thể (ví dụ: Núi Phú Sĩ, Kyoto, Thượng Hải, Trương Gia Giới, Vạn Lý Trường Thành)."
             },
-            "departure_city": {
+            "departureCity": {
                 "type": "string",
                 "description": "Thành phố khởi hành (ví dụ: TP.HCM, Hà Nội, Đà Nẵng)."
             },
@@ -33,7 +33,7 @@ public sealed class SearchTravelsTool : IAgentTool
                 "type": "string",
                 "description": "Thẻ phân loại nhu cầu: gia-dinh, le-tet, cao-cap, tiet-kiem, kham-pha, nghi-duong."
             },
-            "max_price": {
+            "maxPrice": {
                 "type": "number",
                 "description": "Mức ngân sách tối đa mong muốn (VNĐ)."
             },
@@ -90,12 +90,12 @@ public sealed class SearchTravelsTool : IAgentTool
                     destination = destProp.GetString();
                 }
 
-                if (root.TryGetProperty("departure_city", out var depProp) && depProp.ValueKind == JsonValueKind.String)
+                if (root.TryGetProperty("departureCity", out var depProp) && depProp.ValueKind == JsonValueKind.String)
                 {
                     departureCity = depProp.GetString();
                 }
 
-                if (root.TryGetProperty("max_price", out var priceProp) && priceProp.TryGetDecimal(out var parsedPrice))
+                if (root.TryGetProperty("maxPrice", out var priceProp) && priceProp.TryGetDecimal(out var parsedPrice))
                 {
                     maxPrice = parsedPrice;
                 }
@@ -157,17 +157,17 @@ public sealed class SearchTravelsTool : IAgentTool
                 name = t.Name,
                 country = t.Country,
                 destination = t.Destination,
-                departure_city = t.DepartureCity,
-                duration_days = t.DurationDays,
-                duration_nights = t.DurationNights,
-                price_from = t.PriceFrom,
+                departureCity = t.DepartureCity,
+                durationDays = t.DurationDays,
+                durationNights = t.DurationNights,
+                priceFrom = t.PriceFrom,
                 highlights = t.Highlights
             })
             .ToListAsync(cancellationToken);
 
         var response = new
         {
-            total_found = tours.Count,
+            totalFound = tours.Count,
             travels = tours,
             message = tours.Count > 0
                 ? $"Tìm thấy {tours.Count} tour du lịch phù hợp."

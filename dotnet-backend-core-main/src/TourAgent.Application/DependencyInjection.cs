@@ -63,12 +63,14 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<Features.Escalations.UpdateEscalationStatusCommand, Result<Features.Escalations.EscalationTicketDto>>, Features.Escalations.UpdateEscalationStatusCommandHandler>();
 
 
-        // Đăng ký 5 Agent Tools phục vụ AI tư vấn tour
+        // Đăng ký các Agent Tools phục vụ AI tư vấn tour và AI Commander điều hành
         services.AddScoped<Agent.Contracts.IAgentTool, Agent.Tools.SearchTravelsTool>();
         services.AddScoped<Agent.Contracts.IAgentTool, Agent.Tools.CheckDeparturesTool>();
         services.AddScoped<Agent.Contracts.IAgentTool, Agent.Tools.GetTravelItineraryTool>();
         services.AddScoped<Agent.Contracts.IAgentTool, Agent.Tools.GetTravelPoliciesTool>();
         services.AddScoped<Agent.Contracts.IAgentTool, Agent.Tools.EscalateToHumanTool>();
+        services.AddScoped<Agent.Contracts.IAgentTool, Agent.Tools.UpdateTravelTitleTool>();
+        services.AddScoped<Agent.Contracts.IAgentTool, Agent.Tools.UpdateOfferPriceTool>();
 
         // Đăng ký các dịch vụ Agent Harness Architecture (G1, G2, G3)
         services.AddScoped<Agent.Harness.State.IAgentStateStore, Agent.Harness.State.DatabaseAgentStateStore>();

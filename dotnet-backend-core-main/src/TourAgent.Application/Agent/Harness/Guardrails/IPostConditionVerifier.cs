@@ -51,8 +51,8 @@ public sealed class DefaultPostConditionVerifier : IPostConditionVerifier
             {
                 success = false,
                 error = $"Công cụ '{tool.Name}' trả về kết quả rỗng.",
-                recovery_hint = "Hãy thông báo nhẹ nhàng với khách rằng hệ thống đang cập nhật dữ liệu và đề xuất hỗ trợ hướng khác.",
-                _guardrail_status = "empty_output"
+                recoveryHint = "Hãy thông báo nhẹ nhàng với khách rằng hệ thống đang cập nhật dữ liệu và đề xuất hỗ trợ hướng khác.",
+                guardrailStatus = "empty_output"
             }, JsonOptions);
             return new ToolVerificationResult(false, fallback, "Kết quả trả về rỗng.");
         }
@@ -61,6 +61,14 @@ public sealed class DefaultPostConditionVerifier : IPostConditionVerifier
         {
             using var doc = JsonDocument.Parse(rawResultJson);
             var root = doc.RootElement;
+
+            // Nếu công cụ yêu cầu làm rõ bản ghi (Disambiguation Pattern - Cơ chế B)
+            // Giữ nguyên kết quả để LLM đọc được danh sách candidates và hỏi lại người dùng
+            if (root.TryGetProperty("disambiguationNeeded", out var disProp) &&
+                disProp.ValueKind == JsonValueKind.True)
+            {
+                return new ToolVerificationResult(true, rawResultJson, "Yêu cầu người dùng chọn bản ghi cụ thể (Disambiguation).");
+            }
 
             // Kiểm tra xem tool có trả về cờ success = false hoặc có thuộc tính error không
             bool hasError = false;
@@ -85,8 +93,8 @@ public sealed class DefaultPostConditionVerifier : IPostConditionVerifier
                 {
                     ["success"] = false,
                     ["error"] = errorMessage ?? "Thao tác không hoàn tất theo yêu cầu.",
-                    ["recovery_hint"] = "Xin lỗi khách hàng lịch sự về sự cố này và hướng dẫn khách cung cấp thêm thông tin hoặc liên hệ chuyên viên.",
-                    ["_guardrail_status"] = "corrected"
+                    ["recoveryHint"] = "Xin lỗi khách hàng lịch sự về sự cố này và hướng dẫn khách cung cấp thêm thông tin hoặc liên hệ chuyên viên.",
+                    ["guardrailStatus"] = "corrected"
                 };
 
                 return new ToolVerificationResult(false, JsonSerializer.Serialize(correctedObj, JsonOptions), "Tool báo lỗi nghiệp vụ.");
@@ -99,8 +107,8 @@ public sealed class DefaultPostConditionVerifier : IPostConditionVerifier
             var fallback = JsonSerializer.Serialize(new
             {
                 success = true,
-                raw_text = rawResultJson,
-                _guardrail_status = "raw_fallback"
+                rawText = rawResultJson,
+                guardrailStatus = "raw_fallback"
             }, JsonOptions);
             return new ToolVerificationResult(true, fallback);
         }
