@@ -5,10 +5,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>a7e61eaa-b039-4e2d-a891-7ed59e13e2a1</UserSecretsId>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591;1573;1570;</NoWarn>
+
+    <!-- Kiểm tra độ sâu thư mục: phải trỏ tới Tour-Agent/docs/api/ -->
+    <ApiDocsDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/../../../docs/api/'))</ApiDocsDir>
+    <ApiDocsGen Condition="'$(ApiDocsGen)' == ''">true</ApiDocsGen>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
 
@@ -17,4 +22,16 @@
     <ProjectReference Include="..\TourAgent.Infrastructure\TourAgent.Infrastructure.csproj" />
   </ItemGroup>
 
+  <Target Name="GenerateApiDocs" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug' And '$(ApiDocsGen)' == 'true'"
+        Inputs="$(TargetPath)" Outputs="$(ApiDocsDir)swagger.json">
+    <PropertyGroup>
+      <PsExe>pwsh</PsExe>
+      <PsExe Condition="'$(OS)' == 'Windows_NT'">powershell</PsExe>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(ApiDocsDir)" />
+    <Exec Command="dotnet tool restore" />
+    <Exec Command="dotnet swagger tofile --output &quot;$(ApiDocsDir)swagger.json&quot; &quot;$(TargetPath)&quot; v1" EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development;SWAGGER_DOCGEN=1" />
+    <Exec Command="$(PsExe) -NoProfile -ExecutionPolicy Bypass -File &quot;../../scripts/gen-api-index.ps1&quot; -SwaggerPath &quot;$(ApiDocsDir)swagger.json&quot; -OutPath &quot;$(ApiDocsDir)api-index.txt&quot;" />
+  </Target>
 </Project>
