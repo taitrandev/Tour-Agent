@@ -12,7 +12,7 @@ interface OrderContact {
   name: string | null;
   phone: string | null;
   email: string | null;
-  telegram_username: string | null;
+  telegramUsername: string | null;
   channel: string;
 }
 
@@ -23,7 +23,7 @@ interface OrderTravel {
   id: number;
   title: string;
   code: string | null;
-  price_from: number;
+  priceFrom: number;
 }
 
 /**
@@ -31,39 +31,39 @@ interface OrderTravel {
  */
 interface TourOrderItem {
   id: number;
-  order_code: string;
-  contact_id: number | null;
+  orderCode: string;
+  contactId: number | null;
   contact: OrderContact | null;
-  travel_id: number | null;
+  travelId: number | null;
   travel: OrderTravel | null;
-  travel_departure_id: number | null;
-  conversation_id: number | null;
+  travelDepartureId: number | null;
+  conversationId: number | null;
   channel: string;
-  pax_adults: number;
-  pax_children: number;
-  total_price: number;
-  deposit_percent: number;
-  deposit_amount: number;
-  deposit_status: string;
-  deposit_paid_at: string | null;
-  remaining_amount: number;
-  remaining_status: string;
-  remaining_paid_at: string | null;
-  payment_account_note: string | null;
-  visa_status: string;
-  visa_notes: string | null;
-  operator_name: string | null;
-  operator_booking_ref: string | null;
-  departure_date: string | null;
-  tour_guide_name: string | null;
-  tour_guide_phone: string | null;
-  tour_guide_notes: string | null;
-  pre_departure_notified_at: string | null;
+  paxAdults: number;
+  paxChildren: number;
+  totalPrice: number;
+  depositPercent: number;
+  depositAmount: number;
+  depositStatus: string;
+  depositPaidAt: string | null;
+  remainingAmount: number;
+  remainingStatus: string;
+  remainingPaidAt: string | null;
+  paymentAccountNote: string | null;
+  visaStatus: string;
+  visaNotes: string | null;
+  operatorName: string | null;
+  operatorBookingRef: string | null;
+  departureDate: string | null;
+  tourGuideName: string | null;
+  tourGuidePhone: string | null;
+  tourGuideNotes: string | null;
+  preDepartureNotifiedAt: string | null;
   status: string;
-  ai_summary: string | null;
+  aiSummary: string | null;
   notes: string | null;
-  created_at: string;
-  updated_at: string | null;
+  createdAt: string;
+  updatedAt: string | null;
 }
 
 /**
@@ -71,11 +71,11 @@ interface TourOrderItem {
  */
 interface OrderMetrics {
   total: number;
-  lead_consulting: number;
-  deposit_pending: number;
-  visa_processing: number;
-  final_payment_pending: number;
-  t3_departure: number;
+  leadConsulting: number;
+  depositPending: number;
+  visaProcessing: number;
+  finalPaymentPending: number;
+  t3Departure: number;
 }
 
 /**
@@ -92,11 +92,11 @@ export const AdminOrdersPage: React.FC = () => {
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [metrics, setMetrics] = useState<OrderMetrics>({
     total: 0,
-    lead_consulting: 0,
-    deposit_pending: 0,
-    visa_processing: 0,
-    final_payment_pending: 0,
-    t3_departure: 0,
+    leadConsulting: 0,
+    depositPending: 0,
+    visaProcessing: 0,
+    finalPaymentPending: 0,
+    t3Departure: 0,
   });
 
   // State Modal Chi Tiết & AI Briefing
@@ -154,7 +154,7 @@ export const AdminOrdersPage: React.FC = () => {
       const params = new URLSearchParams();
       if (currentStatus) params.append('status', currentStatus);
       if (searchKeyword.trim()) params.append('search', searchKeyword.trim());
-      params.append('per_page', '50');
+      params.append('perPage', '50');
 
       const res = await apiFetch(`/api/v1/admin/orders?${params.toString()}`);
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -211,7 +211,7 @@ export const AdminOrdersPage: React.FC = () => {
    */
   const openDepositModal = (order: TourOrderItem) => {
     setDepositOrder(order);
-    setDepositAccountNote(order.payment_account_note || 'STK: 1903688888 - Techcombank (Công ty Du Lịch Travel AI)');
+    setDepositAccountNote(order.paymentAccountNote || 'STK: 1903688888 - Techcombank (Công ty Du Lịch Travel AI)');
     setDepositModalOpen(true);
   };
 
@@ -225,11 +225,11 @@ export const AdminOrdersPage: React.FC = () => {
       const res = await apiFetch(`/api/v1/admin/orders/${depositOrder.id}/deposit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payment_account_note: depositAccountNote }),
+        body: JSON.stringify({ paymentAccountNote: depositAccountNote }),
       });
       const json = await res.json();
       if (json.success) {
-        notify.success(`Đã xác nhận cọc 50% thành công cho đơn #${depositOrder.order_code}!`);
+        notify.success(`Đã xác nhận cọc 50% thành công cho đơn #${depositOrder.orderCode}!`);
         setDepositModalOpen(false);
         fetchOrders();
       } else {
@@ -248,10 +248,10 @@ export const AdminOrdersPage: React.FC = () => {
    */
   const openVisaModal = (order: TourOrderItem) => {
     setVisaOrder(order);
-    setVisaStatusInput(order.visa_status || 'awaiting_docs');
-    setVisaNotesInput(order.visa_notes || '');
-    setOperatorNameInput(order.operator_name || '');
-    setOperatorBookingRefInput(order.operator_booking_ref || '');
+    setVisaStatusInput(order.visaStatus || 'awaiting_docs');
+    setVisaNotesInput(order.visaNotes || '');
+    setOperatorNameInput(order.operatorName || '');
+    setOperatorBookingRefInput(order.operatorBookingRef || '');
     setZaloVisaMessage(null);
     setVisaModalOpen(true);
   };
@@ -267,17 +267,17 @@ export const AdminOrdersPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          visa_status: visaStatusInput,
-          visa_notes: visaNotesInput,
-          operator_name: operatorNameInput,
-          operator_booking_ref: operatorBookingRefInput,
+          visaStatus: visaStatusInput,
+          visaNotes: visaNotesInput,
+          operatorName: operatorNameInput,
+          operatorBookingRef: operatorBookingRefInput,
         }),
       });
       const json = await res.json();
       if (json.success) {
-        notify.success(`Cập nhật tiến trình Visa thành công cho đơn #${visaOrder.order_code}!`);
-        if (json.zalo_message) {
-          setZaloVisaMessage(json.zalo_message);
+        notify.success(`Cập nhật tiến trình Visa thành công cho đơn #${visaOrder.orderCode}!`);
+        if (json.zaloMessage) {
+          setZaloVisaMessage(json.zaloMessage);
         } else {
           setVisaModalOpen(false);
         }
@@ -313,7 +313,7 @@ export const AdminOrdersPage: React.FC = () => {
       });
       const json = await res.json();
       if (json.success) {
-        notify.success(`Đã xác nhận thu đủ 100% cho đơn #${finalPaymentOrder.order_code}! Sẵn sàng khởi hành.`);
+        notify.success(`Đã xác nhận thu đủ 100% cho đơn #${finalPaymentOrder.orderCode}! Sẵn sàng khởi hành.`);
         setFinalPaymentModalOpen(false);
         fetchOrders();
       } else {
@@ -332,9 +332,9 @@ export const AdminOrdersPage: React.FC = () => {
    */
   const openT3Modal = (order: TourOrderItem) => {
     setT3Order(order);
-    setGuideNameInput(order.tour_guide_name || 'Nguyễn Văn Tuấn');
-    setGuidePhoneInput(order.tour_guide_phone || '0912.888.999');
-    setGuideNotesInput(order.tour_guide_notes || 'Tập trung tại Cột số 10 - Ga đi Quốc tế sân bay Tân Sơn Nhất / Nội Bài');
+    setGuideNameInput(order.tourGuideName || 'Nguyễn Văn Tuấn');
+    setGuidePhoneInput(order.tourGuidePhone || '0912.888.999');
+    setGuideNotesInput(order.tourGuideNotes || 'Tập trung tại Cột số 10 - Ga đi Quốc tế sân bay Tân Sơn Nhất / Nội Bài');
     setZaloT3Message(null);
     setT3ModalOpen(true);
   };
@@ -350,16 +350,16 @@ export const AdminOrdersPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tour_guide_name: guideNameInput,
-          tour_guide_phone: guidePhoneInput,
-          tour_guide_notes: guideNotesInput,
+          tourGuideName: guideNameInput,
+          tourGuidePhone: guidePhoneInput,
+          tourGuideNotes: guideNotesInput,
         }),
       });
       const json = await res.json();
       if (json.success) {
-        notify.success(`Đã lưu thông tin HDV và đánh dấu dặn dò T-3 cho đơn #${t3Order.order_code}!`);
-        if (json.zalo_message) {
-          setZaloT3Message(json.zalo_message);
+        notify.success(`Đã lưu thông tin HDV và đánh dấu dặn dò T-3 cho đơn #${t3Order.orderCode}!`);
+        if (json.zaloMessage) {
+          setZaloT3Message(json.zaloMessage);
         } else {
           setT3ModalOpen(false);
         }
@@ -389,7 +389,7 @@ export const AdminOrdersPage: React.FC = () => {
   const handleDeleteOrder = async (order: TourOrderItem) => {
     const isConfirmed = await confirm({
       title: 'Xác nhận xóa đơn hàng',
-      message: `Bạn có chắc muốn xóa đơn hàng #${order.order_code} không? Dữ liệu đơn hàng và tiến trình thanh toán sẽ bị xóa.`,
+      message: `Bạn có chắc muốn xóa đơn hàng #${order.orderCode} không? Dữ liệu đơn hàng và tiến trình thanh toán sẽ bị xóa.`,
       confirmText: 'Xóa đơn hàng',
       cancelText: 'Hủy bỏ',
       variant: 'danger',
@@ -401,7 +401,7 @@ export const AdminOrdersPage: React.FC = () => {
       });
       const json = await res.json();
       if (json.success) {
-        notify.success(`Đã xóa đơn hàng #${order.order_code} thành công.`);
+        notify.success(`Đã xóa đơn hàng #${order.orderCode} thành công.`);
         fetchOrders();
       } else {
         notify.error(json.message || 'Lỗi khi xóa đơn hàng');
@@ -433,11 +433,11 @@ export const AdminOrdersPage: React.FC = () => {
   const openEditModal = (order: TourOrderItem) => {
     setFormIsEditing(true);
     setEditingOrderId(order.id);
-    setFormPaxAdults(order.pax_adults);
-    setFormPaxChildren(order.pax_children);
-    setFormTotalPrice(order.total_price);
-    setFormDepartureDate(order.departure_date || '');
-    setFormPaymentNote(order.payment_account_note || '');
+    setFormPaxAdults(order.paxAdults);
+    setFormPaxChildren(order.paxChildren);
+    setFormTotalPrice(order.totalPrice);
+    setFormDepartureDate(order.departureDate || '');
+    setFormPaymentNote(order.paymentAccountNote || '');
     setFormNotes(order.notes || '');
     setFormModalOpen(true);
   };
@@ -450,11 +450,11 @@ export const AdminOrdersPage: React.FC = () => {
     setSubmittingForm(true);
     try {
       const payload: any = {
-        pax_adults: formPaxAdults,
-        pax_children: formPaxChildren,
-        total_price: formTotalPrice,
-        departure_date: formDepartureDate || null,
-        payment_account_note: formPaymentNote,
+        paxAdults: formPaxAdults,
+        paxChildren: formPaxChildren,
+        totalPrice: formTotalPrice,
+        departureDate: formDepartureDate || null,
+        paymentAccountNote: formPaymentNote,
         notes: formNotes,
       };
 
@@ -583,7 +583,7 @@ export const AdminOrdersPage: React.FC = () => {
               <span className="text-[11px] font-semibold text-rose-400">Chờ Tư Vấn</span>
               <span className="text-base">🔥</span>
             </div>
-            <div className="text-xl font-black text-rose-400 mt-1.5 font-mono">{metrics.lead_consulting}</div>
+            <div className="text-xl font-black text-rose-400 mt-1.5 font-mono">{metrics.leadConsulting}</div>
             <div className="text-[10px] text-rose-400/80">Sale cần gọi ngay</div>
           </div>
 
@@ -595,7 +595,7 @@ export const AdminOrdersPage: React.FC = () => {
               <span className="text-[11px] font-semibold text-amber-400">Chờ Cọc 50%</span>
               <span className="text-base">💵</span>
             </div>
-            <div className="text-xl font-black text-amber-400 mt-1.5 font-mono">{metrics.deposit_pending}</div>
+            <div className="text-xl font-black text-amber-400 mt-1.5 font-mono">{metrics.depositPending}</div>
             <div className="text-[10px] text-amber-400/80">Đã gửi số tài khoản</div>
           </div>
 
@@ -607,7 +607,7 @@ export const AdminOrdersPage: React.FC = () => {
               <span className="text-[11px] font-semibold text-sky-400">Đang Làm Visa</span>
               <span className="text-base">🛂</span>
             </div>
-            <div className="text-xl font-black text-sky-400 mt-1.5 font-mono">{metrics.visa_processing}</div>
+            <div className="text-xl font-black text-sky-400 mt-1.5 font-mono">{metrics.visaProcessing}</div>
             <div className="text-[10px] text-sky-400/80">Chờ cty du lịch báo</div>
           </div>
 
@@ -619,7 +619,7 @@ export const AdminOrdersPage: React.FC = () => {
               <span className="text-[11px] font-semibold text-emerald-400">Cần Thu Nốt 50%</span>
               <span className="text-base">💰</span>
             </div>
-            <div className="text-xl font-black text-emerald-400 mt-1.5 font-mono">{metrics.final_payment_pending}</div>
+            <div className="text-xl font-black text-emerald-400 mt-1.5 font-mono">{metrics.finalPaymentPending}</div>
             <div className="text-[10px] text-emerald-400/80">Đã đậu visa</div>
           </div>
 
@@ -631,7 +631,7 @@ export const AdminOrdersPage: React.FC = () => {
               <span className="text-[11px] font-semibold text-indigo-400">Sắp Bay (T-3)</span>
               <span className="text-base">✈️</span>
             </div>
-            <div className="text-xl font-black text-indigo-400 mt-1.5 font-mono">{metrics.t3_departure}</div>
+            <div className="text-xl font-black text-indigo-400 mt-1.5 font-mono">{metrics.t3Departure}</div>
             <div className="text-[10px] text-indigo-400/80">Bàn giao HDV</div>
           </div>
         </div>
@@ -738,11 +738,11 @@ export const AdminOrdersPage: React.FC = () => {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-1.5">
                           <button
-                            onClick={() => copyToClipboard(order.order_code, 'Mã đơn')}
+                            onClick={() => copyToClipboard(order.orderCode, 'Mã đơn')}
                             className="font-mono font-bold text-sky-400 hover:text-sky-300 hover:underline"
                             title="Nhấp để sao chép mã"
                           >
-                            #{order.order_code}
+                            #{order.orderCode}
                           </button>
                         </div>
                         <div className="flex items-center gap-1.5 mt-1">
@@ -752,7 +752,7 @@ export const AdminOrdersPage: React.FC = () => {
                           {renderStatusBadge(order.status)}
                         </div>
                         <div className="text-[10px] text-slate-500 mt-1 font-mono">
-                          {formatDate(order.created_at)}
+                          {formatDate(order.createdAt)}
                         </div>
                       </td>
 
@@ -780,9 +780,9 @@ export const AdminOrdersPage: React.FC = () => {
                         ) : (
                           <div className="text-slate-500 italic text-[11px]">Chưa có SĐT</div>
                         )}
-                        {order.contact?.telegram_username && (
+                        {order.contact?.telegramUsername && (
                           <div className="text-[10px] text-sky-400 font-mono">
-                            @{order.contact.telegram_username}
+                            @{order.contact.telegramUsername}
                           </div>
                         )}
                       </td>
@@ -793,7 +793,7 @@ export const AdminOrdersPage: React.FC = () => {
                           {order.travel?.title || order.notes || 'Tour tự do / Land tour'}
                         </div>
                         <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400">
-                          <span>👥 {order.pax_adults} Lớn {order.pax_children > 0 && `+ ${order.pax_children} Trẻ`}</span>
+                          <span>👥 {order.paxAdults} Lớn {order.paxChildren > 0 && `+ ${order.paxChildren} Trẻ`}</span>
                           {order.travel?.code && (
                             <span className="font-mono text-[10px] text-slate-500">[{order.travel.code}]</span>
                           )}
@@ -803,19 +803,19 @@ export const AdminOrdersPage: React.FC = () => {
                       {/* Cột 4: Tiến độ Cọc & Tiền */}
                       <td className="py-3 px-4">
                         <div className="font-mono font-bold text-white text-xs">
-                          {formatCurrency(order.total_price)}
+                          {formatCurrency(order.totalPrice)}
                         </div>
                         <div className="space-y-0.5 mt-1 text-[11px]">
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-slate-400">Cọc 50%:</span>
-                            <span className={`font-mono ${order.deposit_status === 'paid' ? 'text-emerald-400 font-semibold' : 'text-amber-400'}`}>
-                              {formatCurrency(order.deposit_amount)} {order.deposit_status === 'paid' ? '✅' : '⏳'}
+                            <span className={`font-mono ${order.depositStatus === 'paid' ? 'text-emerald-400 font-semibold' : 'text-amber-400'}`}>
+                              {formatCurrency(order.depositAmount)} {order.depositStatus === 'paid' ? '✅' : '⏳'}
                             </span>
                           </div>
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-slate-400">Đợt 2:</span>
-                            <span className={`font-mono ${order.remaining_status === 'paid' ? 'text-emerald-400 font-semibold' : 'text-slate-400'}`}>
-                              {formatCurrency(order.remaining_amount)} {order.remaining_status === 'paid' ? '✅' : '⏳'}
+                            <span className={`font-mono ${order.remainingStatus === 'paid' ? 'text-emerald-400 font-semibold' : 'text-slate-400'}`}>
+                              {formatCurrency(order.remainingAmount)} {order.remainingStatus === 'paid' ? '✅' : '⏳'}
                             </span>
                           </div>
                         </div>
@@ -823,15 +823,15 @@ export const AdminOrdersPage: React.FC = () => {
 
                       {/* Cột 5: Tiến Trình Visa */}
                       <td className="py-3 px-4">
-                        <div>{renderVisaBadge(order.visa_status)}</div>
-                        {order.operator_name && (
+                        <div>{renderVisaBadge(order.visaStatus)}</div>
+                        {order.operatorName && (
                           <div className="text-[11px] text-slate-300 mt-1 font-medium">
-                            🏢 {order.operator_name}
+                            🏢 {order.operatorName}
                           </div>
                         )}
-                        {order.operator_booking_ref && (
+                        {order.operatorBookingRef && (
                           <div className="text-[10px] text-slate-500 font-mono">
-                            Ref: {order.operator_booking_ref}
+                            Ref: {order.operatorBookingRef}
                           </div>
                         )}
                       </td>
@@ -839,21 +839,21 @@ export const AdminOrdersPage: React.FC = () => {
                       {/* Cột 6: Khởi Hành & HDV (T-3) */}
                       <td className="py-3 px-4">
                         <div className="font-mono text-sky-400 font-semibold">
-                          📅 {formatDate(order.departure_date)}
+                          📅 {formatDate(order.departureDate)}
                         </div>
-                        {order.tour_guide_name ? (
+                        {order.tourGuideName ? (
                           <div className="mt-1 text-[11px]">
-                            <span className="text-slate-300 font-medium">👤 {order.tour_guide_name}</span>
-                            {order.tour_guide_phone && (
+                            <span className="text-slate-300 font-medium">👤 {order.tourGuideName}</span>
+                            {order.tourGuidePhone && (
                               <span className="text-emerald-400 font-mono block text-[10px]">
-                                📞 {order.tour_guide_phone}
+                                📞 {order.tourGuidePhone}
                               </span>
                             )}
                           </div>
                         ) : (
                           <div className="text-[10px] text-slate-500 mt-1">Chưa phân bổ HDV</div>
                         )}
-                        {order.pre_departure_notified_at ? (
+                        {order.preDepartureNotifiedAt ? (
                           <span className="inline-block mt-1 text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                             Đã dặn dò T-3
                           </span>
@@ -873,7 +873,7 @@ export const AdminOrdersPage: React.FC = () => {
                           </button>
 
                           {/* Nút Xác nhận Cọc 50% (nếu chưa cọc) */}
-                          {order.deposit_status !== 'paid' && (
+                          {order.depositStatus !== 'paid' && (
                             <button
                               onClick={() => openDepositModal(order)}
                               className="px-2 py-1 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 text-[10px] font-bold transition"
@@ -884,7 +884,7 @@ export const AdminOrdersPage: React.FC = () => {
                           )}
 
                           {/* Nút Cập nhật Visa */}
-                          {order.visa_status !== 'not_required' && (
+                          {order.visaStatus !== 'not_required' && (
                             <button
                               onClick={() => openVisaModal(order)}
                               className="px-2 py-1 rounded-lg bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/40 text-[10px] font-bold transition"
@@ -895,7 +895,7 @@ export const AdminOrdersPage: React.FC = () => {
                           )}
 
                           {/* Nút Thu nốt 50% (nếu đã cọc nhưng chưa thu đủ) */}
-                          {order.deposit_status === 'paid' && order.remaining_status !== 'paid' && (
+                          {order.depositStatus === 'paid' && order.remainingStatus !== 'paid' && (
                             <button
                               onClick={() => openFinalPaymentModal(order)}
                               className="px-2 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold transition"
@@ -950,8 +950,8 @@ export const AdminOrdersPage: React.FC = () => {
               <div className="flex items-center gap-2.5">
                 <span className="text-xl">📋</span>
                 <div>
-                  <h3 className="font-bold text-white text-sm">Hồ Sơ Đơn Hàng #{selectedOrder.order_code}</h3>
-                  <p className="text-[11px] text-slate-400 font-mono">Kênh: {selectedOrder.channel} | Tạo lúc: {formatDate(selectedOrder.created_at)}</p>
+                  <h3 className="font-bold text-white text-sm">Hồ Sơ Đơn Hàng #{selectedOrder.orderCode}</h3>
+                  <p className="text-[11px] text-slate-400 font-mono">Kênh: {selectedOrder.channel} | Tạo lúc: {formatDate(selectedOrder.createdAt)}</p>
                 </div>
               </div>
               <button
@@ -972,7 +972,7 @@ export const AdminOrdersPage: React.FC = () => {
                   <span className="text-[10px] text-slate-400">Đọc 30s trước khi gọi khách</span>
                 </div>
                 <div className="text-slate-200 text-xs leading-relaxed whitespace-pre-line">
-                  {selectedOrder.ai_summary || selectedOrder.notes || 'Chưa có bản ghi tóm tắt từ AI.'}
+                  {selectedOrder.aiSummary || selectedOrder.notes || 'Chưa có bản ghi tóm tắt từ AI.'}
                 </div>
               </div>
 
@@ -997,10 +997,10 @@ export const AdminOrdersPage: React.FC = () => {
                     {selectedOrder.travel?.title || selectedOrder.notes || 'Tour theo yêu cầu'}
                   </div>
                   <div className="font-mono text-sky-400">
-                    📅 Khởi hành: {formatDate(selectedOrder.departure_date)}
+                    📅 Khởi hành: {formatDate(selectedOrder.departureDate)}
                   </div>
                   <div className="text-[11px] text-slate-400">
-                    Quy mô: {selectedOrder.pax_adults} Người lớn {selectedOrder.pax_children > 0 && `+ ${selectedOrder.pax_children} Trẻ em`}
+                    Quy mô: {selectedOrder.paxAdults} Người lớn {selectedOrder.paxChildren > 0 && `+ ${selectedOrder.paxChildren} Trẻ em`}
                   </div>
                 </div>
               </div>
@@ -1011,26 +1011,26 @@ export const AdminOrdersPage: React.FC = () => {
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="p-2 bg-slate-900/60 rounded-lg">
                     <span className="text-[10px] text-slate-400 block">Tổng Giá Tour</span>
-                    <span className="font-mono font-bold text-white text-sm">{formatCurrency(selectedOrder.total_price)}</span>
+                    <span className="font-mono font-bold text-white text-sm">{formatCurrency(selectedOrder.totalPrice)}</span>
                   </div>
                   <div className="p-2 bg-slate-900/60 rounded-lg">
                     <span className="text-[10px] text-amber-400 block">Cọc 50% (Đợt 1)</span>
-                    <span className="font-mono font-bold text-amber-400 text-sm">{formatCurrency(selectedOrder.deposit_amount)}</span>
+                    <span className="font-mono font-bold text-amber-400 text-sm">{formatCurrency(selectedOrder.depositAmount)}</span>
                     <span className="block text-[9px] mt-0.5 text-slate-400">
-                      {selectedOrder.deposit_status === 'paid' ? '✅ Đã nhận cọc' : '⏳ Chờ chuyển khoản'}
+                      {selectedOrder.depositStatus === 'paid' ? '✅ Đã nhận cọc' : '⏳ Chờ chuyển khoản'}
                     </span>
                   </div>
                   <div className="p-2 bg-slate-900/60 rounded-lg">
                     <span className="text-[10px] text-emerald-400 block">Còn Lại 50% (Đợt 2)</span>
-                    <span className="font-mono font-bold text-emerald-400 text-sm">{formatCurrency(selectedOrder.remaining_amount)}</span>
+                    <span className="font-mono font-bold text-emerald-400 text-sm">{formatCurrency(selectedOrder.remainingAmount)}</span>
                     <span className="block text-[9px] mt-0.5 text-slate-400">
-                      {selectedOrder.remaining_status === 'paid' ? '✅ Đã thanh toán đủ' : '⏳ Thu trước ngày bay'}
+                      {selectedOrder.remainingStatus === 'paid' ? '✅ Đã thanh toán đủ' : '⏳ Thu trước ngày bay'}
                     </span>
                   </div>
                 </div>
-                {selectedOrder.payment_account_note && (
+                {selectedOrder.paymentAccountNote && (
                   <div className="text-[11px] text-slate-400 italic mt-1">
-                    📌 STK chuyển khoản: {selectedOrder.payment_account_note}
+                    📌 STK chuyển khoản: {selectedOrder.paymentAccountNote}
                   </div>
                 )}
               </div>
@@ -1040,19 +1040,19 @@ export const AdminOrdersPage: React.FC = () => {
                 <span className="text-slate-400 block text-[10px] uppercase font-bold">Đối Tác & Hồ Sơ Visa</span>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Trạng thái Visa:</span>
-                  <div>{renderVisaBadge(selectedOrder.visa_status)}</div>
+                  <div>{renderVisaBadge(selectedOrder.visaStatus)}</div>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Công ty du lịch đối tác:</span>
-                  <span className="font-medium text-white">{selectedOrder.operator_name || 'Chưa cập nhật'}</span>
+                  <span className="font-medium text-white">{selectedOrder.operatorName || 'Chưa cập nhật'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Mã Booking đối tác:</span>
-                  <span className="font-mono text-slate-300">{selectedOrder.operator_booking_ref || 'Chưa có'}</span>
+                  <span className="font-mono text-slate-300">{selectedOrder.operatorBookingRef || 'Chưa có'}</span>
                 </div>
-                {selectedOrder.visa_notes && (
+                {selectedOrder.visaNotes && (
                   <div className="text-[11px] text-slate-300 mt-1">
-                    Ghi chú Visa: {selectedOrder.visa_notes}
+                    Ghi chú Visa: {selectedOrder.visaNotes}
                   </div>
                 )}
               </div>
@@ -1062,15 +1062,15 @@ export const AdminOrdersPage: React.FC = () => {
                 <span className="text-slate-400 block text-[10px] uppercase font-bold">Điều Phối Trước Khởi Hành (T-3)</span>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Hướng Dẫn Viên:</span>
-                  <span className="font-bold text-white">{selectedOrder.tour_guide_name || 'Đang cập nhật'}</span>
+                  <span className="font-bold text-white">{selectedOrder.tourGuideName || 'Đang cập nhật'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">SĐT Hướng Dẫn Viên:</span>
-                  <span className="font-mono text-emerald-400 font-bold">{selectedOrder.tour_guide_phone || 'Đang cập nhật'}</span>
+                  <span className="font-mono text-emerald-400 font-bold">{selectedOrder.tourGuidePhone || 'Đang cập nhật'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Thời gian dặn dò khách:</span>
-                  <span className="font-mono text-slate-400">{formatDate(selectedOrder.pre_departure_notified_at)}</span>
+                  <span className="font-mono text-slate-400">{formatDate(selectedOrder.preDepartureNotifiedAt)}</span>
                 </div>
               </div>
             </div>
@@ -1094,7 +1094,7 @@ export const AdminOrdersPage: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">💵</span>
-                <h3 className="font-bold text-white text-sm">Xác Nhận Cọc 50% — Đơn #{depositOrder.order_code}</h3>
+                <h3 className="font-bold text-white text-sm">Xác Nhận Cọc 50% — Đơn #{depositOrder.orderCode}</h3>
               </div>
               <button onClick={() => setDepositModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>
@@ -1103,10 +1103,10 @@ export const AdminOrdersPage: React.FC = () => {
               <div className="p-3 bg-amber-950/30 border border-amber-500/30 rounded-xl space-y-1">
                 <div className="text-slate-400">Số tiền đặt cọc cần thu:</div>
                 <div className="text-lg font-black text-amber-400 font-mono">
-                  {formatCurrency(depositOrder.deposit_amount)}
+                  {formatCurrency(depositOrder.depositAmount)}
                 </div>
                 <div className="text-[11px] text-slate-400">
-                  (50% của tổng đơn giá {formatCurrency(depositOrder.total_price)})
+                  (50% của tổng đơn giá {formatCurrency(depositOrder.totalPrice)})
                 </div>
               </div>
 
@@ -1156,7 +1156,7 @@ export const AdminOrdersPage: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">🛂</span>
-                <h3 className="font-bold text-white text-sm">Tiến Trình Visa — Đơn #{visaOrder.order_code}</h3>
+                <h3 className="font-bold text-white text-sm">Tiến Trình Visa — Đơn #{visaOrder.orderCode}</h3>
               </div>
               <button onClick={() => setVisaModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>
@@ -1276,7 +1276,7 @@ export const AdminOrdersPage: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">💰</span>
-                <h3 className="font-bold text-white text-sm">Thu Nốt 50% — Đơn #{finalPaymentOrder.order_code}</h3>
+                <h3 className="font-bold text-white text-sm">Thu Nốt 50% — Đơn #{finalPaymentOrder.orderCode}</h3>
               </div>
               <button onClick={() => setFinalPaymentModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>
@@ -1285,10 +1285,10 @@ export const AdminOrdersPage: React.FC = () => {
               <div className="p-3 bg-emerald-950/30 border border-emerald-500/30 rounded-xl space-y-1">
                 <div className="text-slate-400">Số tiền đợt 2 cần thanh toán:</div>
                 <div className="text-lg font-black text-emerald-400 font-mono">
-                  {formatCurrency(finalPaymentOrder.remaining_amount)}
+                  {formatCurrency(finalPaymentOrder.remainingAmount)}
                 </div>
                 <div className="text-[11px] text-slate-400">
-                  (Hoàn tất 100% tổng giá tour {formatCurrency(finalPaymentOrder.total_price)})
+                  (Hoàn tất 100% tổng giá tour {formatCurrency(finalPaymentOrder.totalPrice)})
                 </div>
               </div>
 
@@ -1325,7 +1325,7 @@ export const AdminOrdersPage: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">✈️</span>
-                <h3 className="font-bold text-white text-sm">Dặn Dò T-3 & HDV — Đơn #{t3Order.order_code}</h3>
+                <h3 className="font-bold text-white text-sm">Dặn Dò T-3 & HDV — Đơn #{t3Order.orderCode}</h3>
               </div>
               <button onClick={() => setT3ModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>

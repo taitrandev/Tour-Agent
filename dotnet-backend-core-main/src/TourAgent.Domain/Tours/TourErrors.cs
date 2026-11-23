@@ -54,4 +54,46 @@ public static class TourErrors
     /// </summary>
     public static readonly Error InvalidSlots =
         Error.Validation("TourDeparture.InvalidSlots", "Số lượng chỗ còn trống phải từ 0 và không vượt quá tổng số chỗ mở bán.");
+
+    /// <summary>
+    /// Lỗi khi tên người đánh giá bị để trống.
+    /// </summary>
+    public static readonly Error ReviewerNameEmpty =
+        Error.Validation("TourReview.ReviewerNameEmpty", "Tên người đánh giá không được để trống.");
+
+    /// <summary>
+    /// Lỗi khi nội dung đánh giá bị để trống.
+    /// </summary>
+    public static readonly Error ReviewContentEmpty =
+        Error.Validation("TourReview.ReviewContentEmpty", "Nội dung đánh giá không được để trống.");
+
+    /// <summary>
+    /// Lỗi khi điểm số đánh giá không nằm trong khoảng 1 đến 5 sao.
+    /// </summary>
+    public static readonly Error InvalidRating =
+        Error.Validation("TourReview.InvalidRating", "Điểm đánh giá phải từ 1 đến 5 sao.");
+
+    /// <summary>
+    /// Lỗi khi không tìm thấy đánh giá.
+    /// </summary>
+    public static Error ReviewNotFound(long id) =>
+        Error.NotFound("TourReview", id);
+
+    /// <summary>
+    /// Lỗi khi câu hỏi thường gặp bị để trống.
+    /// </summary>
+    public static readonly Error FaqQuestionEmpty =
+        Error.Validation("TourFaq.FaqQuestionEmpty", "Câu hỏi thường gặp không được để trống.");
+
+    /// <summary>
+    /// Lỗi khi câu trả lời FAQ bị để trống.
+    /// </summary>
+    public static readonly Error FaqAnswerEmpty =
+        Error.Validation("TourFaq.FaqAnswerEmpty", "Câu trả lời FAQ không được để trống.");
+
+    /// <summary>
+    /// Lỗi khi không tìm thấy câu hỏi thường gặp.
+    /// </summary>
+    public static Error FaqNotFound(long id) =>
+        Error.NotFound("TourFaq", id);
 }

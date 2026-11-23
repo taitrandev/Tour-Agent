@@ -7,38 +7,25 @@ import { AdminLayout } from '../components/admin/AdminLayout';
 interface EscalationTicket {
   id: number;
   code: string;
-  customer_name?: string;
   customerName?: string;
-  customer_phone?: string;
   customerPhone?: string;
   channel: 'telegram' | 'web_widget' | string;
-  tour_title?: string;
   tourTitle?: string;
-  discount_percent?: number;
   discountPercent?: number;
-  group_size?: number;
   groupSize?: number;
   notes: string;
   status: 'pending' | 'contacting' | 'approved' | 'rejected' | 'closed' | string;
-  time_ago?: string;
   timeAgo?: string;
-  created_at?: string;
   createdAt?: string;
-  conversation_id?: number;
   conversationId?: number;
-  travel_id?: number;
   travelId?: number;
 }
 
 interface EscalationsResponse {
   items: EscalationTicket[];
-  total_count?: number;
   totalCount?: number;
-  pending_count?: number;
   pendingCount?: number;
-  contacting_count?: number;
   contactingCount?: number;
-  approved_count?: number;
   approvedCount?: number;
 }
 
@@ -64,16 +51,16 @@ export const AdminEscalationsPage: React.FC = () => {
     notify.success(`Đã sao chép ${label}!`);
   };
 
-  // Helper getters hỗ trợ cả snake_case (từ backend .NET) và camelCase
-  const getCustomerName = (t: EscalationTicket) => t.customer_name || t.customerName || 'Khách quan tâm tour';
-  const getCustomerPhone = (t: EscalationTicket) => t.customer_phone || t.customerPhone || 'Chưa có SĐT';
-  const getTourTitle = (t: EscalationTicket) => t.tour_title || t.tourTitle || 'Chưa chọn tour cụ thể';
-  const getGroupSize = (t: EscalationTicket) => t.group_size ?? t.groupSize ?? 1;
-  const getDiscountPercent = (t: EscalationTicket) => t.discount_percent ?? t.discountPercent ?? 0;
-  const getTimeAgo = (t: EscalationTicket) => t.time_ago || t.timeAgo || 'Vừa xong';
-  const getConversationId = (t: EscalationTicket) => t.conversation_id ?? t.conversationId;
-  const getTravelId = (t: EscalationTicket) => t.travel_id ?? t.travelId;
-  const getCreatedAt = (t: EscalationTicket) => t.created_at || t.createdAt;
+  // Helper getters chuẩn camelCase
+  const getCustomerName = (t: EscalationTicket) => t.customerName || 'Khách quan tâm tour';
+  const getCustomerPhone = (t: EscalationTicket) => t.customerPhone || 'Chưa có SĐT';
+  const getTourTitle = (t: EscalationTicket) => t.tourTitle || 'Chưa chọn tour cụ thể';
+  const getGroupSize = (t: EscalationTicket) => t.groupSize ?? 1;
+  const getDiscountPercent = (t: EscalationTicket) => t.discountPercent ?? 0;
+  const getTimeAgo = (t: EscalationTicket) => t.timeAgo || 'Vừa xong';
+  const getConversationId = (t: EscalationTicket) => t.conversationId;
+  const getTravelId = (t: EscalationTicket) => t.travelId;
+  const getCreatedAt = (t: EscalationTicket) => t.createdAt;
 
   /**
    * Tải danh sách ticket từ API backend.
@@ -90,10 +77,10 @@ export const AdminEscalationsPage: React.FC = () => {
       const items = data.items || [];
       setTickets(items);
       setStats({
-        total: data.total_count ?? data.totalCount ?? items.length,
-        pending: data.pending_count ?? data.pendingCount ?? 0,
-        contacting: data.contacting_count ?? data.contactingCount ?? 0,
-        approved: data.approved_count ?? data.approvedCount ?? 0,
+        total: data.totalCount ?? items.length,
+        pending: data.pendingCount ?? 0,
+        contacting: data.contactingCount ?? 0,
+        approved: data.approvedCount ?? 0,
       });
 
       // Nếu đang xem modal chi tiết, cập nhật lại dữ liệu mới nhất

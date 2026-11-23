@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using TourAgent.Application.Abstractions;
 using TourAgent.Application.Common;
 using TourAgent.Domain.Common;
@@ -8,16 +7,16 @@ using TourAgent.Domain.Contacts;
 namespace TourAgent.Application.Features.Contacts;
 
 /// <summary>
-/// Lệnh tạo mới một hồ sơ khách hàng CRM thủ công hoặc từ kênh tích hợp.
+/// Lệnh tạo mới một hồ sơ khách hàng CRM thủ công hoặc từ kênh tích hợp theo chuẩn camelCase.
 /// </summary>
 public sealed record CreateContactCommand(
-    [property: JsonPropertyName("name")] string? Name,
-    [property: JsonPropertyName("phone")] string? Phone,
-    [property: JsonPropertyName("email")] string? Email = null,
-    [property: JsonPropertyName("channel")] string? Channel = "manual",
-    [property: JsonPropertyName("stage")] string? Stage = null,
-    [property: JsonPropertyName("notes")] string? Notes = null,
-    [property: JsonPropertyName("tags")] IReadOnlyList<string>? Tags = null) : ICommand<Result<CrmContactDto>>;
+    string? Name,
+    string? Phone,
+    string? Email = null,
+    string? Channel = "manual",
+    string? Stage = null,
+    string? Notes = null,
+    IReadOnlyList<string>? Tags = null) : ICommand<Result<CrmContactDto>>;
 
 /// <summary>
 /// Xử lý lệnh tạo mới hồ sơ khách hàng CRM.

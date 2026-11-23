@@ -21,6 +21,16 @@ public interface IAppDbContext
     DbSet<TourDeparture> TourDepartures { get; }
 
     /// <summary>
+    /// Bảng quản lý các đánh giá của khách hàng cho Tour.
+    /// </summary>
+    DbSet<TourReview> TourReviews { get; }
+
+    /// <summary>
+    /// Bảng quản lý các câu hỏi thường gặp (FAQs) cho Tour.
+    /// </summary>
+    DbSet<TourFaq> TourFaqs { get; }
+
+    /// <summary>
     /// Bảng quản lý các phiên hội thoại tư vấn giữa khách hàng và AI Agent.
     /// </summary>
     DbSet<Conversation> Conversations { get; }

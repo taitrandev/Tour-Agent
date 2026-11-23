@@ -31,6 +31,16 @@ public sealed class AppDbContext : DbContext, IAppDbContext
     public DbSet<TourDeparture> TourDepartures => Set<TourDeparture>();
 
     /// <summary>
+    /// Bảng quản lý các đánh giá của khách hàng cho Tour.
+    /// </summary>
+    public DbSet<TourReview> TourReviews => Set<TourReview>();
+
+    /// <summary>
+    /// Bảng quản lý các câu hỏi thường gặp (FAQs) cho Tour.
+    /// </summary>
+    public DbSet<TourFaq> TourFaqs => Set<TourFaq>();
+
+    /// <summary>
     /// Bảng quản lý các phiên hội thoại tư vấn giữa khách hàng và AI Agent.
     /// </summary>
     public DbSet<Conversation> Conversations => Set<Conversation>();

@@ -60,20 +60,20 @@ public sealed class TourOrdersController : ControllerBase
     /// <param name="status">Lọc theo trạng thái: lead_consulting, deposit_pending, visa_processing, final_payment_pending, t3_departure, ready_to_depart.</param>
     /// <param name="search">Tìm kiếm theo Mã đơn, Tên khách, Số điện thoại hoặc Tên tour.</param>
     /// <param name="page">Số trang hiện tại (mặc định 1).</param>
-    /// <param name="per_page">Số lượng bản ghi mỗi trang (mặc định 50).</param>
+    /// <param name="perPage">Số lượng bản ghi mỗi trang (mặc định 50).</param>
     [HttpGet]
     public async Task<IActionResult> GetOrders(
         [FromQuery] string? status,
         [FromQuery] string? search,
         [FromQuery] int page = 1,
-        [FromQuery] int per_page = 50,
+        [FromQuery] int perPage = 50,
         CancellationToken cancellationToken = default)
     {
         var query = new GetOrdersQuery(
             Status: status,
             Search: search,
             Page: page,
-            PerPage: per_page);
+            PerPage: perPage);
 
         var result = await _getOrdersHandler.HandleAsync(query, cancellationToken);
         if (!result.IsSuccess)
@@ -199,7 +199,7 @@ public sealed class TourOrdersController : ControllerBase
             success = true,
             message = $"Cập nhật tiến trình Visa thành công cho đơn #{result.Value.Order.OrderCode}!",
             data = result.Value.Order,
-            zalo_message = result.Value.ZaloMessage
+            zaloMessage = result.Value.ZaloMessage
         });
     }
 
@@ -254,7 +254,7 @@ public sealed class TourOrdersController : ControllerBase
             success = true,
             message = $"Đã lưu thông tin HDV và đánh dấu dặn dò T-3 cho đơn #{result.Value.Order.OrderCode}!",
             data = result.Value.Order,
-            zalo_message = result.Value.ZaloMessage
+            zaloMessage = result.Value.ZaloMessage
         });
     }
 

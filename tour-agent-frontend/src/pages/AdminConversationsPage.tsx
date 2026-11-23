@@ -11,14 +11,14 @@ import { AdminLayout } from '../components/admin/AdminLayout';
 interface ConversationItem {
   id: number;
   channel: string;
-  channel_user_id: string;
+  channelUserId: string;
   status: string;
-  contact_id?: number | null;
-  last_message_at?: string | null;
-  created_at?: string;
+  contactId?: number | null;
+  lastMessageAt?: string | null;
+  createdAt?: string;
   metadata?: any;
-  messages_count?: number;
-  llm_calls_count?: number;
+  messagesCount?: number;
+  llmCallsCount?: number;
 }
 
 /**
@@ -26,13 +26,13 @@ interface ConversationItem {
  */
 interface MessageItem {
   id: number;
-  conversation_id: number;
+  conversationId: number;
   role: 'user' | 'assistant' | 'tool' | string;
   content?: string | null;
-  tool_name?: string | null;
-  tool_payload?: any;
-  channel_message_id?: string | null;
-  created_at: string;
+  toolName?: string | null;
+  toolPayload?: any;
+  channelMessageId?: string | null;
+  createdAt: string;
 }
 
 /**
@@ -40,19 +40,19 @@ interface MessageItem {
  */
 interface LlmCallItem {
   id: number;
-  conversation_id?: number | null;
+  conversationId?: number | null;
   model: string;
   provider?: string | null;
-  prompt_tokens: number;
-  completion_tokens: number;
-  cost_usd: number;
-  latency_ms: number;
-  tools_called?: string[] | null;
-  finish_reason?: string | null;
-  status_bar_snapshot?: string | null;
-  state_snapshot?: any;
-  tool_payloads?: any;
-  created_at: string;
+  promptTokens: number;
+  completionTokens: number;
+  costUsd: number;
+  latencyMs: number;
+  toolsCalled?: string[] | null;
+  finishReason?: string | null;
+  statusBarSnapshot?: string | null;
+  stateSnapshot?: any;
+  toolPayloads?: any;
+  createdAt: string;
 }
 
 /**
@@ -62,16 +62,16 @@ interface ConversationDetailData {
   conversation: {
     id: number;
     channel: string;
-    channel_user_id: string;
+    channelUserId: string;
     status: string;
-    contact_id?: number | null;
+    contactId?: number | null;
     metadata?: any;
-    created_at?: string;
-    updated_at?: string;
+    createdAt?: string;
+    updatedAt?: string;
   };
   messages: MessageItem[];
-  llm_calls: LlmCallItem[];
-  system_prompt: string;
+  llmCalls: LlmCallItem[];
+  systemPrompt: string;
 }
 
 /**
@@ -193,8 +193,8 @@ export const AdminConversationsPage: React.FC = () => {
         setDetailData({
           conversation: json.conversation,
           messages: json.messages || [],
-          llm_calls: json.llm_calls || [],
-          system_prompt: json.system_prompt || '',
+          llmCalls: json.llmCalls || [],
+          systemPrompt: json.systemPrompt || '',
         });
       } else {
         setDetailData(null);
@@ -298,23 +298,23 @@ export const AdminConversationsPage: React.FC = () => {
    * @param call Bản ghi lượt gọi LLM
    */
   const handleOpenSnapshotModal = (type: 'status_bar' | 'state' | 'tools', call: LlmCallItem) => {
-    const timeFormatted = new Date(call.created_at).toLocaleTimeString('vi-VN');
+    const timeFormatted = new Date(call.createdAt).toLocaleTimeString('vi-VN');
 
     if (type === 'status_bar') {
       setSnapshotModalIcon('📋');
       setSnapshotModalTitle(`Status Bar XML Snapshot — Lượt gọi #${call.id} (${timeFormatted})`);
-      setSnapshotModalContent(call.status_bar_snapshot || '(Không có nội dung XML)');
+      setSnapshotModalContent(call.statusBarSnapshot || '(Không có nội dung XML)');
     } else if (type === 'state') {
       setSnapshotModalIcon('📦');
       setSnapshotModalTitle(`Agent State Snapshot — Lượt gọi #${call.id} (${timeFormatted})`);
       setSnapshotModalContent(
-        call.state_snapshot ? JSON.stringify(call.state_snapshot, null, 2) : '(Không có dữ liệu state)'
+        call.stateSnapshot ? JSON.stringify(call.stateSnapshot, null, 2) : '(Không có dữ liệu state)'
       );
     } else if (type === 'tools') {
       setSnapshotModalIcon('⚡');
       setSnapshotModalTitle(`Tool Arguments & Execution Results — Lượt gọi #${call.id} (${timeFormatted})`);
       setSnapshotModalContent(
-        call.tool_payloads ? JSON.stringify(call.tool_payloads, null, 2) : '(Không có payload tool)'
+        call.toolPayloads ? JSON.stringify(call.toolPayloads, null, 2) : '(Không có payload tool)'
       );
     }
 
@@ -354,7 +354,7 @@ export const AdminConversationsPage: React.FC = () => {
     if (searchQuery.trim()) {
       const keyword = searchQuery.toLowerCase().trim();
       const matchId = c.id.toString().includes(keyword);
-      const matchUser = (c.channel_user_id || '').toLowerCase().includes(keyword);
+      const matchUser = (c.channelUserId || '').toLowerCase().includes(keyword);
       const matchChannel = (c.channel || '').toLowerCase().includes(keyword);
       return matchId || matchUser || matchChannel;
     }
@@ -362,8 +362,9 @@ export const AdminConversationsPage: React.FC = () => {
   });
 
   const selectedConv = detailData?.conversation;
-  const agentState = selectedConv?.metadata?.agent_state;
-  const factsCount = Array.isArray(agentState?.confirmed_facts) ? agentState.confirmed_facts.length : 0;
+  const agentState = selectedConv?.metadata?.agentState;
+  const confirmedFactsList = agentState?.confirmedFacts;
+  const factsCount = Array.isArray(confirmedFactsList) ? confirmedFactsList.length : 0;
 
   return (
     <AdminLayout
@@ -473,8 +474,8 @@ export const AdminConversationsPage: React.FC = () => {
                   ? 'bg-purple-500/15 border-purple-500/50 shadow-md ring-1 ring-purple-500/30'
                   : 'bg-[#0f1422] hover:bg-[#161d30] border-[#1f2937]';
 
-                const timeStr = conv.last_message_at
-                  ? new Date(conv.last_message_at).toLocaleTimeString('vi-VN', {
+                const timeStr = conv.lastMessageAt
+                  ? new Date(conv.lastMessageAt).toLocaleTimeString('vi-VN', {
                       hour: '2-digit',
                       minute: '2-digit',
                       day: '2-digit',
@@ -522,11 +523,11 @@ export const AdminConversationsPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-[11px] text-slate-400 font-mono truncate">
-                      ID: {conv.channel_user_id || 'N/A'}
+                      ID: {conv.channelUserId || 'N/A'}
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-[#1f2937]/60">
                       <span>
-                        💬 {conv.messages_count || 0} tin • 🧠 {conv.llm_calls_count || 0} LLM
+                        💬 {conv.messagesCount || 0} tin • 🧠 {conv.llmCallsCount || 0} LLM
                       </span>
                       <span>{timeStr}</span>
                     </div>
@@ -548,7 +549,7 @@ export const AdminConversationsPage: React.FC = () => {
               <div>
                 <span className="font-bold text-white text-sm">
                   {selectedConv
-                    ? `Hội thoại #${selectedConv.id} • ${selectedConv.channel.toUpperCase()} (${selectedConv.channel_user_id})`
+                    ? `Hội thoại #${selectedConv.id} • ${selectedConv.channel.toUpperCase()} (${selectedConv.channelUserId})`
                     : 'Chọn một phiên hội thoại để kiểm tra'}
                 </span>
                 {selectedConv && (
@@ -563,9 +564,9 @@ export const AdminConversationsPage: React.FC = () => {
                       {selectedConv.status === 'bot_active' ? '● Bot Active' : '● Human Handover'}
                     </span>
 
-                    {selectedConv.contact_id && (
+                    {selectedConv.contactId && (
                       <span className="text-[10px] text-sky-400 font-semibold hover:underline cursor-pointer">
-                        👤 Hồ sơ Contact #{selectedConv.contact_id}
+                        👤 Hồ sơ Contact #{selectedConv.contactId}
                       </span>
                     )}
                   </div>
@@ -578,10 +579,10 @@ export const AdminConversationsPage: React.FC = () => {
                       State v{agentState.version || 1}
                     </span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                      🎯 {agentState.current_goal || 'consulting'}
+                      🎯 {agentState.currentGoal || 'consulting'}
                     </span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      ⚡ {agentState.workflow_status || 'in_progress'}
+                      ⚡ {agentState.workflowStatus || 'in_progress'}
                     </span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
                       📌 {factsCount} facts
@@ -664,7 +665,7 @@ export const AdminConversationsPage: React.FC = () => {
                     </div>
                   ) : (
                     detailData?.messages.map((m) => {
-                      const timeStr = new Date(m.created_at).toLocaleTimeString('vi-VN', {
+                      const timeStr = new Date(m.createdAt).toLocaleTimeString('vi-VN', {
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit',
@@ -698,8 +699,8 @@ export const AdminConversationsPage: React.FC = () => {
                           </div>
                         );
                       } else if (m.role === 'tool') {
-                        const payloadJson = m.tool_payload
-                          ? JSON.stringify(m.tool_payload, null, 2)
+                        const payloadJson = m.toolPayload
+                          ? JSON.stringify(m.toolPayload, null, 2)
                           : m.content || '{}';
                         return (
                           <div
@@ -710,7 +711,7 @@ export const AdminConversationsPage: React.FC = () => {
                               <span className="flex items-center gap-1.5">
                                 <span>⚙️ Tool Execution Result:</span>
                                 <code className="px-1.5 py-0.2 rounded bg-[#0b0f19] text-amber-300 font-mono">
-                                  {m.tool_name || 'unknown'}
+                                  {m.toolName || 'unknown'}
                                 </code>
                               </span>
                               <span className="text-[10px] font-mono text-slate-400">{timeStr}</span>
@@ -753,22 +754,22 @@ export const AdminConversationsPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#1f2937] font-mono bg-[#0b0f19]">
-                        {detailData?.llm_calls.length === 0 ? (
+                        {detailData?.llmCalls.length === 0 ? (
                           <tr>
                             <td colSpan={8} className="py-8 text-center text-slate-500 font-sans text-xs">
                               Chưa ghi nhận lượt gọi LLM nào trong phiên này.
                             </td>
                           </tr>
                         ) : (
-                          detailData?.llm_calls.map((call) => {
-                            const callTime = new Date(call.created_at).toLocaleTimeString('vi-VN', {
+                          detailData?.llmCalls.map((call) => {
+                            const callTime = new Date(call.createdAt).toLocaleTimeString('vi-VN', {
                               hour: '2-digit',
                               minute: '2-digit',
                               second: '2-digit',
                             });
 
-                            const costFormatted = call.cost_usd
-                              ? `$${Number(call.cost_usd).toFixed(6)}`
+                            const costFormatted = call.costUsd
+                              ? `$${Number(call.costUsd).toFixed(6)}`
                               : '$0.000000';
 
                             return (
@@ -778,14 +779,14 @@ export const AdminConversationsPage: React.FC = () => {
                                   {call.model || 'deepseek-chat'}
                                 </td>
                                 <td className="py-2.5 px-3 text-slate-300">
-                                  {call.prompt_tokens || 0} / {call.completion_tokens || 0}
+                                  {call.promptTokens || 0} / {call.completionTokens || 0}
                                 </td>
                                 <td className="py-2.5 px-3 text-emerald-400 font-bold">{costFormatted}</td>
-                                <td className="py-2.5 px-3 text-amber-300 font-bold">{call.latency_ms || 0} ms</td>
+                                <td className="py-2.5 px-3 text-amber-300 font-bold">{call.latencyMs || 0} ms</td>
                                 <td className="py-2.5 px-3">
-                                  {Array.isArray(call.tools_called) && call.tools_called.length > 0 ? (
+                                  {Array.isArray(call.toolsCalled) && call.toolsCalled.length > 0 ? (
                                     <div className="flex items-center gap-1 flex-wrap">
-                                      {call.tools_called.map((toolName, idx) => (
+                                      {call.toolsCalled.map((toolName, idx) => (
                                         <span
                                           key={idx}
                                           className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30 text-[10px]"
@@ -800,7 +801,7 @@ export const AdminConversationsPage: React.FC = () => {
                                 </td>
                                 <td className="py-2.5 px-3">
                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                    {call.status_bar_snapshot ? (
+                                    {call.statusBarSnapshot ? (
                                       <button
                                         onClick={() => handleOpenSnapshotModal('status_bar', call)}
                                         className="px-2 py-0.5 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-[10px] font-bold transition flex items-center gap-1"
@@ -814,7 +815,7 @@ export const AdminConversationsPage: React.FC = () => {
                                       </span>
                                     )}
 
-                                    {call.state_snapshot ? (
+                                    {call.stateSnapshot ? (
                                       <button
                                         onClick={() => handleOpenSnapshotModal('state', call)}
                                         className="px-2 py-0.5 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-[10px] font-bold transition flex items-center gap-1"
@@ -828,7 +829,7 @@ export const AdminConversationsPage: React.FC = () => {
                                       </span>
                                     )}
 
-                                    {call.tool_payloads ? (
+                                    {call.toolPayloads ? (
                                       <button
                                         onClick={() => handleOpenSnapshotModal('tools', call)}
                                         className="px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] font-bold transition flex items-center gap-1"
@@ -843,7 +844,7 @@ export const AdminConversationsPage: React.FC = () => {
                                 </td>
                                 <td className="py-2.5 px-3">
                                   <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">
-                                    {call.finish_reason || 'stop'}
+                                    {call.finishReason || 'stop'}
                                   </span>
                                 </td>
                               </tr>
@@ -868,7 +869,7 @@ export const AdminConversationsPage: React.FC = () => {
                     </span>
                   </div>
                   <pre className="p-4 rounded-xl bg-[#0b0f19] border border-[#1f2937] text-slate-300 whitespace-pre-wrap leading-relaxed custom-scrollbar overflow-x-auto">
-                    {detailData?.system_prompt || 'Không có System Prompt tùy chỉnh.'}
+                    {detailData?.systemPrompt || 'Không có System Prompt tùy chỉnh.'}
                   </pre>
                 </div>
               )}

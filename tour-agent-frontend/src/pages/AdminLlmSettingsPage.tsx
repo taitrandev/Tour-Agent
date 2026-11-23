@@ -8,10 +8,10 @@ import { AdminLayout } from '../components/admin/AdminLayout';
  */
 interface LlmConfigData {
   driver: string;
-  is_configured: boolean;
-  api_key_masked: string;
+  isConfigured: boolean;
+  apiKeyMasked: string;
   model: string;
-  base_url: string;
+  baseUrl: string;
   temperature: number;
 }
 
@@ -130,7 +130,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
           d.driver?.toLowerCase() === 'claude' ||
           d.model?.toLowerCase().includes('claude') ||
           d.model?.toLowerCase().includes('haiku') ||
-          d.base_url?.toLowerCase().includes('fableai')
+          d.baseUrl?.toLowerCase().includes('fableai')
             ? 'claude'
             : 'deepseek';
 
@@ -153,7 +153,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
         }
 
         setBaseUrlInput(
-          d.base_url || (currentDriver === 'claude' ? 'https://api.fableaiapi.com' : 'https://api.deepseek.com')
+          d.baseUrl || (currentDriver === 'claude' ? 'https://api.fableaiapi.com' : 'https://api.deepseek.com')
         );
         setTemperature(d.temperature ?? 0.2);
       }
@@ -193,9 +193,9 @@ export const AdminLlmSettingsPage: React.FC = () => {
         },
         body: JSON.stringify({
           driver: selectedDriver,
-          api_key: apiKeyInput.trim() || undefined,
+          apiKey: apiKeyInput.trim() || undefined,
           model: finalModel,
-          base_url: baseUrlInput.trim(),
+          baseUrl: baseUrlInput.trim(),
           temperature: temperature,
         }),
       });
@@ -233,13 +233,13 @@ export const AdminLlmSettingsPage: React.FC = () => {
       });
 
       const json = await response.json();
-      const latency = json.latency_ms ?? 0;
+      const latency = json.latencyMs ?? 0;
       setLatencyMs(latency);
 
       if (response.ok && json.success) {
         setConnectionStatus('success');
         addLog(`Kết nối thành công (${latency}ms)! Driver: [${json.driver}], Model: [${json.model}].`, 'success');
-        addLog(`Phản hồi kiểm tra: "${json.test_output || 'OK'}"`, 'info');
+        addLog(`Phản hồi kiểm tra: "${json.testOutput || 'OK'}"`, 'info');
       } else {
         setConnectionStatus('failed');
         addLog(`Kết nối thất bại (${latency}ms): ${json.message || 'Lỗi kiểm tra API'}`, 'error');
@@ -292,7 +292,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 {isClaudeActive ? 'Claude Driver (Anthropic / Fable AI)' : 'DeepSeek Driver & Resilient Fallback'}
-                {config?.is_configured ? (
+                {config?.isConfigured ? (
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
                     Đã Cấu Hình Key
                   </span>
@@ -386,7 +386,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
                     <span className="text-rose-400">*</span>
                   </label>
                   <span className="text-[11px] font-mono text-slate-400">
-                    {config?.api_key_masked ? `Key đã lưu: ${config.api_key_masked}` : 'Chưa cài API Key'}
+                    {config?.apiKeyMasked ? `Key đã lưu: ${config.apiKeyMasked}` : 'Chưa cài API Key'}
                   </span>
                 </div>
                 <div className="relative">

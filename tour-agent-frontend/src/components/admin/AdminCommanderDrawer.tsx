@@ -13,7 +13,7 @@ interface Message {
 interface LlmSettingInfo {
   driver?: string;
   model?: string;
-  is_configured?: boolean;
+  isConfigured?: boolean;
 }
 
 interface AdminCommanderDrawerProps {
@@ -79,7 +79,7 @@ export const AdminCommanderDrawer: React.FC<AdminCommanderDrawerProps> = ({
         setLlmInfo({
           driver: json.data.driver,
           model: json.data.model,
-          is_configured: json.data.is_configured,
+          isConfigured: json.data.isConfigured,
         });
       }
     } catch {

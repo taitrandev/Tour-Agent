@@ -96,8 +96,8 @@ public sealed class ConversationsController : ControllerBase
             success = true,
             conversation = detail.Conversation,
             messages = detail.Messages,
-            llm_calls = detail.LlmCalls,
-            system_prompt = detail.SystemPrompt
+            llmCalls = detail.LlmCalls,
+            systemPrompt = detail.SystemPrompt
         });
     }
 

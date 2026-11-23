@@ -60,10 +60,10 @@ public sealed class LlmSettingController : ControllerBase
             data = new
             {
                 driver = settings.Driver,
-                is_configured = isConfigured,
-                api_key_masked = maskedKey,
+                isConfigured = isConfigured,
+                apiKeyMasked = maskedKey,
                 model = settings.Model,
-                base_url = settings.BaseUrl,
+                baseUrl = settings.BaseUrl,
                 temperature = settings.Temperature
             }
         });
@@ -151,7 +151,7 @@ public sealed class LlmSettingController : ControllerBase
             return BadRequest(new
             {
                 success = false,
-                latency_ms = 0,
+                latencyMs = 0,
                 message = $"{keyName} chưa được cấu hình. Vui lòng nhập API Key trước khi kiểm tra."
             });
         }
@@ -176,11 +176,11 @@ public sealed class LlmSettingController : ControllerBase
                 return Ok(new
                 {
                     success = true,
-                    latency_ms = latencyMs,
+                    latencyMs,
                     message = $"Kết nối {providerTitle} thành công 100%!",
                     driver = settings.Driver,
                     model = settings.Model,
-                    test_output = "OK (200 Models Endpoint Reachable)"
+                    testOutput = "OK (200 Models Endpoint Reachable)"
                 });
             }
 
@@ -188,7 +188,7 @@ public sealed class LlmSettingController : ControllerBase
             return StatusCode((int)pingResponse.StatusCode, new
             {
                 success = false,
-                latency_ms = latencyMs,
+                latencyMs,
                 message = $"{providerTitle} trả về mã lỗi {pingResponse.StatusCode}: {errorBody}",
                 driver = settings.Driver,
                 model = settings.Model
@@ -203,7 +203,7 @@ public sealed class LlmSettingController : ControllerBase
             return StatusCode(500, new
             {
                 success = false,
-                latency_ms = latencyMs,
+                latencyMs,
                 message = $"Không thể kết nối đến {providerTitle}: {ex.Message}",
                 driver = settings.Driver,
                 model = settings.Model

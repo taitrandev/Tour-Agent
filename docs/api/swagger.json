@@ -152,7 +152,7 @@
             }
           },
           {
-            "name": "per_page",
+            "name": "perPage",
             "in": "query",
             "schema": {
               "type": "integer",
@@ -1151,7 +1151,7 @@
             }
           },
           {
-            "name": "per_page",
+            "name": "perPage",
             "in": "query",
             "schema": {
               "type": "integer",

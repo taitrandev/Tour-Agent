@@ -126,11 +126,11 @@ public sealed class TelegramSetupController : ControllerBase
         return Ok(new
         {
             configured = hasToken,
-            bot_token_masked = maskedToken,
-            bot_info = botInfo,
-            webhook_info = webhookInfo,
-            suggested_webhook_url = !string.IsNullOrWhiteSpace(settings.WebhookUrl) ? settings.WebhookUrl : suggestedWebhookUrl,
-            admin_chat_id = settings.AdminChatId
+            botTokenMasked = maskedToken,
+            botInfo = botInfo,
+            webhookInfo = webhookInfo,
+            suggestedWebhookUrl = !string.IsNullOrWhiteSpace(settings.WebhookUrl) ? settings.WebhookUrl : suggestedWebhookUrl,
+            adminChatId = settings.AdminChatId
         });
     }
 
@@ -171,7 +171,7 @@ public sealed class TelegramSetupController : ControllerBase
         {
             success = true,
             message = "Lưu Telegram Bot Token thành công!",
-            bot_info = new
+            botInfo = new
             {
                 ok = true,
                 result = testResult.Result
@@ -271,7 +271,7 @@ public sealed class TelegramSetupController : ControllerBase
         {
             success = true,
             message = $"Lưu Admin Chat ID [{chatId}] thành công!",
-            admin_chat_id = chatId
+            adminChatId = chatId
         });
     }
 

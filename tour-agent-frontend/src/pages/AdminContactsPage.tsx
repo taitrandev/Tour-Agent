@@ -13,17 +13,17 @@ interface CrmContactItem {
   name: string | null;
   phone: string | null;
   email: string | null;
-  telegram_chat_id: string | null;
-  telegram_username: string | null;
-  zalo_id: string | null;
+  telegramChatId: string | null;
+  telegramUsername: string | null;
+  zaloId: string | null;
   channel: string;
   stage: 'prospect' | 'warm' | 'hot' | 'customer' | 'lost' | string;
   tags?: string[] | null;
   notes: string | null;
-  last_active_at: string | null;
-  conversations_count: number;
-  created_at: string | null;
-  updated_at: string | null;
+  lastActiveAt: string | null;
+  conversationsCount: number;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 /**
@@ -32,10 +32,10 @@ interface CrmContactItem {
 interface ContactConversationItem {
   id: number;
   channel: string;
-  channel_user_id: string;
+  channelUserId: string;
   status: string;
-  last_message_at: string | null;
-  messages_count: number;
+  lastMessageAt: string | null;
+  messagesCount: number;
 }
 
 /**
@@ -92,7 +92,7 @@ export const AdminContactsPage: React.FC = () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      params.append('per_page', '100');
+      params.append('perPage', '100');
       if (currentStage) params.append('stage', currentStage);
       if (searchKeyword.trim()) params.append('search', searchKeyword.trim());
 
@@ -511,15 +511,15 @@ export const AdminContactsPage: React.FC = () => {
                   </tr>
                 ) : (
                   contacts.map(c => {
-                    const displayName = c.name || (c.telegram_username ? `@${c.telegram_username}` : 'Khách vãng lai');
-                    const lastActive = c.last_active_at ? new Date(c.last_active_at).toLocaleString('vi-VN') : '—';
+                    const displayName = c.name || (c.telegramUsername ? `@${c.telegramUsername}` : 'Khách vãng lai');
+                    const lastActive = c.lastActiveAt ? new Date(c.lastActiveAt).toLocaleString('vi-VN') : '—';
 
                     return (
                       <tr key={c.id} className="hover:bg-slate-800/40 transition">
                         <td className="py-3 px-4">
                           <div className="font-bold text-white">{displayName}</div>
-                          {c.telegram_username && (
-                            <div className="text-[10px] text-slate-500 font-mono">@{c.telegram_username}</div>
+                          {c.telegramUsername && (
+                            <div className="text-[10px] text-slate-500 font-mono">@{c.telegramUsername}</div>
                           )}
                         </td>
                         <td className="py-3 px-4">
@@ -534,7 +534,7 @@ export const AdminContactsPage: React.FC = () => {
                         <td className="py-3 px-4">{renderChannelBadge(c.channel)}</td>
                         <td className="py-3 px-4">{renderStageBadge(c.stage)}</td>
                         <td className="py-3 px-4 font-mono font-bold text-slate-300">
-                          {c.conversations_count || 0} phiên
+                          {c.conversationsCount || 0} phiên
                         </td>
                         <td className="py-3 px-4 text-slate-400 text-[11px] font-mono">{lastActive}</td>
                         <td className="py-3 px-4 text-right">
@@ -581,7 +581,7 @@ export const AdminContactsPage: React.FC = () => {
                 <span className="text-lg">👤</span>
                 <div>
                   <h3 className="font-bold text-white text-sm">
-                    {detailData?.name || (detailData?.telegram_username ? `@${detailData.telegram_username}` : 'Khách vãng lai')}
+                    {detailData?.name || (detailData?.telegramUsername ? `@${detailData.telegramUsername}` : 'Khách vãng lai')}
                   </h3>
                   <p className="text-[11px] text-slate-400 font-mono">
                     ID #{detailData?.id} • Kênh: {detailData?.channel} • Stage: {detailData?.stage}
@@ -654,11 +654,11 @@ export const AdminContactsPage: React.FC = () => {
                                 </span>
                               </div>
                               <span className="text-slate-400 text-[11px] block font-mono">
-                                Tin nhắn cuối: {conv.last_message_at ? new Date(conv.last_message_at).toLocaleString('vi-VN') : '—'}
+                                Tin nhắn cuối: {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleString('vi-VN') : '—'}
                               </span>
                             </div>
                             <span className="px-2 py-1 rounded bg-slate-700 group-hover:bg-purple-500/20 text-slate-300 group-hover:text-purple-300 font-mono text-[10px] transition">
-                              {conv.messages_count || 0} tin nhắn
+                              {conv.messagesCount || 0} tin nhắn
                             </span>
                           </Link>
                         ))}

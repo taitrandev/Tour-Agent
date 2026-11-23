@@ -35,19 +35,19 @@ interface TelegramWebhookInfo {
  */
 interface TelegramConfigStatus {
   configured: boolean;
-  bot_token_masked: string;
-  bot_info?: {
+  botTokenMasked: string;
+  botInfo?: {
     ok: boolean;
     result?: TelegramBotInfo;
     description?: string;
   } | null;
-  webhook_info?: {
+  webhookInfo?: {
     ok: boolean;
     result?: TelegramWebhookInfo;
     description?: string;
   } | null;
-  suggested_webhook_url: string;
-  admin_chat_id: string;
+  suggestedWebhookUrl: string;
+  adminChatId: string;
 }
 
 /**
@@ -92,15 +92,15 @@ export const AdminTelegramPage: React.FC = () => {
       const data: TelegramConfigStatus = await response.json();
       setConfig(data);
 
-      if (data.admin_chat_id) {
-        setAdminChatIdInput(data.admin_chat_id);
-        setTestChatIdInput(data.admin_chat_id);
+      if (data.adminChatId) {
+        setAdminChatIdInput(data.adminChatId);
+        setTestChatIdInput(data.adminChatId);
       }
 
-      if (data.webhook_info?.result?.url) {
-        setWebhookUrlInput(data.webhook_info.result.url);
-      } else if (data.suggested_webhook_url) {
-        setWebhookUrlInput(data.suggested_webhook_url);
+      if (data.webhookInfo?.result?.url) {
+        setWebhookUrlInput(data.webhookInfo.result.url);
+      } else if (data.suggestedWebhookUrl) {
+        setWebhookUrlInput(data.suggestedWebhookUrl);
       }
     } catch (error) {
       console.error('Lỗi khi tải trạng thái Telegram:', error);
@@ -127,8 +127,8 @@ export const AdminTelegramPage: React.FC = () => {
    * Điền URL Webhook gợi ý mặc định vào ô input.
    */
   const handleUseSuggestedWebhookUrl = () => {
-    if (config?.suggested_webhook_url) {
-      setWebhookUrlInput(config.suggested_webhook_url);
+    if (config?.suggestedWebhookUrl) {
+      setWebhookUrlInput(config.suggestedWebhookUrl);
     }
   };
 
@@ -147,7 +147,7 @@ export const AdminTelegramPage: React.FC = () => {
       const res = await apiFetch('/api/v1/agent/telegram/save-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ bot_token: trimmed }),
+        body: JSON.stringify({ botToken: trimmed }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -179,7 +179,7 @@ export const AdminTelegramPage: React.FC = () => {
       const res = await apiFetch('/api/v1/agent/telegram/set-webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ webhook_url: trimmed }),
+        body: JSON.stringify({ webhookUrl: trimmed }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -243,7 +243,7 @@ export const AdminTelegramPage: React.FC = () => {
       const res = await apiFetch('/api/v1/agent/telegram/save-admin-chat-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ admin_chat_id: trimmed }),
+        body: JSON.stringify({ adminChatId: trimmed }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -272,7 +272,7 @@ export const AdminTelegramPage: React.FC = () => {
       const res = await apiFetch('/api/v1/agent/telegram/test-escalation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ admin_chat_id: trimmed }),
+        body: JSON.stringify({ adminChatId: trimmed }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -310,7 +310,7 @@ export const AdminTelegramPage: React.FC = () => {
       const res = await apiFetch('/api/v1/agent/telegram/test-message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ chat_id: trimmed }),
+        body: JSON.stringify({ chatId: trimmed }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -331,10 +331,10 @@ export const AdminTelegramPage: React.FC = () => {
     }
   };
 
-  const isBotOnline = config?.configured && config.bot_info?.ok;
-  const botData = config?.bot_info?.result;
-  const isWebhookActive = config?.webhook_info?.ok && Boolean(config.webhook_info?.result?.url);
-  const webhookData = config?.webhook_info?.result;
+  const isBotOnline = config?.configured && config.botInfo?.ok;
+  const botData = config?.botInfo?.result;
+  const isWebhookActive = config?.webhookInfo?.ok && Boolean(config.webhookInfo?.result?.url);
+  const webhookData = config?.webhookInfo?.result;
 
   return (
     <AdminLayout
@@ -394,7 +394,7 @@ export const AdminTelegramPage: React.FC = () => {
                 </h2>
                 {config?.configured ? (
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    Token: {config.bot_token_masked}
+                    Token: {config.botTokenMasked}
                   </span>
                 ) : (
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">

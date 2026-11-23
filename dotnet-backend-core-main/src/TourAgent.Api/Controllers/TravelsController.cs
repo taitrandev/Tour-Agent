@@ -1,10 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
-using Npgsql;
 using TourAgent.Application.Common;
 using TourAgent.Application.Features.Tours.CreateTour;
 using TourAgent.Application.Features.Tours.DeleteTour;
+using TourAgent.Application.Features.Tours.Faqs.CreateTourFaq;
+using TourAgent.Application.Features.Tours.Faqs.DeleteTourFaq;
+using TourAgent.Application.Features.Tours.Faqs.GetTourFaqs;
+using TourAgent.Application.Features.Tours.Faqs.UpdateTourFaqVisibility;
 using TourAgent.Application.Features.Tours.GetAllTours;
 using TourAgent.Application.Features.Tours.GetTourById;
+using TourAgent.Application.Features.Tours.Reviews.CreateTourReview;
+using TourAgent.Application.Features.Tours.Reviews.DeleteTourReview;
+using TourAgent.Application.Features.Tours.Reviews.GetTourReviews;
+using TourAgent.Application.Features.Tours.Reviews.UpdateTourReviewVisibility;
 using TourAgent.Application.Features.Tours.UpdateTour;
 using TourAgent.Domain.Common;
 
@@ -40,7 +47,7 @@ public sealed record CreateFaqRequest(
 public sealed record UpdateFaqVisibilityRequest(bool IsVisible);
 
 /// <summary>
-/// Controller quản lý danh mục Sản Phẩm Tour Du Lịch (Product Catalog & CRUD)
+/// Controller quản lý danh mục Sản Phẩm Tour Du Lịch (Product Catalog &amp; CRUD)
 /// Tương thích 100% với đặc tả REST API và các màn hình quản trị của PHP core.
 /// </summary>
 [ApiController]
@@ -52,10 +59,17 @@ public class TravelsController : ControllerBase
     private readonly ICommandHandler<CreateTourCommand, Result<TourAdminItemDto>> _createTourHandler;
     private readonly ICommandHandler<UpdateTourCommand, Result<TourAdminItemDto>> _updateTourHandler;
     private readonly ICommandHandler<DeleteTourCommand, Result> _deleteTourHandler;
-    private readonly string _connectionString;
+    private readonly IQueryHandler<GetTourReviewsQuery, Result<IReadOnlyList<TourReviewDto>>> _getTourReviewsHandler;
+    private readonly ICommandHandler<CreateTourReviewCommand, Result<long>> _createTourReviewHandler;
+    private readonly ICommandHandler<UpdateTourReviewVisibilityCommand, Result> _updateTourReviewVisibilityHandler;
+    private readonly ICommandHandler<DeleteTourReviewCommand, Result> _deleteTourReviewHandler;
+    private readonly IQueryHandler<GetTourFaqsQuery, Result<IReadOnlyList<TourFaqDto>>> _getTourFaqsHandler;
+    private readonly ICommandHandler<CreateTourFaqCommand, Result<long>> _createTourFaqHandler;
+    private readonly ICommandHandler<UpdateTourFaqVisibilityCommand, Result> _updateTourFaqVisibilityHandler;
+    private readonly ICommandHandler<DeleteTourFaqCommand, Result> _deleteTourFaqHandler;
 
     /// <summary>
-    /// Khởi tạo TravelsController với các Handler tương ứng và chuỗi kết nối PostgreSQL.
+    /// Khởi tạo TravelsController với các Handler tương ứng theo chuẩn Clean Architecture.
     /// </summary>
     public TravelsController(
         IQueryHandler<GetAllToursQuery, Result<IReadOnlyList<TourAdminItemDto>>> getAllToursHandler,
@@ -63,14 +77,28 @@ public class TravelsController : ControllerBase
         ICommandHandler<CreateTourCommand, Result<TourAdminItemDto>> createTourHandler,
         ICommandHandler<UpdateTourCommand, Result<TourAdminItemDto>> updateTourHandler,
         ICommandHandler<DeleteTourCommand, Result> deleteTourHandler,
-        IConfiguration configuration)
+        IQueryHandler<GetTourReviewsQuery, Result<IReadOnlyList<TourReviewDto>>> getTourReviewsHandler,
+        ICommandHandler<CreateTourReviewCommand, Result<long>> createTourReviewHandler,
+        ICommandHandler<UpdateTourReviewVisibilityCommand, Result> updateTourReviewVisibilityHandler,
+        ICommandHandler<DeleteTourReviewCommand, Result> deleteTourReviewHandler,
+        IQueryHandler<GetTourFaqsQuery, Result<IReadOnlyList<TourFaqDto>>> getTourFaqsHandler,
+        ICommandHandler<CreateTourFaqCommand, Result<long>> createTourFaqHandler,
+        ICommandHandler<UpdateTourFaqVisibilityCommand, Result> updateTourFaqVisibilityHandler,
+        ICommandHandler<DeleteTourFaqCommand, Result> deleteTourFaqHandler)
     {
         _getAllToursHandler = getAllToursHandler;
         _getTourByIdHandler = getTourByIdHandler;
         _createTourHandler = createTourHandler;
         _updateTourHandler = updateTourHandler;
         _deleteTourHandler = deleteTourHandler;
-        _connectionString = configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
+        _getTourReviewsHandler = getTourReviewsHandler;
+        _createTourReviewHandler = createTourReviewHandler;
+        _updateTourReviewVisibilityHandler = updateTourReviewVisibilityHandler;
+        _deleteTourReviewHandler = deleteTourReviewHandler;
+        _getTourFaqsHandler = getTourFaqsHandler;
+        _createTourFaqHandler = createTourFaqHandler;
+        _updateTourFaqVisibilityHandler = updateTourFaqVisibilityHandler;
+        _deleteTourFaqHandler = deleteTourFaqHandler;
     }
 
     /// <summary>
@@ -191,40 +219,15 @@ public class TravelsController : ControllerBase
         long travelId,
         CancellationToken cancellationToken)
     {
-        var reviews = new List<object>();
+        var query = new GetTourReviewsQuery(travelId);
+        var result = await _getTourReviewsHandler.HandleAsync(query, cancellationToken);
 
-        try
+        if (result.IsFailure)
         {
-            await using var conn = new NpgsqlConnection(_connectionString);
-            await conn.OpenAsync(cancellationToken);
-
-            var sql = "SELECT id, travel_id, reviewer_name, reviewer_avatar_url, rating, content, travel_date, is_visible, created_at FROM travel_reviews WHERE travel_id = @travel_id ORDER BY id DESC";
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@travel_id", travelId);
-
-            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
-            {
-                reviews.Add(new
-                {
-                    id = reader.GetInt64(0),
-                    travel_id = reader.GetInt64(1),
-                    reviewer_name = reader.GetString(2),
-                    reviewer_avatar_url = reader.IsDBNull(3) ? null : reader.GetString(3),
-                    rating = reader.GetInt16(4),
-                    content = reader.GetString(5),
-                    travel_date = reader.IsDBNull(6) ? null : reader.GetString(6),
-                    is_visible = reader.GetBoolean(7),
-                    created_at = reader.GetDateTime(8).ToString("o")
-                });
-            }
-        }
-        catch
-        {
-            // Trả về danh sách rỗng nếu bảng chưa tồn tại hoặc lỗi kết nối
+            return BadRequest(new { success = false, message = result.Error.Description });
         }
 
-        return Ok(new { success = true, data = reviews });
+        return Ok(new { success = true, data = result.Value });
     }
 
     /// <summary>
@@ -236,34 +239,27 @@ public class TravelsController : ControllerBase
         [FromBody] CreateReviewRequest request,
         CancellationToken cancellationToken)
     {
-        try
+        var command = new CreateTourReviewCommand(
+            travelId,
+            request.ReviewerName,
+            request.TravelDate,
+            request.Rating,
+            request.Content,
+            request.IsVisible);
+
+        var result = await _createTourReviewHandler.HandleAsync(command, cancellationToken);
+
+        if (result.IsFailure)
         {
-            await using var conn = new NpgsqlConnection(_connectionString);
-            await conn.OpenAsync(cancellationToken);
-
-            var sql = @"INSERT INTO travel_reviews (travel_id, reviewer_name, rating, content, travel_date, is_visible, created_at, updated_at) 
-                        VALUES (@travel_id, @reviewer_name, @rating, @content, @travel_date, @is_visible, NOW(), NOW()) RETURNING id";
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@travel_id", travelId);
-            cmd.Parameters.AddWithValue("@reviewer_name", request.ReviewerName);
-            cmd.Parameters.AddWithValue("@rating", (short)request.Rating);
-            cmd.Parameters.AddWithValue("@content", request.Content);
-            cmd.Parameters.AddWithValue("@travel_date", (object?)request.TravelDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@is_visible", request.IsVisible);
-
-            var newId = await cmd.ExecuteScalarAsync(cancellationToken);
-
-            return StatusCode(StatusCodes.Status201Created, new
-            {
-                success = true,
-                message = "Thêm đánh giá thành công!",
-                data = new { id = newId }
-            });
+            return BadRequest(new { success = false, message = result.Error.Description });
         }
-        catch (Exception ex)
+
+        return StatusCode(StatusCodes.Status201Created, new
         {
-            return BadRequest(new { success = false, message = "Lỗi khi lưu đánh giá: " + ex.Message });
-        }
+            success = true,
+            message = "Thêm đánh giá thành công!",
+            data = new { id = result.Value }
+        });
     }
 
     /// <summary>
@@ -275,23 +271,15 @@ public class TravelsController : ControllerBase
         [FromBody] UpdateReviewVisibilityRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await using var conn = new NpgsqlConnection(_connectionString);
-            await conn.OpenAsync(cancellationToken);
+        var command = new UpdateTourReviewVisibilityCommand(id, request.IsVisible);
+        var result = await _updateTourReviewVisibilityHandler.HandleAsync(command, cancellationToken);
 
-            var sql = "UPDATE travel_reviews SET is_visible = @is_visible, updated_at = NOW() WHERE id = @id";
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@is_visible", request.IsVisible);
-            cmd.Parameters.AddWithValue("@id", id);
-
-            await cmd.ExecuteNonQueryAsync(cancellationToken);
-            return Ok(new { success = true, message = "Cập nhật trạng thái hiển thị thành công!" });
-        }
-        catch (Exception ex)
+        if (result.IsFailure)
         {
-            return BadRequest(new { success = false, message = "Lỗi khi cập nhật: " + ex.Message });
+            return BadRequest(new { success = false, message = result.Error.Description });
         }
+
+        return Ok(new { success = true, message = "Cập nhật trạng thái hiển thị thành công!" });
     }
 
     /// <summary>
@@ -302,22 +290,15 @@ public class TravelsController : ControllerBase
         long id,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await using var conn = new NpgsqlConnection(_connectionString);
-            await conn.OpenAsync(cancellationToken);
+        var command = new DeleteTourReviewCommand(id);
+        var result = await _deleteTourReviewHandler.HandleAsync(command, cancellationToken);
 
-            var sql = "DELETE FROM travel_reviews WHERE id = @id";
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", id);
-
-            await cmd.ExecuteNonQueryAsync(cancellationToken);
-            return Ok(new { success = true, message = "Đã xóa đánh giá thành công!" });
-        }
-        catch (Exception ex)
+        if (result.IsFailure)
         {
-            return BadRequest(new { success = false, message = "Lỗi khi xóa: " + ex.Message });
+            return BadRequest(new { success = false, message = result.Error.Description });
         }
+
+        return Ok(new { success = true, message = "Đã xóa đánh giá thành công!" });
     }
 
     /// <summary>
@@ -328,38 +309,15 @@ public class TravelsController : ControllerBase
         long travelId,
         CancellationToken cancellationToken)
     {
-        var faqs = new List<object>();
+        var query = new GetTourFaqsQuery(travelId);
+        var result = await _getTourFaqsHandler.HandleAsync(query, cancellationToken);
 
-        try
+        if (result.IsFailure)
         {
-            await using var conn = new NpgsqlConnection(_connectionString);
-            await conn.OpenAsync(cancellationToken);
-
-            var sql = "SELECT id, travel_id, question, answer, sort_order, is_visible, created_at FROM travel_faqs WHERE travel_id = @travel_id ORDER BY sort_order ASC, id ASC";
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@travel_id", travelId);
-
-            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
-            {
-                faqs.Add(new
-                {
-                    id = reader.GetInt64(0),
-                    travel_id = reader.GetInt64(1),
-                    question = reader.GetString(2),
-                    answer = reader.GetString(3),
-                    sort_order = reader.GetInt32(4),
-                    is_visible = reader.GetBoolean(5),
-                    created_at = reader.GetDateTime(6).ToString("o")
-                });
-            }
-        }
-        catch
-        {
-            // Trả về mảng rỗng nếu bảng chưa tồn tại
+            return BadRequest(new { success = false, message = result.Error.Description });
         }
 
-        return Ok(new { success = true, data = faqs });
+        return Ok(new { success = true, data = result.Value });
     }
 
     /// <summary>
@@ -371,33 +329,26 @@ public class TravelsController : ControllerBase
         [FromBody] CreateFaqRequest request,
         CancellationToken cancellationToken)
     {
-        try
+        var command = new CreateTourFaqCommand(
+            travelId,
+            request.Question,
+            request.Answer,
+            request.SortOrder,
+            request.IsVisible);
+
+        var result = await _createTourFaqHandler.HandleAsync(command, cancellationToken);
+
+        if (result.IsFailure)
         {
-            await using var conn = new NpgsqlConnection(_connectionString);
-            await conn.OpenAsync(cancellationToken);
-
-            var sql = @"INSERT INTO travel_faqs (travel_id, question, answer, sort_order, is_visible, created_at, updated_at) 
-                        VALUES (@travel_id, @question, @answer, @sort_order, @is_visible, NOW(), NOW()) RETURNING id";
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@travel_id", travelId);
-            cmd.Parameters.AddWithValue("@question", request.Question);
-            cmd.Parameters.AddWithValue("@answer", request.Answer);
-            cmd.Parameters.AddWithValue("@sort_order", request.SortOrder);
-            cmd.Parameters.AddWithValue("@is_visible", request.IsVisible);
-
-            var newId = await cmd.ExecuteScalarAsync(cancellationToken);
-
-            return StatusCode(StatusCodes.Status201Created, new
-            {
-                success = true,
-                message = "Thêm FAQ thành công!",
-                data = new { id = newId }
-            });
+            return BadRequest(new { success = false, message = result.Error.Description });
         }
-        catch (Exception ex)
+
+        return StatusCode(StatusCodes.Status201Created, new
         {
-            return BadRequest(new { success = false, message = "Lỗi khi lưu FAQ: " + ex.Message });
-        }
+            success = true,
+            message = "Thêm FAQ thành công!",
+            data = new { id = result.Value }
+        });
     }
 
     /// <summary>
@@ -409,23 +360,15 @@ public class TravelsController : ControllerBase
         [FromBody] UpdateFaqVisibilityRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await using var conn = new NpgsqlConnection(_connectionString);
-            await conn.OpenAsync(cancellationToken);
+        var command = new UpdateTourFaqVisibilityCommand(id, request.IsVisible);
+        var result = await _updateTourFaqVisibilityHandler.HandleAsync(command, cancellationToken);
 
-            var sql = "UPDATE travel_faqs SET is_visible = @is_visible, updated_at = NOW() WHERE id = @id";
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@is_visible", request.IsVisible);
-            cmd.Parameters.AddWithValue("@id", id);
-
-            await cmd.ExecuteNonQueryAsync(cancellationToken);
-            return Ok(new { success = true, message = "Cập nhật FAQ thành công!" });
-        }
-        catch (Exception ex)
+        if (result.IsFailure)
         {
-            return BadRequest(new { success = false, message = "Lỗi khi cập nhật: " + ex.Message });
+            return BadRequest(new { success = false, message = result.Error.Description });
         }
+
+        return Ok(new { success = true, message = "Cập nhật FAQ thành công!" });
     }
 
     /// <summary>
@@ -436,21 +379,14 @@ public class TravelsController : ControllerBase
         long id,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await using var conn = new NpgsqlConnection(_connectionString);
-            await conn.OpenAsync(cancellationToken);
+        var command = new DeleteTourFaqCommand(id);
+        var result = await _deleteTourFaqHandler.HandleAsync(command, cancellationToken);
 
-            var sql = "DELETE FROM travel_faqs WHERE id = @id";
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", id);
-
-            await cmd.ExecuteNonQueryAsync(cancellationToken);
-            return Ok(new { success = true, message = "Đã xóa FAQ thành công!" });
-        }
-        catch (Exception ex)
+        if (result.IsFailure)
         {
-            return BadRequest(new { success = false, message = "Lỗi khi xóa: " + ex.Message });
+            return BadRequest(new { success = false, message = result.Error.Description });
         }
+
+        return Ok(new { success = true, message = "Đã xóa FAQ thành công!" });
     }
 }

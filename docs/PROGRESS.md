@@ -60,10 +60,34 @@
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
 - **2026-11-23**:
+  - **Tái Cấu Trúc Toàn Diện Module Tour Reviews & Tour FAQs Chuẩn Clean Architecture (Fix Root Cause Triệt Để)**:
+    - Loại bỏ hoàn toàn phương pháp "chữa cháy" tạm thời (`EnsureTablesExistAsync`, kết nối raw `NpgsqlConnection` và SQL strings trong `TravelsController`).
+    - **Tầng Domain (`TourAgent.Domain/Tours/`)**:
+      - Tạo 2 Entity độc lập: `TourReview.cs` và `TourFaq.cs` kế thừa `Entity`, quản lý private setter, static factory method `Create()` kiểm soát chặt chẽ các bất biến nghiệp vụ (Rating 1-5 sao, nội dung không rỗng, câu hỏi/câu trả lời không rỗng).
+      - Mở rộng `TourErrors.cs` với đầy đủ mã lỗi nghiệp vụ cho Review và FAQ (`ReviewerNameEmpty`, `ReviewContentEmpty`, `InvalidRating`, `FaqQuestionEmpty`, `FaqAnswerEmpty`,...).
+      - Bổ sung bộ 19 unit tests mới trong `TourReviewTests.cs` và `TourFaqTests.cs`, nâng tổng số domain tests lên 54 tests.
+    - **Tầng Infrastructure (`TourAgent.Infrastructure/`)**:
+      - Viết `TourReviewConfiguration.cs` và `TourFaqConfiguration.cs` ánh xạ Fluent API vào bảng `travel_reviews` và `travel_faqs`.
+      - Đăng ký `DbSet<TourReview>` và `DbSet<TourFaq>` vào `IAppDbContext` và `AppDbContext`.
+    - **Tầng Application (`TourAgent.Application/Features/Tours/`)**:
+      - Tạo 8 Use Case Handlers chuẩn mực:
+        - Reviews: `GetTourReviewsQuery/Handler`, `CreateTourReviewCommand/Handler`, `UpdateTourReviewVisibilityCommand/Handler`, `DeleteTourReviewCommand/Handler`.
+        - FAQs: `GetTourFaqsQuery/Handler`, `CreateTourFaqCommand/Handler`, `UpdateTourFaqVisibilityCommand/Handler`, `DeleteTourFaqCommand/Handler`.
+      - Đăng ký 8 Handlers vào DI container tại `DependencyInjection.cs`.
+    - **Tầng API ([TravelsController.cs](src/TourAgent.Api/Controllers/TravelsController.cs))**:
+      - Loại bỏ toàn bộ `using Npgsql;`, `_connectionString`, và code ADO.NET thô.
+      - Inject trực tiếp 8 Handlers qua constructor theo đúng kiến trúc của toàn bộ dự án.
+    - **Kiểm thử**: **122/122 tests PASSED 100%** (54 Domain + 64 Application + 4 Architecture). Frontend Vite build 100% sạch sẽ.
+  - **Refactor toàn diện chuẩn camelCase 100% giữa .NET 10 Backend và React Frontend (Phương án B)**:
+    - Bổ sung quy chuẩn bắt buộc vào `AGENTS.md` (Mục 3.7 & Mục 5): Chuẩn hóa 100% `camelCase` cho API Request/Response payload, DTOs và Frontend state; cấm hoàn toàn `snake_case`.
+    - Loại bỏ triệt để toàn bộ `[property: JsonPropertyName("...")]` snake_case trên tất cả DTOs trong tầng `Application` (`TourOrderDtos.cs`, `ConversationDtos.cs`, `CrmContactDtos.cs`). Tận dụng `JsonNamingPolicy.CamelCase` tự động của ASP.NET Core để code C# giữ PascalCase sạch sẽ, không boilerplate thừa.
+    - Cập nhật toàn bộ các Controllers (`LlmSettingController`, `TelegramSetupController`, `ContactsController`, `TourOrdersController`, `ConversationsController`, `TravelsController`) sang camelCase thuần túy (`perPage`, `zaloMessage`, `botInfo`, `latencyMs`, `testOutput`, `reviewerName`, `sortOrder`, `isVisible`,...).
+    - Đồng bộ hóa 100% TypeScript interfaces, JSX state bindings và payload gửi đi trong Frontend React (`AdminOrdersPage.tsx`, `AdminConversationsPage.tsx`, `AdminContactsPage.tsx`, `AdminLlmSettingsPage.tsx`, `AdminTelegramPage.tsx`, `AdminProductsPage.tsx`).
+    - Khắc phục triệt để lỗi payload mismatch (ví dụ: submit API key báo thành công nhưng không lưu do khác biệt giữa `api_key` và `apiKey`).
+    - Kiểm thử: **103/103 tests backend PASSED** (35 Domain + 64 Application + 4 Architecture). Frontend `tsc -b && vite build` hoàn thành 100% không lỗi.
   - Chuẩn hóa và dọn dẹp triệt để các multiple route attributes trên các Controller (`LlmSettingController`, `ContactsController`, `ConversationsController`, `EscalationsController`, `TourOrdersController`, `TravelsController`).
   - Đưa route gốc lên cấp Class Controller (`[Route("...")]`) theo chuẩn ASP.NET Core RESTful, loại bỏ các alias trùng lặp và các method thừa (`HttpPatch`, `/status`, `/save`, `/catalog`).
-  - Tinh gọn tài liệu Swagger và `docs/api/api-index.txt` từ **91 endpoints xuống còn 59 endpoints** sạch sẽ, không trùng lặp.
-  - Toàn bộ **103/103 tests PASSED** (35 Domain + 64 Application + 4 Architecture).
+  - Tinh gọn tài liệu Swagger và `docs/api/api-index.txt` từ **91 endpoints xuống còn 57 endpoints** sạch sẽ, không trùng lặp.
 - **2026-11-12**:
   - Hoàn thành Step 4: Viết Multi-stage `Dockerfile` (.NET 10) gồm 4 stages (base, build, publish, final) và `.dockerignore`.
   - Tối ưu Docker Layer Caching (copy .csproj và restore trước khi copy source).

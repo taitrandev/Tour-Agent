@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using TourAgent.Application.Abstractions;
 using TourAgent.Application.Common;
@@ -8,16 +7,16 @@ using TourAgent.Domain.Common;
 namespace TourAgent.Application.Features.Contacts;
 
 /// <summary>
-/// Lệnh cập nhật thông tin hồ sơ khách hàng CRM theo ID.
+/// Lệnh cập nhật thông tin hồ sơ khách hàng CRM theo ID chuẩn camelCase.
 /// </summary>
 public sealed record UpdateContactCommand(
-    [property: JsonIgnore] long Id,
-    [property: JsonPropertyName("name")] string? Name,
-    [property: JsonPropertyName("phone")] string? Phone,
-    [property: JsonPropertyName("email")] string? Email,
-    [property: JsonPropertyName("stage")] string? Stage,
-    [property: JsonPropertyName("notes")] string? Notes,
-    [property: JsonPropertyName("tags")] IReadOnlyList<string>? Tags = null) : ICommand<Result<CrmContactDto>>;
+    long Id,
+    string? Name,
+    string? Phone,
+    string? Email,
+    string? Stage,
+    string? Notes,
+    IReadOnlyList<string>? Tags = null) : ICommand<Result<CrmContactDto>>;
 
 /// <summary>
 /// Xử lý lệnh cập nhật thông tin hồ sơ khách hàng CRM.

@@ -50,7 +50,7 @@ public sealed class ContactsController : ControllerBase
     /// <param name="channel">Lọc theo kênh: telegram, web_widget, zalo, manual.</param>
     /// <param name="search">Tìm kiếm theo Tên, Số điện thoại hoặc Username.</param>
     /// <param name="page">Trang hiện tại (mặc định 1).</param>
-    /// <param name="per_page">Số lượng bản ghi mỗi trang (mặc định 20).</param>
+    /// <param name="perPage">Số lượng bản ghi mỗi trang (mặc định 20).</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Danh sách khách hàng và thông tin phân trang chuẩn định dạng.</returns>
     [HttpGet]
@@ -60,10 +60,10 @@ public sealed class ContactsController : ControllerBase
         [FromQuery] string? channel,
         [FromQuery] string? search,
         [FromQuery] int page = 1,
-        [FromQuery] int per_page = 20,
+        [FromQuery] int perPage = 20,
         CancellationToken cancellationToken = default)
     {
-        var query = new GetContactsQuery(stage, channel, search, page, per_page);
+        var query = new GetContactsQuery(stage, channel, search, page, perPage);
         var result = await _getContactsHandler.HandleAsync(query, cancellationToken);
 
         if (result.IsFailure)

@@ -27,6 +27,18 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<Features.Tours.UpdateTour.UpdateTourCommand, Result<Features.Tours.GetAllTours.TourAdminItemDto>>, Features.Tours.UpdateTour.UpdateTourHandler>();
         services.AddScoped<ICommandHandler<Features.Tours.DeleteTour.DeleteTourCommand, Result>, Features.Tours.DeleteTour.DeleteTourHandler>();
 
+        // Đăng ký các Handlers cho Tour Reviews
+        services.AddScoped<IQueryHandler<Features.Tours.Reviews.GetTourReviews.GetTourReviewsQuery, Result<IReadOnlyList<Features.Tours.Reviews.GetTourReviews.TourReviewDto>>>, Features.Tours.Reviews.GetTourReviews.GetTourReviewsHandler>();
+        services.AddScoped<ICommandHandler<Features.Tours.Reviews.CreateTourReview.CreateTourReviewCommand, Result<long>>, Features.Tours.Reviews.CreateTourReview.CreateTourReviewHandler>();
+        services.AddScoped<ICommandHandler<Features.Tours.Reviews.UpdateTourReviewVisibility.UpdateTourReviewVisibilityCommand, Result>, Features.Tours.Reviews.UpdateTourReviewVisibility.UpdateTourReviewVisibilityHandler>();
+        services.AddScoped<ICommandHandler<Features.Tours.Reviews.DeleteTourReview.DeleteTourReviewCommand, Result>, Features.Tours.Reviews.DeleteTourReview.DeleteTourReviewHandler>();
+
+        // Đăng ký các Handlers cho Tour FAQs
+        services.AddScoped<IQueryHandler<Features.Tours.Faqs.GetTourFaqs.GetTourFaqsQuery, Result<IReadOnlyList<Features.Tours.Faqs.GetTourFaqs.TourFaqDto>>>, Features.Tours.Faqs.GetTourFaqs.GetTourFaqsHandler>();
+        services.AddScoped<ICommandHandler<Features.Tours.Faqs.CreateTourFaq.CreateTourFaqCommand, Result<long>>, Features.Tours.Faqs.CreateTourFaq.CreateTourFaqHandler>();
+        services.AddScoped<ICommandHandler<Features.Tours.Faqs.UpdateTourFaqVisibility.UpdateTourFaqVisibilityCommand, Result>, Features.Tours.Faqs.UpdateTourFaqVisibility.UpdateTourFaqVisibilityHandler>();
+        services.AddScoped<ICommandHandler<Features.Tours.Faqs.DeleteTourFaq.DeleteTourFaqCommand, Result>, Features.Tours.Faqs.DeleteTourFaq.DeleteTourFaqHandler>();
+
         // Đăng ký các CRUD Handlers cho Grand Slam Offers
         services.AddScoped<IQueryHandler<Features.Offers.GetAllOffers.GetAllOffersQuery, Result<IReadOnlyList<Features.Offers.OfferDto>>>, Features.Offers.GetAllOffers.GetAllOffersHandler>();
         services.AddScoped<IQueryHandler<Features.Offers.GetOfferById.GetOfferByIdQuery, Result<Features.Offers.OfferDto>>, Features.Offers.GetOfferById.GetOfferByIdHandler>();

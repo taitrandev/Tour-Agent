@@ -74,6 +74,11 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
    - Mọi phương thức async PHẢI nhận `CancellationToken ct`.
    - Bật `<Nullable>enable</Nullable>` và `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`.
 
+7. **JSON & API Naming Convention (Chuẩn camelCase 100%)**:
+   - Dự án kết hợp giữa **.NET 10** và **React (TypeScript)**: Mọi Request Payload và Response Data qua HTTP API **bắt buộc dùng `camelCase`**, **tuyệt đối KHÔNG dùng `snake_case`**.
+   - **Backend (.NET)**: DTOs khai báo bằng C# record/class PascalCase thông thường (ví dụ: `ApiKey`, `BaseUrl`, `BotToken`). ASP.NET Core với `JsonNamingPolicy.CamelCase` sẽ tự động chuyển thành `apiKey`, `baseUrl`, `botToken`. **KHÔNG đặt `[JsonPropertyName("ten_snake_case")]`**.
+   - **Frontend (React)**: Mọi interface, state và payload gửi đi (`apiFetch`) đều dùng `camelCase` thuần túy (`apiKey`, `baseUrl`, `botToken`, `isConfigured`).
+
 ---
 
 ## 4. 🤖 Quy Tắc Riêng Cho AI Agent & Tool Calling
@@ -98,6 +103,7 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 - ❌ CẤM sửa hoặc xóa test để "cho qua" (fix code chứ không sửa test sai lệch).
 - ❌ CẤM tạo abstraction trừu tượng trước khi có nhu cầu sử dụng thực tế (YAGNI).
 - ❌ CẤM đoán API/package/version, hỏi lại thay vì đoán, nói rõ "tôi không chắc"
+- ❌ CẤM dùng `snake_case` cho API Request/Response payload, DTOs, hay frontend state (Dự án chuẩn hóa 100% camelCase giữa .NET và React)
 
 ---
 

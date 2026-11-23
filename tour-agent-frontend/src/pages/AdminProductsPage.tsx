@@ -297,11 +297,11 @@ export const AdminProductsPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
-          reviewer_name: reviewName,
-          travel_date: reviewDate,
+          reviewerName: reviewName,
+          travelDate: reviewDate,
           rating: Number(reviewRating),
           content: reviewContent,
-          is_visible: reviewVisible,
+          isVisible: reviewVisible,
         }),
       });
       const json = await res.json();
@@ -352,8 +352,8 @@ export const AdminProductsPage: React.FC = () => {
         body: JSON.stringify({
           question: faqQuestion,
           answer: faqAnswer,
-          sort_order: Number(faqSort),
-          is_visible: faqVisible,
+          sortOrder: Number(faqSort),
+          isVisible: faqVisible,
         }),
       });
       const json = await res.json();
