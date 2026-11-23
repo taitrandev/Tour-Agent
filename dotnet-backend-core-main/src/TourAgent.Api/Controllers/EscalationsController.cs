@@ -11,6 +11,7 @@ using TourAgent.Domain.Common;
 /// Hỗ trợ cả 2 định dạng route: chuẩn admin (/api/v1/admin/escalations) và chuẩn RESTful (/api/v1/escalations).
 /// </summary>
 [ApiController]
+[Route("api/v1/admin/escalations")]
 [Produces("application/json")]
 public sealed class EscalationsController : ControllerBase
 {
@@ -37,8 +38,7 @@ public sealed class EscalationsController : ControllerBase
     /// <param name="search">Tìm kiếm theo Tên khách hàng, SĐT hoặc Mã vé.</param>
     /// <param name="cancellationToken">Token hủy thao tác.</param>
     /// <returns>Danh sách tickets kèm số lượng tổng và theo từng trạng thái.</returns>
-    [HttpGet("api/v1/admin/escalations")]
-    [HttpGet("api/v1/escalations")]
+    [HttpGet]
     [ProducesResponseType(typeof(EscalationsListResponseDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetEscalations(
         [FromQuery] string? status = null,
@@ -62,8 +62,7 @@ public sealed class EscalationsController : ControllerBase
     /// <param name="id">Mã định danh phiếu yêu cầu.</param>
     /// <param name="cancellationToken">Token hủy thao tác.</param>
     /// <returns>Thông tin ticket sau khi cập nhật.</returns>
-    [HttpPost("api/v1/admin/escalations/{id:long}/contacting")]
-    [HttpPost("api/v1/escalations/{id:long}/contacting")]
+    [HttpPost("{id:long}/contacting")]
     [ProducesResponseType(typeof(EscalationTicketDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> MarkContacting(
         [FromRoute] long id,
@@ -87,8 +86,7 @@ public sealed class EscalationsController : ControllerBase
     /// <param name="request">Thông tin ghi chú duyệt deal.</param>
     /// <param name="cancellationToken">Token hủy thao tác.</param>
     /// <returns>Thông tin ticket sau khi duyệt.</returns>
-    [HttpPost("api/v1/admin/escalations/{id:long}/approve")]
-    [HttpPost("api/v1/escalations/{id:long}/approve")]
+    [HttpPost("{id:long}/approve")]
     [ProducesResponseType(typeof(EscalationTicketDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> ApproveDeal(
         [FromRoute] long id,
@@ -113,9 +111,8 @@ public sealed class EscalationsController : ControllerBase
     /// <param name="request">Lý do đóng ticket.</param>
     /// <param name="cancellationToken">Token hủy thao tác.</param>
     /// <returns>Thông tin ticket sau khi đóng.</returns>
-    [HttpPost("api/v1/admin/escalations/{id:long}/reject")]
-    [HttpPost("api/v1/admin/escalations/{id:long}/close")]
-    [HttpPost("api/v1/escalations/{id:long}/close")]
+    [HttpPost("{id:long}/reject")]
+    [HttpPost("{id:long}/close")]
     [ProducesResponseType(typeof(EscalationTicketDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> CloseTicket(
         [FromRoute] long id,
@@ -140,8 +137,7 @@ public sealed class EscalationsController : ControllerBase
     /// <param name="request">Dữ liệu trạng thái cần cập nhật.</param>
     /// <param name="cancellationToken">Token hủy thao tác.</param>
     /// <returns>Thông tin ticket sau khi cập nhật.</returns>
-    [HttpPut("api/v1/admin/escalations/{id:long}/status")]
-    [HttpPut("api/v1/escalations/{id:long}/status")]
+    [HttpPut("{id:long}/status")]
     [ProducesResponseType(typeof(EscalationTicketDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateStatus(
         [FromRoute] long id,

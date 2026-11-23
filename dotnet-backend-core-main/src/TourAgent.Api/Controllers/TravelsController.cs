@@ -77,7 +77,6 @@ public class TravelsController : ControllerBase
     /// Lấy danh sách toàn bộ các Tour du lịch phục vụ bảng Product Catalog trên Admin và Landing Page.
     /// </summary>
     [HttpGet("api/v1/travels")]
-    [HttpGet("api/v1/tours/catalog")]
     public async Task<IActionResult> GetAllTravels(
         [FromQuery] string? search,
         [FromQuery] string? status,

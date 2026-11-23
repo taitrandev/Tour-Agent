@@ -11,6 +11,7 @@ namespace TourAgent.Api.Controllers;
 /// Hỗ trợ cả 2 định dạng đường dẫn: chuẩn quản trị (/api/v1/admin/contacts) và chuẩn RESTful (/api/v1/contacts).
 /// </summary>
 [ApiController]
+[Route("api/v1/admin/contacts")]
 [Produces("application/json")]
 public sealed class ContactsController : ControllerBase
 {
@@ -52,8 +53,7 @@ public sealed class ContactsController : ControllerBase
     /// <param name="per_page">Số lượng bản ghi mỗi trang (mặc định 20).</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Danh sách khách hàng và thông tin phân trang chuẩn định dạng.</returns>
-    [HttpGet("api/v1/admin/contacts")]
-    [HttpGet("api/v1/contacts")]
+    [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetContactsAsync(
         [FromQuery] string? stage,
@@ -80,8 +80,7 @@ public sealed class ContactsController : ControllerBase
     /// <param name="id">Mã định danh khách hàng.</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Hồ sơ khách hàng 360° cùng danh sách hội thoại.</returns>
-    [HttpGet("api/v1/admin/contacts/{id:long}")]
-    [HttpGet("api/v1/contacts/{id:long}")]
+    [HttpGet("{id:long}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetContactByIdAsync(
@@ -109,8 +108,7 @@ public sealed class ContactsController : ControllerBase
     /// <param name="requestBody">Dữ liệu tạo khách hàng mới.</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Hồ sơ khách hàng mới tạo kèm mã trạng thái 201 Created.</returns>
-    [HttpPost("api/v1/admin/contacts")]
-    [HttpPost("api/v1/contacts")]
+    [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateContactAsync(
@@ -148,8 +146,7 @@ public sealed class ContactsController : ControllerBase
     /// <param name="requestBody">Dữ liệu thông tin cập nhật.</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Dữ liệu khách hàng đã được cập nhật thành công.</returns>
-    [HttpPut("api/v1/admin/contacts/{id:long}")]
-    [HttpPut("api/v1/contacts/{id:long}")]
+    [HttpPut("{id:long}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -193,8 +190,7 @@ public sealed class ContactsController : ControllerBase
     /// <param name="id">Mã định danh khách hàng cần xóa.</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Thông báo xác nhận xóa thành công.</returns>
-    [HttpDelete("api/v1/admin/contacts/{id:long}")]
-    [HttpDelete("api/v1/contacts/{id:long}")]
+    [HttpDelete("{id:long}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteContactAsync(

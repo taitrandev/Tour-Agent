@@ -21,7 +21,6 @@ public sealed record SaveLlmSettingsRequest(
 /// </summary>
 [ApiController]
 [Route("api/v1/llm-setting")]
-[Route("api/v1/agent/settings/llm")]
 public sealed class LlmSettingController : ControllerBase
 {
     private readonly ILlmSettingsStore _settingsStore;
@@ -49,7 +48,6 @@ public sealed class LlmSettingController : ControllerBase
     /// </summary>
     /// <returns>Trạng thái cấu hình LLM hiện hành.</returns>
     [HttpGet]
-    [HttpGet("status")]
     public IActionResult GetStatus()
     {
         var settings = _settingsStore.GetSettings();
@@ -78,7 +76,6 @@ public sealed class LlmSettingController : ControllerBase
     /// <param name="cancellationToken">Token hủy thao tác.</param>
     /// <returns>Thông báo kết quả lưu cấu hình.</returns>
     [HttpPost]
-    [HttpPost("save")]
     public async Task<IActionResult> SaveSettings(
         [FromBody] SaveLlmSettingsRequest request,
         CancellationToken cancellationToken)

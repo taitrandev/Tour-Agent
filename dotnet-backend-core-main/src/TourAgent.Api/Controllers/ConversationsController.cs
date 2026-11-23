@@ -13,6 +13,7 @@ namespace TourAgent.Api.Controllers;
 /// Hỗ trợ cả hai định dạng route: chuẩn module (/api/v1/agent/consultant/conversations) và chuẩn RESTful (/api/v1/conversations).
 /// </summary>
 [ApiController]
+[Route("api/v1/agent/consultant/conversations")]
 public sealed class ConversationsController : ControllerBase
 {
     private readonly IQueryHandler<GetConversationsQuery, Result<IReadOnlyList<ConversationSummaryDto>>> _getConversationsHandler;
@@ -42,8 +43,7 @@ public sealed class ConversationsController : ControllerBase
     /// <param name="search">Tìm kiếm theo ID, ChannelUserId hoặc Channel.</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Danh sách tóm tắt các cuộc hội thoại.</returns>
-    [HttpGet("api/v1/agent/consultant/conversations")]
-    [HttpGet("api/v1/conversations")]
+    [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetConversationsAsync(
         [FromQuery] string? channel,
@@ -71,8 +71,7 @@ public sealed class ConversationsController : ControllerBase
     /// <param name="id">Mã định danh cuộc hội thoại.</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Chi tiết hội thoại, tin nhắn và lượt gọi LLM.</returns>
-    [HttpGet("api/v1/agent/consultant/conversations/{id:long}")]
-    [HttpGet("api/v1/conversations/{id:long}")]
+    [HttpGet("{id:long}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetConversationDetailAsync(
@@ -108,8 +107,7 @@ public sealed class ConversationsController : ControllerBase
     /// <param name="id">Mã định danh cuộc hội thoại cần xóa.</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Thông báo kết quả xóa.</returns>
-    [HttpDelete("api/v1/agent/consultant/conversations/{id:long}")]
-    [HttpDelete("api/v1/conversations/{id:long}")]
+    [HttpDelete("{id:long}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteConversationAsync(

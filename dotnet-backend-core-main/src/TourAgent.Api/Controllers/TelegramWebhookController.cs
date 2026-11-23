@@ -10,7 +10,6 @@ namespace TourAgent.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/v1/webhooks/telegram")]
-[Route("api/v1/agent/webhook/telegram")]
 public sealed class TelegramWebhookController : ControllerBase
 {
     private readonly ITelegramMessageQueue _queue;

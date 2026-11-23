@@ -12,6 +12,7 @@ using TourAgent.Domain.Common;
 /// Hỗ trợ cả 2 định dạng route: chuẩn admin (/api/v1/admin/orders) và chuẩn RESTful (/api/v1/orders).
 /// </summary>
 [ApiController]
+[Route("api/v1/admin/orders")]
 [Produces("application/json")]
 public sealed class TourOrdersController : ControllerBase
 {
@@ -60,8 +61,7 @@ public sealed class TourOrdersController : ControllerBase
     /// <param name="search">Tìm kiếm theo Mã đơn, Tên khách, Số điện thoại hoặc Tên tour.</param>
     /// <param name="page">Số trang hiện tại (mặc định 1).</param>
     /// <param name="per_page">Số lượng bản ghi mỗi trang (mặc định 50).</param>
-    [HttpGet("api/v1/admin/orders")]
-    [HttpGet("api/v1/orders")]
+    [HttpGet]
     public async Task<IActionResult> GetOrders(
         [FromQuery] string? status,
         [FromQuery] string? search,
@@ -88,8 +88,7 @@ public sealed class TourOrdersController : ControllerBase
     /// Xem thông tin chi tiết một đơn hàng tour theo mã định danh ID.
     /// </summary>
     /// <param name="id">ID đơn hàng.</param>
-    [HttpGet("api/v1/admin/orders/{id:long}")]
-    [HttpGet("api/v1/orders/{id:long}")]
+    [HttpGet("{id:long}")]
     public async Task<IActionResult> GetOrderById(
         long id,
         CancellationToken cancellationToken = default)
@@ -107,8 +106,7 @@ public sealed class TourOrdersController : ControllerBase
     /// Tạo mới một đơn hàng tour thủ công (Manual Booking từ Sales).
     /// </summary>
     /// <param name="command">Thông tin khởi tạo đơn hàng.</param>
-    [HttpPost("api/v1/admin/orders")]
-    [HttpPost("api/v1/orders")]
+    [HttpPost]
     public async Task<IActionResult> CreateOrder(
         [FromBody] CreateTourOrderCommand command,
         CancellationToken cancellationToken = default)
@@ -130,8 +128,7 @@ public sealed class TourOrdersController : ControllerBase
     /// </summary>
     /// <param name="id">ID đơn hàng cần cập nhật.</param>
     /// <param name="command">Dữ liệu cần cập nhật.</param>
-    [HttpPut("api/v1/admin/orders/{id:long}")]
-    [HttpPut("api/v1/orders/{id:long}")]
+    [HttpPut("{id:long}")]
     public async Task<IActionResult> UpdateOrder(
         long id,
         [FromBody] UpdateTourOrderCommand command,
@@ -152,10 +149,7 @@ public sealed class TourOrdersController : ControllerBase
     /// </summary>
     /// <param name="id">ID đơn hàng.</param>
     /// <param name="request">Thông tin tài khoản hoặc ghi chú đối soát.</param>
-    [HttpPost("api/v1/admin/orders/{id:long}/deposit")]
-    [HttpPatch("api/v1/admin/orders/{id:long}/deposit")]
-    [HttpPost("api/v1/orders/{id:long}/deposit")]
-    [HttpPatch("api/v1/orders/{id:long}/deposit")]
+    [HttpPost("{id:long}/deposit")]
     public async Task<IActionResult> MarkDeposit(
         long id,
         [FromBody] MarkDepositRequest? request,
@@ -181,10 +175,7 @@ public sealed class TourOrdersController : ControllerBase
     /// </summary>
     /// <param name="id">ID đơn hàng.</param>
     /// <param name="request">Thông tin trạng thái visa và đối tác.</param>
-    [HttpPost("api/v1/admin/orders/{id:long}/visa")]
-    [HttpPatch("api/v1/admin/orders/{id:long}/visa")]
-    [HttpPost("api/v1/orders/{id:long}/visa")]
-    [HttpPatch("api/v1/orders/{id:long}/visa")]
+    [HttpPost("{id:long}/visa")]
     public async Task<IActionResult> UpdateVisa(
         long id,
         [FromBody] UpdateVisaRequest request,
@@ -216,10 +207,7 @@ public sealed class TourOrdersController : ControllerBase
     /// Xác nhận khách hàng đã thanh toán 50% còn lại (hoàn tất 100% chi phí tour).
     /// </summary>
     /// <param name="id">ID đơn hàng.</param>
-    [HttpPost("api/v1/admin/orders/{id:long}/final-payment")]
-    [HttpPatch("api/v1/admin/orders/{id:long}/final-payment")]
-    [HttpPost("api/v1/orders/{id:long}/final-payment")]
-    [HttpPatch("api/v1/orders/{id:long}/final-payment")]
+    [HttpPost("{id:long}/final-payment")]
     public async Task<IActionResult> MarkFinalPayment(
         long id,
         CancellationToken cancellationToken = default)
@@ -243,10 +231,7 @@ public sealed class TourOrdersController : ControllerBase
     /// </summary>
     /// <param name="id">ID đơn hàng.</param>
     /// <param name="request">Thông tin HDV và điểm đón sân bay.</param>
-    [HttpPost("api/v1/admin/orders/{id:long}/t3-notified")]
-    [HttpPatch("api/v1/admin/orders/{id:long}/t3-notified")]
-    [HttpPost("api/v1/orders/{id:long}/t3-notified")]
-    [HttpPatch("api/v1/orders/{id:long}/t3-notified")]
+    [HttpPost("{id:long}/t3-notified")]
     public async Task<IActionResult> MarkT3Notified(
         long id,
         [FromBody] MarkT3NotifiedRequest? request,
@@ -278,8 +263,7 @@ public sealed class TourOrdersController : ControllerBase
     /// </summary>
     /// <param name="id">ID đơn hàng.</param>
     /// <param name="type">Loại tin nhắn (visa_approved hoặc t3_departure).</param>
-    [HttpGet("api/v1/admin/orders/{id:long}/zalo-template/{type}")]
-    [HttpGet("api/v1/orders/{id:long}/zalo-template/{type}")]
+    [HttpGet("{id:long}/zalo-template/{type}")]
     public async Task<IActionResult> GetZaloTemplate(
         long id,
         string type,
@@ -298,8 +282,7 @@ public sealed class TourOrdersController : ControllerBase
     /// Xóa mềm đơn hàng tour khỏi danh sách hiển thị.
     /// </summary>
     /// <param name="id">ID đơn hàng.</param>
-    [HttpDelete("api/v1/admin/orders/{id:long}")]
-    [HttpDelete("api/v1/orders/{id:long}")]
+    [HttpDelete("{id:long}")]
     public async Task<IActionResult> DeleteOrder(
         long id,
         CancellationToken cancellationToken = default)

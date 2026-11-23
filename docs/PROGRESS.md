@@ -59,6 +59,11 @@
 ---
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
+- **2026-11-23**:
+  - Chuẩn hóa và dọn dẹp triệt để các multiple route attributes trên các Controller (`LlmSettingController`, `ContactsController`, `ConversationsController`, `EscalationsController`, `TourOrdersController`, `TravelsController`).
+  - Đưa route gốc lên cấp Class Controller (`[Route("...")]`) theo chuẩn ASP.NET Core RESTful, loại bỏ các alias trùng lặp và các method thừa (`HttpPatch`, `/status`, `/save`, `/catalog`).
+  - Tinh gọn tài liệu Swagger và `docs/api/api-index.txt` từ **91 endpoints xuống còn 59 endpoints** sạch sẽ, không trùng lặp.
+  - Toàn bộ **103/103 tests PASSED** (35 Domain + 64 Application + 4 Architecture).
 - **2026-11-12**:
   - Hoàn thành Step 4: Viết Multi-stage `Dockerfile` (.NET 10) gồm 4 stages (base, build, publish, final) và `.dockerignore`.
   - Tối ưu Docker Layer Caching (copy .csproj và restore trước khi copy source).

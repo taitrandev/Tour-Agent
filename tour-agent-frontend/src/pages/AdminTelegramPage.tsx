@@ -492,7 +492,7 @@ export const AdminTelegramPage: React.FC = () => {
                     type="url"
                     value={webhookUrlInput}
                     onChange={(e) => setWebhookUrlInput(e.target.value)}
-                    placeholder="https://your-domain.com/api/v1/agent/webhook/telegram"
+                    placeholder="https://your-domain.com/api/v1/webhooks/telegram"
                     className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#0b0f19] border border-[#222f49] text-white font-mono focus:border-sky-500 focus:outline-none text-xs"
                   />
                   <button

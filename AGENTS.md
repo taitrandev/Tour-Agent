@@ -6,6 +6,7 @@
 ---
 
 ## 1. 📌 Bối Cảnh Sản Phẩm & Mục Tiêu Dự Án
+
 - **Tên dự án**: **TourAgent** — AI Agent tư vấn tour và đóng gói du lịch cho doanh nghiệp du lịch SME.
 - **Mục tiêu kỹ thuật**:
   - Xây dựng trên nền tảng **C# / .NET 10** mới nhất.
@@ -19,6 +20,7 @@
 ---
 
 ## 2. 🏛️ Kiến Trúc Hệ Thống: Clean Architecture (4 Layers)
+
 Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ `Application` ➔ `Domain`.
 
 1. **`TourAgent.Domain`**:
@@ -27,6 +29,16 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 2. **`TourAgent.Application`**:
    - Chứa Use Cases chia theo **Feature Folders** (`Features/{Area}/{UseCase}/`), DTOs, Abstractions (`IAppDbContext`, `ILlmClient`), Agent Tools, Prompts.
    - **Tuyệt đối KHÔNG phụ thuộc** vào `Infrastructure` hoặc `Api`.
+   - Lệnh & Vị trí file
+     - Backend nằm trong `dotnet-backend-core-main/`. Chạy lệnh trong folder này:
+       - Build: `dotnet build`
+       - Test: `dotnet test`
+     - Schema DB: `dotnet-backend-core-main/db/supabase_migration.sql` (nguồn duy nhất).
+     - `docs/api/`: tự sinh khi build Debug. KHÔNG sửa tay.
+   - Tra cứu API
+     1. Đọc `docs/api/api-index.txt` trước (format: `METHOD  path  [tag]`).
+     2. Cần request/response chi tiết thì chỉ trích endpoint đó trong
+        `docs/api/swagger.json`. KHÔNG đọc toàn bộ file.
 3. **`TourAgent.Infrastructure`**:
    - Cài đặt các interface từ `Application`: EF Core DbContext, LlmClient, Background Services, Channels.
    - **Tuyệt đối KHÔNG phụ thuộc** vào `Api`.
@@ -69,25 +81,31 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 1. **Zero Hallucination về số liệu**:
    - Giá tour, ngày bay, lịch trình, chính sách: **CHỈ được lấy từ database qua Tool**.
    - LLM tuyệt đối không tự bịa đặt giá hoặc lịch bay nếu Tool không trả về.
+   - Mọi tool trả về dữ liệu có cấu trúc; tool lỗi → agent xin lỗi và escalate, không đoán.
 2. **Abstractions**:
    - LLM chỉ được tương tác qua `ILlmClient` (sử dụng `Microsoft.Extensions.AI` hoặc OpenAI client chuẩn).
 3. **Observability**:
    - Mỗi lượt hội thoại phải lưu log: `conversationId`, `tokens_in`, `tokens_out`, `latency_ms`, danh sách tool đã gọi.
+   - Dữ liệu cá nhân (SĐT, email) không ghi vào log dạng plain text
 
 ---
 
 ## 5. 🚫 Danh Sách Điều CẤM (Forbidden List)
+
 - ❌ CẤM cài thêm NuGet package mà chưa được người dùng đồng ý.
 - ❌ CẤM dùng MediatR, AutoMapper.
 - ❌ CẤM tạo Generic Repository pattern cho từng entity.
 - ❌ CẤM sửa hoặc xóa test để "cho qua" (fix code chứ không sửa test sai lệch).
 - ❌ CẤM tạo abstraction trừu tượng trước khi có nhu cầu sử dụng thực tế (YAGNI).
+- ❌ CẤM đoán API/package/version, hỏi lại thay vì đoán, nói rõ "tôi không chắc"
 
 ---
 
 ## 6. 🔄 Quy Trình Mỗi Task (Session Workflow)
+
 1. Đọc `AGENTS.md` và `docs/PROGRESS.md`.
 2. Nêu rõ kế hoạch: các file sẽ tạo/sửa + lý do.
 3. Code theo từng bước nhỏ, có comment đầy đủ cho từng hàm.
-4. Chạy `dotnet build` và `dotnet test` đảm bảo 100% test pass.
+4. Trong `dotnet-backend-core-main/`, chạy `dotnet build` và `dotnet test`, đảm bảo 100% test pass
 5. Cập nhật `docs/PROGRESS.md` trước khi kết thúc session.
+6. Nếu có quyết định kiến trúc mới → đề xuất ADR trong docs/decisions/, không tự quyết.
