@@ -34,18 +34,15 @@ public sealed class EscalationsController : ControllerBase
     /// <summary>
     /// Lấy danh sách các phiếu yêu cầu cần quyết định (Escalation Tickets) kèm bộ lọc theo trạng thái và tìm kiếm.
     /// </summary>
-    /// <param name="status">Lọc theo trạng thái: pending, contacting, approved, closed, rejected.</param>
-    /// <param name="search">Tìm kiếm theo Tên khách hàng, SĐT hoặc Mã vé.</param>
+    /// <param name="query">Đối tượng query chứa bộ lọc theo trạng thái và từ khóa tìm kiếm.</param>
     /// <param name="cancellationToken">Token hủy thao tác.</param>
     /// <returns>Danh sách tickets kèm số lượng tổng và theo từng trạng thái.</returns>
     [HttpGet]
     [ProducesResponseType(typeof(EscalationsListResponseDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetEscalations(
-        [FromQuery] string? status = null,
-        [FromQuery] string? search = null,
+        [FromQuery] GetEscalationsQuery query,
         CancellationToken cancellationToken = default)
     {
-        var query = new GetEscalationsQuery(status, search);
         var result = await _getEscalationsHandler.HandleAsync(query, cancellationToken);
 
         if (result.IsFailure)

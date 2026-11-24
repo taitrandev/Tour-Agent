@@ -46,24 +46,15 @@ public sealed class ContactsController : ControllerBase
     /// <summary>
     /// Lấy danh sách khách hàng kèm bộ lọc theo Stage, Kênh tiếp cận, Từ khóa tìm kiếm và Phân trang.
     /// </summary>
-    /// <param name="stage">Lọc theo phân hạng: prospect, warm, hot, customer, lost.</param>
-    /// <param name="channel">Lọc theo kênh: telegram, web_widget, zalo, manual.</param>
-    /// <param name="search">Tìm kiếm theo Tên, Số điện thoại hoặc Username.</param>
-    /// <param name="page">Trang hiện tại (mặc định 1).</param>
-    /// <param name="perPage">Số lượng bản ghi mỗi trang (mặc định 20).</param>
+    /// <param name="query">Đối tượng query chứa bộ lọc stage, channel, search và thông số phân trang.</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Danh sách khách hàng và thông tin phân trang chuẩn định dạng.</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetContactsAsync(
-        [FromQuery] string? stage,
-        [FromQuery] string? channel,
-        [FromQuery] string? search,
-        [FromQuery] int page = 1,
-        [FromQuery] int perPage = 20,
+        [FromQuery] GetContactsQuery query,
         CancellationToken cancellationToken = default)
     {
-        var query = new GetContactsQuery(stage, channel, search, page, perPage);
         var result = await _getContactsHandler.HandleAsync(query, cancellationToken);
 
         if (result.IsFailure)

@@ -1,4 +1,5 @@
 using TourAgent.Application.Common;
+using TourAgent.Application.Features.Offers;
 using TourAgent.Domain.Common;
 
 namespace TourAgent.Application.Features.Tours.GetTourById;
@@ -51,4 +52,6 @@ public sealed record TourDetailDto(
     string? PaymentPolicy,
     string? Itinerary,
     bool IsActive,
-    IReadOnlyList<TourDepartureDto> Departures);
+    IReadOnlyList<TourDepartureDto> Departures,
+    string? Slug = null,
+    IReadOnlyList<OfferDto>? Offers = null);

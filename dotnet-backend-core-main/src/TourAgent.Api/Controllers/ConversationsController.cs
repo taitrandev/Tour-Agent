@@ -39,18 +39,15 @@ public sealed class ConversationsController : ControllerBase
     /// <summary>
     /// Lấy danh sách các cuộc hội thoại khách hàng kèm số lượng tin nhắn và lượt gọi LLM DeepSeek.
     /// </summary>
-    /// <param name="channel">Lọc theo kênh (all, telegram, web_widget, zalo).</param>
-    /// <param name="search">Tìm kiếm theo ID, ChannelUserId hoặc Channel.</param>
+    /// <param name="query">Đối tượng query chứa bộ lọc kênh và từ khóa tìm kiếm.</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Danh sách tóm tắt các cuộc hội thoại.</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetConversationsAsync(
-        [FromQuery] string? channel,
-        [FromQuery] string? search,
+        [FromQuery] GetConversationsQuery query,
         CancellationToken cancellationToken)
     {
-        var query = new GetConversationsQuery(channel, search);
         var result = await _getConversationsHandler.HandleAsync(query, cancellationToken);
 
         if (result.IsFailure)

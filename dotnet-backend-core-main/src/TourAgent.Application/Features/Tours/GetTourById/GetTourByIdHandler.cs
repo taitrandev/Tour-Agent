@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using TourAgent.Application.Abstractions;
 using TourAgent.Application.Common;
+using TourAgent.Application.Features.Offers;
 using TourAgent.Domain.Common;
+using TourAgent.Domain.Offers;
 using TourAgent.Domain.Tours;
 
 namespace TourAgent.Application.Features.Tours.GetTourById;
@@ -54,6 +56,17 @@ public sealed class GetTourByIdHandler : IQueryHandler<GetTourByIdQuery, Result<
                 null))
             .ToList();
 
+        // Nạp danh sách các gói Grand Slam Offer đang mở bán (Active) liên kết với Tour này
+        var activeOffers = await _dbContext.Offers
+            .Include(o => o.Items)
+            .AsNoTracking()
+            .Where(o => o.TravelId == tour.Id && o.Status == OfferStatus.Active)
+            .OrderByDescending(o => o.IsFeatured)
+            .ThenBy(o => o.Id)
+            .ToListAsync(cancellationToken);
+
+        var offerDtos = activeOffers.Select(o => o.ToDto()).ToList();
+
         var detailDto = new TourDetailDto(
             tour.Id,
             tour.Code,
@@ -74,7 +87,9 @@ public sealed class GetTourByIdHandler : IQueryHandler<GetTourByIdQuery, Result<
             tour.PaymentPolicy,
             tour.Itinerary,
             tour.IsActive,
-            departureDtos);
+            departureDtos,
+            tour.Slug,
+            offerDtos);
 
         return Result.Success(detailDto);
     }

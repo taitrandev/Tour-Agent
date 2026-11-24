@@ -22,6 +22,7 @@ public static class DependencyInjection
 
         // Đăng ký các CRUD Handlers cho Tours / Travels
         services.AddScoped<IQueryHandler<Features.Tours.GetTourById.GetTourByIdQuery, Result<Features.Tours.GetTourById.TourDetailDto>>, Features.Tours.GetTourById.GetTourByIdHandler>();
+        services.AddScoped<IQueryHandler<Features.Tours.GetTourBySlug.GetTourBySlugQuery, Result<Features.Tours.GetTourById.TourDetailDto>>, Features.Tours.GetTourBySlug.GetTourBySlugHandler>();
         services.AddScoped<IQueryHandler<Features.Tours.GetAllTours.GetAllToursQuery, Result<IReadOnlyList<Features.Tours.GetAllTours.TourAdminItemDto>>>, Features.Tours.GetAllTours.GetAllToursHandler>();
         services.AddScoped<ICommandHandler<Features.Tours.CreateTour.CreateTourCommand, Result<Features.Tours.GetAllTours.TourAdminItemDto>>, Features.Tours.CreateTour.CreateTourHandler>();
         services.AddScoped<ICommandHandler<Features.Tours.UpdateTour.UpdateTourCommand, Result<Features.Tours.GetAllTours.TourAdminItemDto>>, Features.Tours.UpdateTour.UpdateTourHandler>();

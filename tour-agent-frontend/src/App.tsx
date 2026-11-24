@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { NotificationContainer } from './lib/notify';
 import { ConfirmProvider } from './components/common/ConfirmModal';
 import { LandingPage } from './pages/LandingPage';
+import { TourProductPage } from './pages/TourProductPage';
 import { AdminConversationsPage } from './pages/AdminConversationsPage';
 import { AdminEscalationsPage } from './pages/AdminEscalationsPage';
 import { AdminTelegramPage } from './pages/AdminTelegramPage';
@@ -27,7 +28,7 @@ export const App: React.FC = () => {
         <Routes>
         {/* Phân hệ Client: Landing Page bán hàng & AI Sakura Consultation */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/tour/:slug" element={<LandingPage />} />
+        <Route path="/tour/:slug" element={<TourProductPage />} />
 
         {/* Phân hệ Admin: Tách riêng từng route nghiệp vụ, không gom chung */}
         <Route path="/admin/products" element={<AdminProductsPage />} />

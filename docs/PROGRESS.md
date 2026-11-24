@@ -6,10 +6,10 @@
 ---
 
 ## 📌 Trạng Thái Hiện Tại
-- **Giai đoạn hiện tại**: **Hoàn thành Giai đoạn 5 (Telegram Webhook Controller, Channels Queue, Background Worker & Telegram Adapter)**.
-- **Trạng thái Test**: **41/41 tests PASSED** (24 Domain Tests + 14 Application Tests + 3 Architecture Tests).
+- **Giai đoạn hiện tại**: **Hoàn thiện URL Slug sản phẩm Tour, Nút Xem Landing Page từ Admin & Loại bỏ toàn bộ mock data, ẩn section/menu rỗng trên `/tour/:slug`**.
+- **Trạng thái Test**: **126/126 tests PASSED** (54 Domain Tests + 68 Application Tests + 4 Architecture Tests).
 - **Cơ sở dữ liệu**: Đã clone thành công database `tour_agent_db` trên PostgreSQL Docker (Port 5432) với đầy đủ 28 tables và dữ liệu tour thực tế.
-- **Bước tiếp theo**: **Giai đoạn 6: UI Planning & Frontend Implementation (Tách biệt SPA, Dark Glassmorphism, SSE Chat & Admin)**.
+- **Bước tiếp theo**: Tiếp tục hoàn thiện các màn hình chuyên sâu và tính năng AI tư vấn đóng gói tour.
 
 ---
 
@@ -59,6 +59,71 @@
 ---
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
+- **2026-11-24**:
+  - **Chuẩn Hóa [FromQuery] Sang Query Objects & Hợp Nhất ToursController Vào TravelsController**:
+    - **Lý do**:
+      - Loại bỏ code smell "Long Parameter List" trong các action GET ở tầng API, tuân thủ nguyên tắc CQRS và ASP.NET Core Model Binding.
+      - Xóa bỏ `ToursController.cs` dư thừa chỉ chứa duy nhất `SearchTours`, hợp nhất vào `TravelsController.cs` theo route `GET /api/v1/travels/search` (không cần giữ route alias `tours` do FE không sử dụng).
+    - **Thay đổi chi tiết**:
+      - [ContactsController.cs](dotnet-backend-core-main/src/TourAgent.Api/Controllers/ContactsController.cs): Chuẩn hóa `[FromQuery] GetContactsQuery query` thay cho 5 tham số rời rạc.
+      - [ConversationsController.cs](dotnet-backend-core-main/src/TourAgent.Api/Controllers/ConversationsController.cs): Chuẩn hóa `[FromQuery] GetConversationsQuery query` thay cho 2 tham số rời rạc.
+      - [EscalationsController.cs](dotnet-backend-core-main/src/TourAgent.Api/Controllers/EscalationsController.cs): Chuẩn hóa `[FromQuery] GetEscalationsQuery query` thay cho 2 tham số rời rạc.
+      - [OffersController.cs](dotnet-backend-core-main/src/TourAgent.Api/Controllers/OffersController.cs): Chuẩn hóa `[FromQuery] GetAllOffersQuery query` thay cho 4 tham số rời rạc.
+      - [TourOrdersController.cs](dotnet-backend-core-main/src/TourAgent.Api/Controllers/TourOrdersController.cs): Chuẩn hóa `[FromQuery] GetOrdersQuery query` thay cho 4 tham số rời rạc.
+      - [TravelsController.cs](dotnet-backend-core-main/src/TourAgent.Api/Controllers/TravelsController.cs): Chuẩn hóa `[FromQuery] GetAllToursQuery query`, tiếp nhận `SearchTours([FromQuery] SearchToursQuery query)` tại route `GET /api/v1/travels/search`.
+      - **Xóa bỏ**: `dotnet-backend-core-main/src/TourAgent.Api/Controllers/ToursController.cs`.
+    - **Kiểm thử**: **126/126 tests backend PASSED 100%** (54 Domain + 68 Application + 4 Architecture). Frontend `tsc -b && vite build` 100% không lỗi.
+  - **Triển Khai Mô Hình Hybrid 80/20 Adaptive UI Cho Quan Hệ Tour — Offer ([TourProductPage.tsx](tour-agent-frontend/src/pages/TourProductPage.tsx))**:
+    - **Bối cảnh & Quyết định**: Người dùng phê duyệt Phương án 4 (Hybrid 80/20 Adaptive UI) trong tài liệu phân tích kiến trúc `tour_offer_relationship_and_ui_strategy_plan.md`.
+    - **Backend .NET 10**:
+      - Mở rộng `TourDetailDto` bổ sung `IReadOnlyList<OfferDto>? Offers = null`.
+      - Cập nhật `GetTourBySlugHandler.cs` và `GetTourByIdHandler.cs` nạp danh sách các gói Offer đang hoạt động (`Status == OfferStatus.Active`) kèm `OfferItems` sắp xếp theo cờ `IsFeatured`.
+      - Mở rộng `GetAllOffersQuery` và `OffersController.cs` hỗ trợ tham số lọc `travel_id`.
+    - **Frontend React 19 ([TourProductPage.tsx](tour-agent-frontend/src/pages/TourProductPage.tsx))**:
+      - Thêm state `selectedOfferIndex` quản lý gói offer đang chọn.
+      - **Giao diện thích ứng (Adaptive UI)**:
+        - *Nếu Tour có từ 2 Offer trở lên*: Tự động hiển thị thanh chuyển đổi Pill Tabs `[🌸 Gói 1 (28tr9)]` `[💎 Gói 2 (34tr9)]` ở đầu section Offer. Khi khách chuyển tab, toàn bộ giá, % cọc, quyền lợi Value Stack và thẻ giá ở Hero sẽ cập nhật đồng bộ mượt mà.
+        - *Nếu Tour có đúng 1 Offer*: Hiển thị trực tiếp 1 lời đề nghị rõ ràng, tinh gọn, không có tab thừa, không gây phân tâm cho khách.
+        - *Nếu Tour chưa có Offer*: Tự động fallback sang danh sách dịch vụ bao gồm (`tour.inclusions`) hoặc ẩn hoàn toàn nếu không có dữ liệu.
+    - **Kiểm thử**: **126/126 tests backend PASSED 100%** (54 Domain + 68 Application + 4 Architecture). Frontend `tsc -b && vite build` 100% không lỗi.
+  - **Loại Bỏ Hoàn Toàn Dữ Liệu Mẫu (Zero Mock Data), Ẩn Section Rỗng & Menu Điều Hướng Động ([TourProductPage.tsx](tour-agent-frontend/src/pages/TourProductPage.tsx))**:
+    - **Vấn đề**: `TourProductPage.tsx` trước đó còn chứa các hằng số mock giả định (`DEFAULT_REVIEWS`, `DEFAULT_FAQS`, `DEFAULT_VALUE_STACK`, `DEFAULT_ITINERARY_IMAGES`, ảnh Hero Unsplash hardcode). Điều này gây khó chịu khi xem các tour chưa có dữ liệu thật, đồng thời menu điều hướng hiển thị các link không có nội dung.
+    - **Giải pháp**:
+      - Xóa bỏ 100% các hằng số dữ liệu mẫu: `DEFAULT_REVIEWS`, `DEFAULT_FAQS`, `DEFAULT_VALUE_STACK`, `DEFAULT_ITINERARY_IMAGES`.
+      - **Conditional Rendering nghiêm ngặt**:
+        - Đánh giá khách hàng (Reviews): Khởi tạo `[]`, chỉ hiển thị section nếu API trả về `reviews.length > 0`.
+        - Câu hỏi thường gặp (FAQs): Khởi tạo `[]`, chỉ hiển thị section nếu API trả về `faqs.length > 0`.
+        - Giá trị bao gồm (Value Stack): Khởi tạo `[]`, phân tích từ `inclusions` thực tế; nếu không có thì ẩn hoàn toàn section Offer.
+        - Chính sách & cam kết: Chỉ hiển thị section nếu tour có ít nhất 1 chính sách trong DB (`cancellationPolicy`, `visaPolicy`, `paymentPolicy`, `childPolicy`).
+        - Lịch trình & ảnh: Ngày nào có ảnh thì hiển thị ảnh thật (`day.images[0]`), ngày nào không có ảnh thì render card dạng text thanh lịch, không dùng ảnh Unsplash giả.
+        - Ảnh bìa Hero: Sử dụng background Dark Luxury Gradient sang trọng nếu tour không có ảnh thật.
+      - **Menu Điều Hướng Động (Dynamic Navbar & Footer)**: Mảng `navItems` tự động tính toán dựa trên các section thực tế tồn tại. Section nào bị ẩn thì mục tương ứng trên Header và Footer sẽ không xuất hiện.
+    - **Kiểm thử**: **126/126 tests backend PASSED 100%** (54 Domain + 68 Application + 4 Architecture). Frontend `tsc -b && vite build` 100% không lỗi.
+  - **Tách Riêng Trang Chi Tiết Sản Phẩm ([TourProductPage.tsx](tour-agent-frontend/src/pages/TourProductPage.tsx)) & Khắc Phục Triệt Để Hiện Tượng Flash Dữ Liệu Mẫu**:
+    - **Nguyên nhân**: `LandingPage.tsx` gộp chung trang chủ và sản phẩm, đồng thời nạp fallback data mặc định ("Cung Đường Vàng Nhật Bản") trong lúc chờ API trả về, gây ra hiện tượng FOUC (chớp nháy giao diện từ tour mẫu sang tour thực tế).
+    - **Giải pháp**:
+      - Tạo mới [TourProductPage.tsx](tour-agent-frontend/src/pages/TourProductPage.tsx) phục vụ riêng cho route `/tour/:slug`.
+      - Tích hợp Skeleton Shimmer Loading chuẩn Dark Glassmorphism ngay từ đầu (`loading = true`), loại bỏ 100% dữ liệu fallback mặc định của tour khác 👉 triệt tiêu hoàn toàn hiện tượng chớp nháy.
+      - Bổ sung màn hình 404 thân thiện và sang trọng khi đường dẫn slug không tồn tại.
+      - Tinh gọn [LandingPage.tsx](tour-agent-frontend/src/pages/LandingPage.tsx), trả lại đúng vai trò Corporate/Brand Landing Page cho trang chủ `/`.
+      - Cập nhật định tuyến rõ ràng trong [App.tsx](tour-agent-frontend/src/App.tsx).
+    - **Kiểm thử**: **126/126 tests backend PASSED 100%** (54 Domain + 68 Application + 4 Architecture). Frontend `tsc -b && vite build` 100% không lỗi.
+  - **URL Slug Sản Phẩm Tour & Nút Xem Landing Page từ Admin**:
+    - **Frontend Admin Products ([AdminProductsPage.tsx](tour-agent-frontend/src/pages/AdminProductsPage.tsx))**:
+      - Bổ sung nút hành động `🌐 Xem Page ↗` (mở tab mới `target="_blank"`) trong cột Chi Tiết Kỹ Thuật cho từng dòng tour.
+      - Bổ sung icon link `↗` ngay cạnh tên tour tại cột Mã & Tên Tour Sản Phẩm.
+    - **Backend .NET 10**:
+      - Tạo mới use case `GetTourBySlugQuery` & `GetTourBySlugHandler` trong `TourAgent.Application/Features/Tours/GetTourBySlug/`.
+      - Hỗ trợ tra cứu linh hoạt theo `slug` hoặc fallback theo `code` / `id`.
+      - Bổ sung endpoint `GET /api/v1/travels/slug/{slug}` vào `TravelsController.cs`.
+      - Bổ sung `TourErrors.NotFoundBySlug` vào Domain.
+      - Đăng ký DI trong `DependencyInjection.cs`.
+      - Bổ sung 4 unit tests mới trong `GetTourBySlugHandlerTests.cs` (tổng test backend nâng lên 126 tests).
+    - **Landing Page Frontend ([LandingPage.tsx](tour-agent-frontend/src/pages/LandingPage.tsx))**:
+      - Kết nối hook `useParams<{ slug?: string }>()`.
+      - Tải động dữ liệu chi tiết tour, lịch trình các ngày (`itinerary`), bảng ngày khởi hành (`departures`), chính sách cam kết (`cancellationPolicy`), câu hỏi thường gặp (`faqs`) và đánh giá khách hàng (`reviews`) từ Backend API.
+      - Giữ nguyên trải nghiệm trang chủ công ty `http://localhost:5173/` với fallback mượt mà.
+    - **Kiểm thử**: **126/126 tests backend PASSED 100%** (54 Domain + 68 Application + 4 Architecture). Frontend `tsc -b && vite build` 100% không lỗi.
 - **2026-11-23**:
   - **Tái Cấu Trúc Toàn Diện Module Tour Reviews & Tour FAQs Chuẩn Clean Architecture (Fix Root Cause Triệt Để)**:
     - Loại bỏ hoàn toàn phương pháp "chữa cháy" tạm thời (`EnsureTablesExistAsync`, kết nối raw `NpgsqlConnection` và SQL strings trong `TravelsController`).

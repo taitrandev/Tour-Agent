@@ -504,15 +504,26 @@ export const AdminProductsPage: React.FC = () => {
                                 </span>
                               )}
                             </div>
-                            <div
-                              onClick={() => {
-                                setSelectedProduct(t);
-                                setShowItineraryModal(true);
-                              }}
-                              className="font-bold text-white hover:text-blue-400 cursor-pointer text-sm mt-1 max-w-md line-clamp-2 transition"
-                              title="Nhấp để xem lịch trình"
-                            >
-                              {t.title}
+                            <div className="flex items-start gap-1.5 mt-1">
+                              <div
+                                onClick={() => {
+                                  setSelectedProduct(t);
+                                  setShowItineraryModal(true);
+                                }}
+                                className="font-bold text-white hover:text-blue-400 cursor-pointer text-sm max-w-md line-clamp-2 transition flex-1"
+                                title="Nhấp để xem lịch trình"
+                              >
+                                {t.title}
+                              </div>
+                              <a
+                                href={`/tour/${t.slug || t.code?.toLowerCase() || t.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-slate-400 hover:text-cyan-300 transition px-1 py-0.5 rounded hover:bg-cyan-500/10 text-xs shrink-0 font-mono"
+                                title="Mở Landing Page tour trên tab mới"
+                              >
+                                ↗
+                              </a>
                             </div>
                             <div className="flex flex-wrap items-center gap-1 mt-1.5">
                               {Array.isArray(t.destinations) &&
@@ -560,6 +571,16 @@ export const AdminProductsPage: React.FC = () => {
                           <td className="py-4 px-4">{statusBadge}</td>
 
                           <td className="py-4 px-4 text-right space-x-1.5 whitespace-nowrap">
+                            <a
+                              href={`/tour/${t.slug || t.code?.toLowerCase() || t.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2.5 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 font-semibold text-[11px] transition inline-flex items-center gap-1"
+                              title="Xem Landing Page bán hàng của tour này (mở tab mới)"
+                            >
+                              <span>🌐 Xem Page</span>
+                              <span className="text-[10px]">↗</span>
+                            </a>
                             <button
                               onClick={() => {
                                 setSelectedProduct(t);

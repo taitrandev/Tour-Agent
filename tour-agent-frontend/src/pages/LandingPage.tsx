@@ -5,8 +5,127 @@ import { FloatingChatWidget } from '../components/chat/FloatingChatWidget';
 import { searchTours } from '../api/toursApi';
 import type { TourSummary } from '../types/tour';
 
+interface CurrentTourView extends TourSummary {
+  originalPrice: number;
+  depositAmount: number;
+}
+
+const DEFAULT_ITINERARY_IMAGES = [
+  'https://images.unsplash.com/photo-1542051841857-5f90071e7989?q=80&w=800&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1492571350019-22de08371fd3?q=80&w=800&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=800&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1538485399081-7191377e8241?q=80&w=800&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1508248467877-aec1b08de376?q=80&w=800&auto=format&fit=crop',
+];
+
+const DEFAULT_ITINERARY_DAYS = [
+  {
+    day: 1,
+    title: 'TP.HCM / HÀ NỘI – KANSAI / OSAKA (Nghỉ đêm trên máy bay)',
+    content:
+      'Quý khách tập trung tại sân bay quốc tế Tân Sơn Nhất / Nội Bài. Trưởng đoàn hỗ trợ làm thủ tục check-in chuyến bay thẳng sang Nhật Bản. Quý khách nghỉ ngơi thư giãn trên máy bay với suất ăn nhẹ tiêu chuẩn quốc tế.',
+    image: DEFAULT_ITINERARY_IMAGES[0],
+  },
+  {
+    day: 2,
+    title: 'CỐ ĐÔ KYOTO – RỪNG TRÚC SAGANO – CHÙA VÀNG KINKAKUJI',
+    content:
+      'Đáp xuống sân bay Kansai, xe đón đoàn đến Cố đô Kyoto. Bách bộ giữa rừng trúc xanh Sagano thanh tịnh, lắng nghe tiếng gió xào xạc. Buổi chiều chiêm ngưỡng Chùa Vàng Kinkakuji soi bóng xuống hồ nước trong vắt. Tối thưởng thức bữa tối kaiseki truyền thống.',
+    image: DEFAULT_ITINERARY_IMAGES[1],
+  },
+  {
+    day: 3,
+    title: 'LÀNG CỔ SHIRAKAWAGO – THƯỞNG THỨC BÒ HIDA THƯỢNG HẠNG',
+    content:
+      'Khám phá di sản thế giới làng cổ tích Shirakawago với những mái nhà tranh Gassho-zukuri hàng trăm năm tuổi. Bữa trưa đặc biệt với set bò Hida nướng lá mộc lan thơm lừng tan chảy trong miệng.',
+    image: DEFAULT_ITINERARY_IMAGES[2],
+  },
+  {
+    day: 4,
+    title: 'NÚI PHÚ SĨ LINH THIÊNG – LÀNG OSHINO HAKKAI – TẮM ONSEN',
+    content:
+      'Di chuyển đến biểu tượng núi Phú Sĩ hùng vĩ (lên trạm 5 nếu thời tiết thuận lợi). Tham quan làng cổ Oshino Hakkai dưới chân núi với nguồn nước tuyết tan thanh khiết. Tối trải nghiệm tắm suối khoáng nóng Onsen phục hồi thể lực hoàn hảo.',
+    image: DEFAULT_ITINERARY_IMAGES[3],
+  },
+  {
+    day: 5,
+    title: 'THỦ ĐÔ TOKYO – CHÙA ASAKUSA KANNON – PHỐ GINZA & SHIBUYA',
+    content:
+      'Viếng ngôi chùa cổ nhất Tokyo Asakusa Kannon và dạo phố Nakamise nhộn nhịp. Buổi chiều tự do mua sắm tại thánh địa hàng hiệu Ginza và trải nghiệm giao lộ Shibuya huyền thoại.',
+    image: DEFAULT_ITINERARY_IMAGES[4],
+  },
+  {
+    day: 6,
+    title: 'VỊNH TOKYO – ODAIBA – ĐÁP CHUYẾN BAY VỀ VIỆT NAM',
+    content:
+      'Check-in tượng Nữ Thần Tự Do tại đảo nhân tạo Odaiba, ngắm cầu Cầu Vồng Rainbow Bridge thơ mộng. Xe đưa đoàn ra sân bay Narita / Haneda làm thủ tục đáp chuyến bay thẳng về lại Việt Nam. Kết thúc chuyến đi thảnh thơi trọn vẹn.',
+    image: DEFAULT_ITINERARY_IMAGES[5],
+  },
+];
+
+const DEFAULT_VALUE_STACK = [
+  { name: 'Vé máy bay khứ hồi quốc tế thẳng (23kg ký gửi + 10kg xách tay)', val: '14.500.000₫', type: 'core' },
+  { name: 'Khách sạn 3-4 sao chuẩn Nhật (2 khách/phòng, vị trí trung tâm)', val: '9.000.000₫', type: 'core' },
+  { name: 'Trọn gói các bữa ăn đặc sản: Bò Hida A5, Cua tuyết, Shabu-shabu', val: '5.200.000₫', type: 'core' },
+  { name: 'Phí thị thực Visa du lịch Nhật Bản & đội ngũ thụ lý hồ sơ 1:1', val: '2.500.000₫', type: 'core' },
+  { name: 'Xe du lịch đời mới máy lạnh đưa đón riêng suốt hành trình', val: '3.800.000₫', type: 'core' },
+  { name: '🎁 BONUS 1: Bộ cẩm nang số "Tokyo - Kyoto Hidden Gems" do AI biên soạn', val: '890.000₫', type: 'bonus' },
+  { name: '🎁 BONUS 2: 1 Buổi tắm Onsen khoáng nóng cao cấp chuẩn Ryokan truyền thống', val: '1.200.000₫', type: 'bonus' },
+  { name: '🎁 BONUS 3: SIM 4G dung lượng không giới hạn tốc độ cao sử dụng 6 ngày', val: '450.000₫', type: 'bonus' },
+  { name: '🎁 BONUS 4: Bảo hiểm du lịch quốc tế quyền lợi tối đa 1.000.000.000 VNĐ', val: '750.000₫', type: 'bonus' },
+];
+
+const DEFAULT_DEPARTURES = [
+  { date: '15/10/2026', airline: 'Vietnam Airlines', price: '28.990.000₫', status: 'Còn 4 chỗ', hot: true },
+  { date: '25/10/2026', airline: 'Vietjet Air (Bay thẳng)', price: '27.490.000₫', status: 'Chắc chắn bay', hot: false },
+  { date: '10/11/2026', airline: 'All Nippon Airways (ANA)', price: '29.990.000₫', status: 'Còn 6 chỗ', hot: true },
+  { date: '24/11/2026', airline: 'Vietnam Airlines', price: '28.990.000₫', status: 'Mở đăng ký', hot: false },
+];
+
+const DEFAULT_FAQS = [
+  {
+    q: 'Nếu tôi bị rớt Visa du lịch Nhật Bản thì chính sách hoàn tiền ra sao?',
+    a: 'Chúng tôi áp dụng Cam Kết Godfather tuyệt đối: Nếu quý khách chuẩn bị đầy đủ hồ sơ theo hướng dẫn nhưng bị Lãnh sự quán từ chối cấp visa, hệ thống sẽ HOÀN LẠI 100% TIỀN CỌC ngay trong 3 ngày làm việc mà không trừ bất kỳ khoản phí phạt nào.',
+  },
+  {
+    q: 'Chỉ cần đặt cọc bao nhiêu để giữ suất ưu đãi giá và quà tặng số?',
+    a: 'Quý khách chỉ cần thanh toán trước 30% giá trị tour (khoảng 8.697.000₫). Số tiền 70% còn lại chỉ cần thanh toán trước ngày khởi hành 15 ngày sau khi đã có kết quả visa hợp lệ.',
+  },
+  {
+    q: 'Tour này có phù hợp cho người bận rộn không có nhiều thời gian chuẩn bị?',
+    a: 'Hoàn toàn phù hợp! Đây là hành trình được thiết kế theo chuẩn "4 Chạm Thảnh Thơi": Chuyên viên và AI Sakura sẽ hỗ trợ điền toàn bộ tờ khai visa, book vé, chuẩn bị hành trình chi tiết. Bạn chỉ việc xách vali và lên máy bay.',
+  },
+  {
+    q: 'Tôi đi một mình có bị phụ thu phòng đơn bắt buộc không?',
+    a: 'Hệ thống sẽ chủ động ghép phòng với khách cùng giới tính nếu có nhu cầu để tiết kiệm chi phí. Quý khách chỉ thanh toán phụ thu phòng đơn nếu chủ động yêu cầu ở riêng 1 mình 1 phòng.',
+  },
+];
+
+const DEFAULT_REVIEWS = [
+  {
+    name: 'Chị Lan Hương',
+    role: 'Marketing Lead (TP.HCM)',
+    content:
+      'Chuyến đi thật sự chữa lành sau chuỗi ngày OT ngập đầu. Khách sạn Onsen view hồ Kawaguchi đẹp mê mẩn, thịt bò Hida nướng thơm béo ngậy. Hướng dẫn viên chu đáo từng li từng tí.',
+  },
+  {
+    name: 'Anh Tuấn Minh',
+    role: 'Software Engineer (Hà Nội)',
+    content:
+      'Hồ sơ visa của mình làm tự do ban đầu rất lo bị trượt, may nhờ đội ngũ hỗ trợ nhiệt tình và có cam kết hoàn 100% nên rất yên tâm. 5 ngày sau nhận visa trong tay, đi tour suôn sẻ 10/10.',
+  },
+  {
+    name: 'Chị Hoàng Yến',
+    role: 'HR Manager (Đà Nẵng)',
+    content:
+      'Thích nhất là con AI Sakura tư vấn ngay lúc 12h đêm khi mình rảnh tra lịch bay, thông tin trả lời chính xác từng ngày khởi hành. Đặt cọc 30% giữ chỗ nhanh chóng.',
+  },
+];
+
 /**
- * Trang Landing Page du lịch tinh hoa tái hiện 100% giao diện landing.blade.php của dự án PHP.
+ * Trang Landing Page giới thiệu doanh nghiệp và các hành trình du lịch tinh hoa (Corporate Landing Page).
+ * Tái hiện 100% giao diện landing.blade.php của dự án PHP.
  */
 export const LandingPage: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -21,99 +140,32 @@ export const LandingPage: React.FC = () => {
     });
   }, []);
 
-  const currentTour = tours[0] || {
+  const fallbackTour = tours[0] || {
     id: 1,
-    title: 'Khám Phá Cung Đường Vàng Nhật Bản: Osaka - Kyoto - Phú Sĩ - Tokyo 6N5Đ',
+    code: 'TOUR-JP-6N5D-OSAKA-TYO',
     name: 'Khám Phá Cung Đường Vàng Nhật Bản: Osaka - Kyoto - Phú Sĩ - Tokyo 6N5Đ',
     priceFrom: 28990000,
-    originalPrice: 35000000,
-    depositAmount: 8697000,
+    currency: 'VND',
+    departuresCount: 4,
     durationDays: 6,
     durationNights: 5,
+    destination: 'Osaka, Kyoto, Núi Phú Sĩ, Tokyo',
+    country: 'Nhật Bản',
+    departureCity: 'TP.HCM',
+    highlights: 'Bay thẳng quốc tế, Tắm Onsen, Bò Hida A5',
   };
 
-  const itineraryDays = [
-    {
-      day: 1,
-      title: 'TP.HCM / HÀ NỘI – KANSAI / OSAKA (Nghỉ đêm trên máy bay)',
-      content:
-        'Quý khách tập trung tại sân bay quốc tế Tân Sơn Nhất / Nội Bài. Trưởng đoàn hỗ trợ làm thủ tục check-in chuyến bay thẳng sang Nhật Bản. Quý khách nghỉ ngơi thư giãn trên máy bay với suất ăn nhẹ tiêu chuẩn quốc tế.',
-      image: 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?q=80&w=800&auto=format&fit=crop',
-    },
-    {
-      day: 2,
-      title: 'CỐ ĐÔ KYOTO – RỪNG TRÚC SAGANO – CHÙA VÀNG KINKAKUJI',
-      content:
-        'Đáp xuống sân bay Kansai, xe đón đoàn đến Cố đô Kyoto. Bách bộ giữa rừng trúc xanh Sagano thanh tịnh, lắng nghe tiếng gió xào xạc. Buổi chiều chiêm ngưỡng Chùa Vàng Kinkakuji soi bóng xuống hồ nước trong vắt. Tối thưởng thức bữa tối kaiseki truyền thống.',
-      image: 'https://images.unsplash.com/photo-1492571350019-22de08371fd3?q=80&w=800&auto=format&fit=crop',
-    },
-    {
-      day: 3,
-      title: 'LÀNG CỔ SHIRAKAWAGO – THƯỞNG THỨC BÒ HIDA THƯỢNG HẠNG',
-      content:
-        'Khám phá di sản thế giới làng cổ tích Shirakawago với những mái nhà tranh Gassho-zukuri hàng trăm năm tuổi. Bữa trưa đặc biệt với set bò Hida nướng lá mộc lan thơm lừng tan chảy trong miệng.',
-      image: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop',
-    },
-    {
-      day: 4,
-      title: 'NÚI PHÚ SĨ LINH THIÊNG – LÀNG OSHINO HAKKAI – TẮM ONSEN',
-      content:
-        'Di chuyển đến biểu tượng núi Phú Sĩ hùng vĩ (lên trạm 5 nếu thời tiết thuận lợi). Tham quan làng cổ Oshino Hakkai dưới chân núi với nguồn nước tuyết tan thanh khiết. Tối trải nghiệm tắm suối khoáng nóng Onsen phục hồi thể lực hoàn hảo.',
-      image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=800&auto=format&fit=crop',
-    },
-    {
-      day: 5,
-      title: 'THỦ ĐÔ TOKYO – CHÙA ASAKUSA KANNON – PHỐ GINZA & SHIBUYA',
-      content:
-        'Viếng ngôi chùa cổ nhất Tokyo Asakusa Kannon và dạo phố Nakamise nhộn nhịp. Buổi chiều tự do mua sắm tại thánh địa hàng hiệu Ginza và trải nghiệm giao lộ Shibuya huyền thoại.',
-      image: 'https://images.unsplash.com/photo-1538485399081-7191377e8241?q=80&w=800&auto=format&fit=crop',
-    },
-    {
-      day: 6,
-      title: 'VỊNH TOKYO – ODAIBA – ĐÁP CHUYẾN BAY VỀ VIỆT NAM',
-      content:
-        'Check-in tượng Nữ Thần Tự Do tại đảo nhân tạo Odaiba, ngắm cầu Cầu Vồng Rainbow Bridge thơ mộng. Xe đưa đoàn ra sân bay Narita / Haneda làm thủ tục đáp chuyến bay thẳng về lại Việt Nam. Kết thúc chuyến đi thảnh thơi trọn vẹn.',
-      image: 'https://images.unsplash.com/photo-1508248467877-aec1b08de376?q=80&w=800&auto=format&fit=crop',
-    },
-  ];
+  const currentTour: CurrentTourView = {
+    ...fallbackTour,
+    originalPrice: fallbackTour.priceFrom ? Math.round(fallbackTour.priceFrom * 1.2) : 35000000,
+    depositAmount: fallbackTour.priceFrom ? Math.round(fallbackTour.priceFrom * 0.3) : 8697000,
+  };
 
-  const valueStackItems = [
-    { name: 'Vé máy bay khứ hồi quốc tế thẳng (23kg ký gửi + 10kg xách tay)', val: '14.500.000₫', type: 'core' },
-    { name: 'Khách sạn 3-4 sao chuẩn Nhật (2 khách/phòng, vị trí trung tâm)', val: '9.000.000₫', type: 'core' },
-    { name: 'Trọn gói các bữa ăn đặc sản: Bò Hida A5, Cua tuyết, Shabu-shabu', val: '5.200.000₫', type: 'core' },
-    { name: 'Phí thị thực Visa du lịch Nhật Bản & đội ngũ thụ lý hồ sơ 1:1', val: '2.500.000₫', type: 'core' },
-    { name: 'Xe du lịch đời mới máy lạnh đưa đón riêng suốt hành trình', val: '3.800.000₫', type: 'core' },
-    { name: '🎁 BONUS 1: Bộ cẩm nang số "Tokyo - Kyoto Hidden Gems" do AI biên soạn', val: '890.000₫', type: 'bonus' },
-    { name: '🎁 BONUS 2: 1 Buổi tắm Onsen khoáng nóng cao cấp chuẩn Ryokan truyền thống', val: '1.200.000₫', type: 'bonus' },
-    { name: '🎁 BONUS 3: SIM 4G dung lượng không giới hạn tốc độ cao sử dụng 6 ngày', val: '450.000₫', type: 'bonus' },
-    { name: '🎁 BONUS 4: Bảo hiểm du lịch quốc tế quyền lợi tối đa 1.000.000.000 VNĐ', val: '750.000₫', type: 'bonus' },
-  ];
-
-  const departuresList = [
-    { date: '15/10/2026', airline: 'Vietnam Airlines', price: '28.990.000₫', status: 'Còn 4 chỗ', hot: true },
-    { date: '25/10/2026', airline: 'Vietjet Air (Bay thẳng)', price: '27.490.000₫', status: 'Chắc chắn bay', hot: false },
-    { date: '10/11/2026', airline: 'All Nippon Airways (ANA)', price: '29.990.000₫', status: 'Còn 6 chỗ', hot: true },
-    { date: '24/11/2026', airline: 'Vietnam Airlines', price: '28.990.000₫', status: 'Mở đăng ký', hot: false },
-  ];
-
-  const faqs = [
-    {
-      q: 'Nếu tôi bị rớt Visa du lịch Nhật Bản thì chính sách hoàn tiền ra sao?',
-      a: 'Chúng tôi áp dụng Cam Kết Godfather tuyệt đối: Nếu quý khách chuẩn bị đầy đủ hồ sơ theo hướng dẫn nhưng bị Lãnh sự quán từ chối cấp visa, hệ thống sẽ HOÀN LẠI 100% TIỀN CỌC ngay trong 3 ngày làm việc mà không trừ bất kỳ khoản phí phạt nào.',
-    },
-    {
-      q: 'Chỉ cần đặt cọc bao nhiêu để giữ suất ưu đãi giá và quà tặng số?',
-      a: 'Quý khách chỉ cần thanh toán trước 30% giá trị tour (khoảng 8.697.000₫). Số tiền 70% còn lại chỉ cần thanh toán trước ngày khởi hành 15 ngày sau khi đã có kết quả visa hợp lệ.',
-    },
-    {
-      q: 'Tour này có phù hợp cho người bận rộn không có nhiều thời gian chuẩn bị?',
-      a: 'Hoàn toàn phù hợp! Đây là hành trình được thiết kế theo chuẩn "4 Chạm Thảnh Thơi": Chuyên viên và AI Sakura sẽ hỗ trợ điền toàn bộ tờ khai visa, book vé, chuẩn bị hành trình chi tiết. Bạn chỉ việc xách vali và lên máy bay.',
-    },
-    {
-      q: 'Tôi đi một mình có bị phụ thu phòng đơn bắt buộc không?',
-      a: 'Hệ thống sẽ chủ động ghép phòng với khách cùng giới tính nếu có nhu cầu để tiết kiệm chi phí. Quý khách chỉ thanh toán phụ thu phòng đơn nếu chủ động yêu cầu ở riêng 1 mình 1 phòng.',
-    },
-  ];
+  const itineraryDays = DEFAULT_ITINERARY_DAYS;
+  const valueStackItems = DEFAULT_VALUE_STACK;
+  const departuresList = DEFAULT_DEPARTURES;
+  const faqs = DEFAULT_FAQS;
+  const reviews = DEFAULT_REVIEWS;
 
   return (
     <div className="bg-[#080c14] text-slate-100 min-h-screen selection:bg-amber-500 selection:text-black font-sans">
@@ -296,64 +348,30 @@ export const LandingPage: React.FC = () => {
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between">
-              <div>
-                <div className="flex text-amber-400 text-sm mb-3">★★★★★</div>
-                <p className="text-slate-300 text-sm italic leading-relaxed mb-4">
-                  "Chuyến đi thật sự chữa lành sau chuỗi ngày OT ngập đầu. Khách sạn Onsen view hồ Kawaguchi đẹp mê mẩn, thịt bò Hida nướng thơm béo ngậy. Hướng dẫn viên chu đáo từng li từng tí."
-                </p>
-              </div>
-              <div className="flex items-center gap-3 pt-3 border-t border-white/10">
-                <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
-                  L
-                </div>
+            {reviews.map((item, idx) => (
+              <div key={idx} className="glass-panel p-6 rounded-2xl flex flex-col justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-white">Chị Lan Hương</div>
-                  <div className="text-xs text-slate-400">Marketing Lead (TP.HCM)</div>
+                  <div className="flex text-amber-400 text-sm mb-3">★★★★★</div>
+                  <p className="text-slate-300 text-sm italic leading-relaxed mb-4">
+                    "{item.content}"
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 pt-3 border-t border-white/10">
+                  <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
+                    {item.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-white">{item.name}</div>
+                    <div className="text-xs text-slate-400">{item.role}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between">
-              <div>
-                <div className="flex text-amber-400 text-sm mb-3">★★★★★</div>
-                <p className="text-slate-300 text-sm italic leading-relaxed mb-4">
-                  "Hồ sơ visa của mình làm tự do ban đầu rất lo bị trượt, may nhờ đội ngũ hỗ trợ nhiệt tình và có cam kết hoàn 100% nên rất yên tâm. 5 ngày sau nhận visa trong tay, đi tour suôn sẻ 10/10."
-                </p>
-              </div>
-              <div className="flex items-center gap-3 pt-3 border-t border-white/10">
-                <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
-                  T
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-white">Anh Tuấn Minh</div>
-                  <div className="text-xs text-slate-400">Software Engineer (Hà Nội)</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between">
-              <div>
-                <div className="flex text-amber-400 text-sm mb-3">★★★★★</div>
-                <p className="text-slate-300 text-sm italic leading-relaxed mb-4">
-                  "Thích nhất là con AI Sakura tư vấn ngay lúc 12h đêm khi mình rảnh tra lịch bay, thông tin trả lời chính xác từng ngày khởi hành. Đặt cọc 30% giữ chỗ nhanh chóng."
-                </p>
-              </div>
-              <div className="flex items-center gap-3 pt-3 border-t border-white/10">
-                <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
-                  H
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-white">Chị Hoàng Yến</div>
-                  <div className="text-xs text-slate-400">HR Manager (Đà Nẵng)</div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* [SECTION 3] THE GRAND SLAM OFFER (Alex Hormozi $100M Value Stack) */}
+      {/* [SECTION 3] THE GRAND SLAM OFFER */}
       <section id="offer" className="py-20 max-w-5xl mx-auto px-4 sm:px-6">
         <div className="text-center space-y-3 mb-12">
           <span className="text-xs uppercase tracking-widest text-amber-400 font-semibold px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30">

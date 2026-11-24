@@ -45,19 +45,14 @@ public class OffersController : ControllerBase
     /// <summary>
     /// Lấy danh sách toàn bộ các Grand Slam Offer (kèm Value Stack Items và Tour liên kết).
     /// </summary>
-    /// <param name="search">Từ khóa tìm kiếm theo tiêu đề, khẩu hiệu hoặc cơ chế.</param>
-    /// <param name="status">Lọc theo trạng thái: active, draft, archived.</param>
-    /// <param name="is_featured">Lọc theo cờ nổi bật.</param>
+    /// <param name="query">Đối tượng query chứa bộ lọc từ khóa, trạng thái, nổi bật và mã tour liên kết.</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     /// <returns>Danh sách các gói Offer dưới dạng JSON.</returns>
     [HttpGet]
     public async Task<IActionResult> GetAllOffers(
-        [FromQuery] string? search,
-        [FromQuery] string? status,
-        [FromQuery] bool? is_featured,
+        [FromQuery] GetAllOffersQuery query,
         CancellationToken cancellationToken)
     {
-        var query = new GetAllOffersQuery(search, status, is_featured);
         var result = await _getAllOffersHandler.HandleAsync(query, cancellationToken);
 
         if (result.IsFailure)

@@ -44,6 +44,12 @@ public static class TourErrors
         Error.NotFound("Tour", id);
 
     /// <summary>
+    /// Lỗi khi không tìm thấy tour theo đường dẫn URL Slug.
+    /// </summary>
+    public static Error NotFoundBySlug(string slug) =>
+        Error.NotFound("Tour.NotFoundBySlug", $"Không tìm thấy tour với đường dẫn '{slug}'.");
+
+    /// <summary>
     /// Lỗi khi giá người lớn của đợt bay nhỏ hơn hoặc bằng 0.
     /// </summary>
     public static readonly Error InvalidAdultPrice =

@@ -4,9 +4,10 @@ using TourAgent.Domain.Common;
 namespace TourAgent.Application.Features.Offers.GetAllOffers;
 
 /// <summary>
-/// Query lấy danh sách toàn bộ các Grand Slam Offer có phân trang hoặc lọc theo từ khóa, trạng thái, nổi bật.
+/// Query lấy danh sách toàn bộ các Grand Slam Offer có phân trang hoặc lọc theo từ khóa, trạng thái, nổi bật, tour liên kết.
 /// </summary>
 public sealed record GetAllOffersQuery(
     string? Search = null,
     string? Status = null,
-    bool? IsFeatured = null) : IQuery<Result<IReadOnlyList<OfferDto>>>;
+    bool? IsFeatured = null,
+    long? TravelId = null) : IQuery<Result<IReadOnlyList<OfferDto>>>;

@@ -50,6 +50,11 @@ public sealed class GetAllOffersHandler : IQueryHandler<GetAllOffersQuery, Resul
             offersQuery = offersQuery.Where(o => o.IsFeatured == query.IsFeatured.Value);
         }
 
+        if (query.TravelId.HasValue)
+        {
+            offersQuery = offersQuery.Where(o => o.TravelId == query.TravelId.Value);
+        }
+
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var keyword = query.Search.Trim().ToLower();

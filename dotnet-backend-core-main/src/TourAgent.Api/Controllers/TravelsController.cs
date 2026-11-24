@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using TourAgent.Api.Extensions;
 using TourAgent.Application.Common;
 using TourAgent.Application.Features.Tours.CreateTour;
 using TourAgent.Application.Features.Tours.DeleteTour;
@@ -8,10 +9,12 @@ using TourAgent.Application.Features.Tours.Faqs.GetTourFaqs;
 using TourAgent.Application.Features.Tours.Faqs.UpdateTourFaqVisibility;
 using TourAgent.Application.Features.Tours.GetAllTours;
 using TourAgent.Application.Features.Tours.GetTourById;
+using TourAgent.Application.Features.Tours.GetTourBySlug;
 using TourAgent.Application.Features.Tours.Reviews.CreateTourReview;
 using TourAgent.Application.Features.Tours.Reviews.DeleteTourReview;
 using TourAgent.Application.Features.Tours.Reviews.GetTourReviews;
 using TourAgent.Application.Features.Tours.Reviews.UpdateTourReviewVisibility;
+using TourAgent.Application.Features.Tours.SearchTours;
 using TourAgent.Application.Features.Tours.UpdateTour;
 using TourAgent.Domain.Common;
 
@@ -55,7 +58,9 @@ public sealed record UpdateFaqVisibilityRequest(bool IsVisible);
 public class TravelsController : ControllerBase
 {
     private readonly IQueryHandler<GetAllToursQuery, Result<IReadOnlyList<TourAdminItemDto>>> _getAllToursHandler;
+    private readonly IQueryHandler<SearchToursQuery, Result<SearchToursResult>> _searchToursHandler;
     private readonly IQueryHandler<GetTourByIdQuery, Result<TourDetailDto>> _getTourByIdHandler;
+    private readonly IQueryHandler<GetTourBySlugQuery, Result<TourDetailDto>> _getTourBySlugHandler;
     private readonly ICommandHandler<CreateTourCommand, Result<TourAdminItemDto>> _createTourHandler;
     private readonly ICommandHandler<UpdateTourCommand, Result<TourAdminItemDto>> _updateTourHandler;
     private readonly ICommandHandler<DeleteTourCommand, Result> _deleteTourHandler;
@@ -73,7 +78,9 @@ public class TravelsController : ControllerBase
     /// </summary>
     public TravelsController(
         IQueryHandler<GetAllToursQuery, Result<IReadOnlyList<TourAdminItemDto>>> getAllToursHandler,
+        IQueryHandler<SearchToursQuery, Result<SearchToursResult>> searchToursHandler,
         IQueryHandler<GetTourByIdQuery, Result<TourDetailDto>> getTourByIdHandler,
+        IQueryHandler<GetTourBySlugQuery, Result<TourDetailDto>> getTourBySlugHandler,
         ICommandHandler<CreateTourCommand, Result<TourAdminItemDto>> createTourHandler,
         ICommandHandler<UpdateTourCommand, Result<TourAdminItemDto>> updateTourHandler,
         ICommandHandler<DeleteTourCommand, Result> deleteTourHandler,
@@ -87,7 +94,9 @@ public class TravelsController : ControllerBase
         ICommandHandler<DeleteTourFaqCommand, Result> deleteTourFaqHandler)
     {
         _getAllToursHandler = getAllToursHandler;
+        _searchToursHandler = searchToursHandler;
         _getTourByIdHandler = getTourByIdHandler;
+        _getTourBySlugHandler = getTourBySlugHandler;
         _createTourHandler = createTourHandler;
         _updateTourHandler = updateTourHandler;
         _deleteTourHandler = deleteTourHandler;
@@ -104,13 +113,13 @@ public class TravelsController : ControllerBase
     /// <summary>
     /// Lấy danh sách toàn bộ các Tour du lịch phục vụ bảng Product Catalog trên Admin và Landing Page.
     /// </summary>
+    /// <param name="query">Đối tượng query chứa từ khóa tìm kiếm và trạng thái lọc.</param>
+    /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     [HttpGet("api/v1/travels")]
     public async Task<IActionResult> GetAllTravels(
-        [FromQuery] string? search,
-        [FromQuery] string? status,
+        [FromQuery] GetAllToursQuery query,
         CancellationToken cancellationToken)
     {
-        var query = new GetAllToursQuery(search, status);
         var result = await _getAllToursHandler.HandleAsync(query, cancellationToken);
 
         if (result.IsFailure)
@@ -119,6 +128,21 @@ public class TravelsController : ControllerBase
         }
 
         return Ok(new { success = true, data = result.Value });
+    }
+
+    /// <summary>
+    /// Tra cứu và lọc danh sách tour du lịch nâng cao theo tiêu chí (Điểm đến, Quốc gia, Thành phố khởi hành, Giá trần, Phân trang).
+    /// </summary>
+    /// <param name="query">Đối tượng query chứa các tiêu chí lọc tìm kiếm và phân trang.</param>
+    /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
+    [HttpGet("api/v1/travels/search")]
+    [ProducesResponseType(typeof(SearchToursResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SearchTours(
+        [FromQuery] SearchToursQuery query,
+        CancellationToken cancellationToken)
+    {
+        var result = await _searchToursHandler.HandleAsync(query, cancellationToken);
+        return result.ToActionResult();
     }
 
     /// <summary>
@@ -131,6 +155,28 @@ public class TravelsController : ControllerBase
     {
         var query = new GetTourByIdQuery(id);
         var result = await _getTourByIdHandler.HandleAsync(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return NotFound(new { success = false, message = result.Error.Description });
+        }
+
+        return Ok(new { success = true, data = result.Value });
+    }
+
+    /// <summary>
+    /// Lấy thông tin chi tiết của một Tour cụ thể theo URL Slug hoặc Mã Code duy nhất.
+    /// </summary>
+    /// <param name="slug">URL Slug hoặc Mã Code của Tour.</param>
+    /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
+    /// <returns>Thông tin chi tiết Tour kèm ngày bay và lịch trình.</returns>
+    [HttpGet("api/v1/travels/slug/{slug}")]
+    public async Task<IActionResult> GetTravelBySlug(
+        string slug,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetTourBySlugQuery(slug);
+        var result = await _getTourBySlugHandler.HandleAsync(query, cancellationToken);
 
         if (result.IsFailure)
         {

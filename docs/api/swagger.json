@@ -122,42 +122,40 @@
         ],
         "parameters": [
           {
-            "name": "stage",
+            "name": "Stage",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "channel",
+            "name": "Channel",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "search",
+            "name": "Search",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "page",
+            "name": "Page",
             "in": "query",
             "schema": {
               "type": "integer",
-              "format": "int32",
-              "default": 1
+              "format": "int32"
             }
           },
           {
-            "name": "perPage",
+            "name": "PerPage",
             "in": "query",
             "schema": {
               "type": "integer",
-              "format": "int32",
-              "default": 20
+              "format": "int32"
             }
           }
         ],
@@ -338,14 +336,14 @@
         ],
         "parameters": [
           {
-            "name": "channel",
+            "name": "Channel",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "search",
+            "name": "Search",
             "in": "query",
             "schema": {
               "type": "string"
@@ -450,14 +448,14 @@
         ],
         "parameters": [
           {
-            "name": "status",
+            "name": "Status",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "search",
+            "name": "Search",
             "in": "query",
             "schema": {
               "type": "string"
@@ -764,24 +762,32 @@
         ],
         "parameters": [
           {
-            "name": "search",
+            "name": "Search",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "status",
+            "name": "Status",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "is_featured",
+            "name": "IsFeatured",
             "in": "query",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "TravelId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
             }
           }
         ],
@@ -1128,35 +1134,33 @@
         ],
         "parameters": [
           {
-            "name": "status",
+            "name": "Status",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "search",
+            "name": "Search",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "page",
+            "name": "Page",
             "in": "query",
             "schema": {
               "type": "integer",
-              "format": "int32",
-              "default": 1
+              "format": "int32"
             }
           },
           {
-            "name": "perPage",
+            "name": "PerPage",
             "in": "query",
             "schema": {
               "type": "integer",
-              "format": "int32",
-              "default": 50
+              "format": "int32"
             }
           }
         ],
@@ -1460,10 +1464,67 @@
         }
       }
     },
-    "/api/v1/tours": {
+    "/api/v1/travels": {
       "get": {
         "tags": [
-          "Tours"
+          "Travels"
+        ],
+        "parameters": [
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Travels"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTourCommand"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTourCommand"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTourCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/travels/search": {
+      "get": {
+        "tags": [
+          "Travels"
         ],
         "parameters": [
           {
@@ -1529,73 +1590,6 @@
                 }
               }
             }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/travels": {
-      "get": {
-        "tags": [
-          "Travels"
-        ],
-        "parameters": [
-          {
-            "name": "search",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Travels"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateTourCommand"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateTourCommand"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateTourCommand"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
           }
         }
       }
@@ -1674,6 +1668,28 @@
             "schema": {
               "type": "integer",
               "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/travels/slug/{slug}": {
+      "get": {
+        "tags": [
+          "Travels"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -3113,9 +3129,6 @@
     },
     {
       "name": "TourOrders"
-    },
-    {
-      "name": "Tours"
     },
     {
       "name": "Travels"

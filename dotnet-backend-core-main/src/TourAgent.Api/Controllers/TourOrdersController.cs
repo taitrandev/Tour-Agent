@@ -57,24 +57,13 @@ public sealed class TourOrdersController : ControllerBase
     /// <summary>
     /// Lấy danh sách đơn hàng tour kèm bộ lọc theo Pipeline Status, Từ khóa tìm kiếm và Phân trang.
     /// </summary>
-    /// <param name="status">Lọc theo trạng thái: lead_consulting, deposit_pending, visa_processing, final_payment_pending, t3_departure, ready_to_depart.</param>
-    /// <param name="search">Tìm kiếm theo Mã đơn, Tên khách, Số điện thoại hoặc Tên tour.</param>
-    /// <param name="page">Số trang hiện tại (mặc định 1).</param>
-    /// <param name="perPage">Số lượng bản ghi mỗi trang (mặc định 50).</param>
+    /// <param name="query">Đối tượng query chứa bộ lọc theo trạng thái, từ khóa tìm kiếm và phân trang.</param>
+    /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
     [HttpGet]
     public async Task<IActionResult> GetOrders(
-        [FromQuery] string? status,
-        [FromQuery] string? search,
-        [FromQuery] int page = 1,
-        [FromQuery] int perPage = 50,
+        [FromQuery] GetOrdersQuery query,
         CancellationToken cancellationToken = default)
     {
-        var query = new GetOrdersQuery(
-            Status: status,
-            Search: search,
-            Page: page,
-            PerPage: perPage);
-
         var result = await _getOrdersHandler.HandleAsync(query, cancellationToken);
         if (!result.IsSuccess)
         {
