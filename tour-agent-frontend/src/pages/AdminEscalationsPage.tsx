@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { notify } from '../lib/notify';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
+import { API_ROUTES } from '../constants/apiRoutes';
 
 interface EscalationTicket {
   id: number;
@@ -69,7 +70,7 @@ export const AdminEscalationsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await apiFetch('/api/v1/admin/escalations');
+      const res = await apiFetch(API_ROUTES.ADMIN.ESCALATIONS.BASE);
       if (!res.ok) {
         throw new Error(`Lỗi tải dữ liệu: ${res.statusText}`);
       }
@@ -105,7 +106,7 @@ export const AdminEscalationsPage: React.FC = () => {
    */
   const updateStatus = async (id: number, action: 'contacting' | 'approve' | 'close') => {
     try {
-      const endpoint = `/api/v1/admin/escalations/${id}/${action}`;
+      const endpoint = API_ROUTES.ADMIN.ESCALATIONS.ACTION(id, action);
       const res = await apiFetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -4,6 +4,7 @@ import { notify } from '../lib/notify';
 import { useConfirm } from '../components/common/ConfirmModal';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
+import { API_ROUTES } from '../constants/apiRoutes';
 
 /**
  * Định nghĩa cấu trúc dữ liệu một phiên hội thoại tóm tắt từ backend.
@@ -166,7 +167,7 @@ export const AdminConversationsPage: React.FC = () => {
   const loadConversations = useCallback(async (showLoading = false): Promise<ConversationItem[]> => {
     if (showLoading) setLoadingList(true);
     try {
-      const response = await apiFetch('/api/v1/agent/consultant/conversations');
+      const response = await apiFetch(API_ROUTES.AGENT.CONVERSATIONS.BASE);
       const json = await response.json();
       if (json.success && Array.isArray(json.data)) {
         setConversations(json.data);
@@ -187,7 +188,7 @@ export const AdminConversationsPage: React.FC = () => {
   const loadConversationDetail = useCallback(async (conversationId: number) => {
     setLoadingDetail(true);
     try {
-      const response = await apiFetch(`/api/v1/agent/consultant/conversations/${conversationId}`);
+      const response = await apiFetch(API_ROUTES.AGENT.CONVERSATIONS.BY_ID(conversationId));
       const json = await response.json();
       if (json.success) {
         setDetailData({
@@ -272,7 +273,7 @@ export const AdminConversationsPage: React.FC = () => {
     if (!isConfirmed) return;
 
     try {
-      const response = await apiFetch(`/api/v1/agent/consultant/conversations/${convId}`, {
+      const response = await apiFetch(API_ROUTES.AGENT.CONVERSATIONS.BY_ID(convId), {
         method: 'DELETE',
         headers: { Accept: 'application/json' },
       });

@@ -3,6 +3,7 @@ import { notify } from '../lib/notify';
 import { useConfirm } from '../components/common/ConfirmModal';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
+import { API_ROUTES } from '../constants/apiRoutes';
 
 /**
  * Interface biểu diễn thông tin khách hàng gắn với đơn hàng.
@@ -156,7 +157,7 @@ export const AdminOrdersPage: React.FC = () => {
       if (searchKeyword.trim()) params.append('search', searchKeyword.trim());
       params.append('perPage', '50');
 
-      const res = await apiFetch(`/api/v1/admin/orders?${params.toString()}`);
+      const res = await apiFetch(`${API_ROUTES.ADMIN.ORDERS.BASE}?${params.toString()}`);
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       const json = await res.json();
       if (json.success) {
@@ -222,7 +223,7 @@ export const AdminOrdersPage: React.FC = () => {
     if (!depositOrder) return;
     setSubmittingDeposit(true);
     try {
-      const res = await apiFetch(`/api/v1/admin/orders/${depositOrder.id}/deposit`, {
+      const res = await apiFetch(API_ROUTES.ADMIN.ORDERS.DEPOSIT(depositOrder.id), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentAccountNote: depositAccountNote }),
@@ -263,7 +264,7 @@ export const AdminOrdersPage: React.FC = () => {
     if (!visaOrder) return;
     setSubmittingVisa(true);
     try {
-      const res = await apiFetch(`/api/v1/admin/orders/${visaOrder.id}/visa`, {
+      const res = await apiFetch(API_ROUTES.ADMIN.ORDERS.VISA(visaOrder.id), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -308,7 +309,7 @@ export const AdminOrdersPage: React.FC = () => {
     if (!finalPaymentOrder) return;
     setSubmittingFinalPayment(true);
     try {
-      const res = await apiFetch(`/api/v1/admin/orders/${finalPaymentOrder.id}/final-payment`, {
+      const res = await apiFetch(API_ROUTES.ADMIN.ORDERS.FINAL_PAYMENT(finalPaymentOrder.id), {
         method: 'POST',
       });
       const json = await res.json();
@@ -346,7 +347,7 @@ export const AdminOrdersPage: React.FC = () => {
     if (!t3Order) return;
     setSubmittingT3(true);
     try {
-      const res = await apiFetch(`/api/v1/admin/orders/${t3Order.id}/t3-notified`, {
+      const res = await apiFetch(API_ROUTES.ADMIN.ORDERS.T3_NOTIFIED(t3Order.id), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -396,7 +397,7 @@ export const AdminOrdersPage: React.FC = () => {
     });
     if (!isConfirmed) return;
     try {
-      const res = await apiFetch(`/api/v1/admin/orders/${order.id}`, {
+      const res = await apiFetch(API_ROUTES.ADMIN.ORDERS.BY_ID(order.id), {
         method: 'DELETE',
       });
       const json = await res.json();
@@ -458,11 +459,11 @@ export const AdminOrdersPage: React.FC = () => {
         notes: formNotes,
       };
 
-      let url = '/api/v1/admin/orders';
+      let url: string = API_ROUTES.ADMIN.ORDERS.BASE;
       let method = 'POST';
 
       if (formIsEditing && editingOrderId) {
-        url = `/api/v1/admin/orders/${editingOrderId}`;
+        url = API_ROUTES.ADMIN.ORDERS.BY_ID(editingOrderId);
         method = 'PUT';
       }
 

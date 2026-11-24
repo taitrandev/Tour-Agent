@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { notify } from '../lib/notify';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
+import { API_ROUTES } from '../constants/apiRoutes';
 
 /**
  * Định nghĩa cấu trúc dữ liệu cấu hình LLM Gateway nhận từ API.
@@ -119,7 +120,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
   const loadLlmStatus = useCallback(async () => {
     try {
       setLoadingStatus(true);
-      const response = await apiFetch('/api/v1/llm-setting');
+      const response = await apiFetch(API_ROUTES.ADMIN.LLM_SETTINGS.BASE);
       const json = await response.json();
 
       if (json.success && json.data) {
@@ -185,7 +186,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
     }
 
     try {
-      const response = await apiFetch('/api/v1/llm-setting', {
+      const response = await apiFetch(API_ROUTES.ADMIN.LLM_SETTINGS.BASE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -227,7 +228,7 @@ export const AdminLlmSettingsPage: React.FC = () => {
     addLog(`Bắt đầu kiểm tra kết nối tới ${providerName} Gateway...`, 'warn');
 
     try {
-      const response = await apiFetch('/api/v1/llm-setting/test', {
+      const response = await apiFetch(API_ROUTES.ADMIN.LLM_SETTINGS.TEST, {
         method: 'POST',
         headers: { Accept: 'application/json' },
       });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { API_ROUTES } from '../../constants/apiRoutes';
 
 export const AdminSidebar: React.FC = () => {
   const location = useLocation();
@@ -149,7 +150,7 @@ export const AdminSidebar: React.FC = () => {
 
         {/* 10. API Product Catalog */}
         <a
-          href="/api/v1/travels"
+          href={API_ROUTES.TRAVELS.BASE}
           target="_blank"
           rel="noreferrer"
           className="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 text-xs transition"

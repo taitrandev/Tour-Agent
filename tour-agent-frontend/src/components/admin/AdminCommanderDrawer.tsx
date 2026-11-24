@@ -4,6 +4,7 @@ import { X, Send, Sparkles, Bot, RefreshCw, Cpu } from 'lucide-react';
 import { apiFetch } from '../../api/client';
 import { notify } from '../../lib/notify';
 import { AGENT_API_ROUTES, ADMIN_WRITE_TOOLS } from '../../constants/agent';
+import { API_ROUTES } from '../../constants/apiRoutes';
 
 interface Message {
   sender: 'user' | 'agent';
@@ -64,7 +65,7 @@ export const AdminCommanderDrawer: React.FC<AdminCommanderDrawerProps> = ({
   const fetchLlmSetting = async () => {
     try {
       setLoadingLlm(true);
-      const res = await apiFetch('/api/v1/llm-setting');
+      const res = await apiFetch(API_ROUTES.ADMIN.LLM_SETTINGS.BASE);
       let json: any = null;
       try {
         json = await res.json();

@@ -4,6 +4,7 @@ import { notify } from '../lib/notify';
 import { useConfirm } from '../components/common/ConfirmModal';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
+import { API_ROUTES } from '../constants/apiRoutes';
 
 /**
  * Định nghĩa cấu trúc dữ liệu một bản ghi khách hàng CRM.
@@ -96,7 +97,7 @@ export const AdminContactsPage: React.FC = () => {
       if (currentStage) params.append('stage', currentStage);
       if (searchKeyword.trim()) params.append('search', searchKeyword.trim());
 
-      const res = await apiFetch(`/api/v1/admin/contacts?${params.toString()}`);
+      const res = await apiFetch(`${API_ROUTES.ADMIN.CONTACTS.BASE}?${params.toString()}`);
       const json = await res.json();
 
       if (json.success && Array.isArray(json.data)) {
@@ -140,7 +141,7 @@ export const AdminContactsPage: React.FC = () => {
     setDetailData(null);
 
     try {
-      const res = await apiFetch(`/api/v1/admin/contacts/${contactId}`);
+      const res = await apiFetch(API_ROUTES.ADMIN.CONTACTS.BY_ID(contactId));
       const json = await res.json();
       if (json.success && json.data) {
         setDetailData(json.data);
@@ -196,7 +197,7 @@ export const AdminContactsPage: React.FC = () => {
         notes: editForm.notes.trim() || null,
       };
 
-      const res = await apiFetch(`/api/v1/admin/contacts/${editForm.id}`, {
+      const res = await apiFetch(API_ROUTES.ADMIN.CONTACTS.BY_ID(editForm.id), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -254,7 +255,7 @@ export const AdminContactsPage: React.FC = () => {
         notes: createForm.notes.trim() || null,
       };
 
-      const res = await apiFetch('/api/v1/admin/contacts', {
+      const res = await apiFetch(API_ROUTES.ADMIN.CONTACTS.BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -289,7 +290,7 @@ export const AdminContactsPage: React.FC = () => {
     if (!isConfirmed) return;
 
     try {
-      const res = await apiFetch(`/api/v1/admin/contacts/${contactId}`, {
+      const res = await apiFetch(API_ROUTES.ADMIN.CONTACTS.BY_ID(contactId), {
         method: 'DELETE',
       });
       const json = await res.json();

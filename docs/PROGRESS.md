@@ -6,7 +6,7 @@
 ---
 
 ## 📌 Trạng Thái Hiện Tại
-- **Giai đoạn hiện tại**: **Phân tách độc lập System Prompt và phân quyền công cụ (Tool Scoping) giữa Customer Consultant (Khách hàng) và Admin Commander (Quản trị viên); triệt tiêu Magic Strings**.
+- **Giai đoạn hiện tại**: **Hoàn thiện File-per-Type cho `IAgentLoop.cs` và chuẩn hóa 100% `API_ROUTES` tập trung cho toàn bộ các trang và API client trên Frontend**.
 - **Trạng thái Test**: **132/132 tests PASSED** (54 Domain Tests + 74 Application Tests + 4 Architecture Tests).
 - **Cơ sở dữ liệu**: Đã clone thành công database `tour_agent_db` trên PostgreSQL Docker (Port 5432) với đầy đủ 28 tables và dữ liệu tour thực tế.
 - **Bước tiếp theo**: Tiếp tục hoàn thiện các màn hình chuyên sâu và tính năng AI tư vấn đóng gói tour.
@@ -61,6 +61,15 @@
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
 - **2026-11-24**:
+  - **Tập Trung Hóa 100% Frontend API Routes & Cập Nhật Luật Bắt Buộc Vào AGENTS.md**:
+    - **Lý do**: Khắc phục triệt để tình trạng hardcode magic string URL (`/api/v1/...`) rải rác trong các component và services trên Frontend, đồng thời ngăn chặn các AI Agent hoặc lập trình viên tái phạm trong tương lai.
+    - **Thay đổi chi tiết**:
+      - Ban hành hằng số tập trung `API_ROUTES` tại [apiRoutes.ts](file:///d:/github/Tour-Agent/tour-agent-frontend/src/constants/apiRoutes.ts) phân theo domain: `AGENT`, `TRAVELS`, `OFFERS`, `ADMIN`, `WEBHOOKS`.
+      - Refactor toàn bộ 35+ lời gọi URL trong toàn bộ source code Frontend sang `API_ROUTES`.
+      - Tách System Prompt giữa Khách hàng (`GetCustomerConsultantPrompt`) và Admin (`GetAdminCommanderPrompt`), bổ sung phân quyền `IsAdminOnly` trên `IAgentTool` và runtime guard check trong `AgentLoop`.
+      - Áp dụng triệt để nguyên tắc File-per-Type: Tách `ChatRequest.cs`, `AdminChatRequest.cs`, `AgentChatInput.cs`, `AgentChatResult.cs`, `AgentStreamEvent.cs`, `AgentRole.cs` thành các file độc lập.
+      - **Bổ sung Quy Tắc 12 & Điều Cấm vào [AGENTS.md](file:///d:/github/Tour-Agent/AGENTS.md)**: Yêu cầu bắt buộc 100% endpoint trên Frontend phải định nghĩa tại `API_ROUTES`, nghiêm cấm hardcode chuỗi URL.
+    - **Kiểm thử**: **132/132 tests backend PASSED 100%**. Frontend `npm run build` thành công không lỗi.
   - **Chuẩn Hóa Mô Hình Quản Trị Kiến Trúc 2 Tầng (Two-Tier Pointer Model) AGENTS.md & ADR**:
     - **Vấn đề & Trăn trở của PO**: Có nguy cơ trùng lặp quy tắc hoặc phình to token nếu vừa ghi quy tắc vào `AGENTS.md` vừa tạo file ADR riêng cho các quy tắc viết code (như 0005 camelCase, 0007 Query Objects, 0008 Shimmer Zero-FOUC).
     - **Giải pháp chuẩn hóa (Phương án A được phê duyệt)**:

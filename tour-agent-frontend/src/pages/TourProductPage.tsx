@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { notify } from '../lib/notify';
 import { FloatingChatWidget } from '../components/chat/FloatingChatWidget';
 import { apiFetch } from '../api/client';
+import { API_ROUTES } from '../constants/apiRoutes';
 import type { TourSummary } from '../types/tour';
 
 /**
@@ -113,7 +114,7 @@ export const TourProductPage: React.FC = () => {
     setNotFound(false);
     setSelectedOfferIndex(0);
 
-    apiFetch(`/api/v1/travels/slug/${encodeURIComponent(slug)}`)
+    apiFetch(API_ROUTES.TRAVELS.BY_SLUG(slug))
       .then(async (response) => {
         if (!response.ok) {
           throw new Error('NotFound');
@@ -228,7 +229,7 @@ export const TourProductPage: React.FC = () => {
           }
 
           // 4. Nạp câu hỏi thường gặp (FAQs) của tour từ API (chỉ lưu nếu có data)
-          apiFetch(`/api/v1/travels/${tourData.id}/faqs`)
+          apiFetch(API_ROUTES.TRAVELS.FAQS(tourData.id))
             .then((res) => res.json())
             .then((faqJson) => {
               if (faqJson.success && Array.isArray(faqJson.data) && faqJson.data.length > 0) {
@@ -243,7 +244,7 @@ export const TourProductPage: React.FC = () => {
             });
 
           // 5. Nạp đánh giá của khách hàng (Reviews) từ API (chỉ lưu nếu có data)
-          apiFetch(`/api/v1/travels/${tourData.id}/reviews`)
+          apiFetch(API_ROUTES.TRAVELS.REVIEWS(tourData.id))
             .then((res) => res.json())
             .then((reviewJson) => {
               if (reviewJson.success && Array.isArray(reviewJson.data) && reviewJson.data.length > 0) {

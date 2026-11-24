@@ -1,3 +1,5 @@
+import { API_ROUTES } from './apiRoutes';
+
 /**
  * Định nghĩa vai trò (Persona / Scope) của AI Agent trong toàn bộ ứng dụng frontend.
  * Tránh triệt để Magic String khi gọi API hoặc kiểm tra điều kiện.
@@ -11,14 +13,9 @@ export type AgentRole = typeof AGENT_ROLES[keyof typeof AGENT_ROLES];
 
 /**
  * Định nghĩa danh sách đường dẫn API chuẩn xác của AI Agent.
- * Tách biệt giữa luồng Public Consultant và luồng Admin Copilot.
+ * Tái xuất từ API_ROUTES.AGENT tập trung để đảm bảo DRY (Don't Repeat Yourself).
  */
-export const AGENT_API_ROUTES = {
-  CHAT: '/api/v1/agent/chat',
-  CHAT_STREAM: '/api/v1/agent/chat/stream',
-  ADMIN_CHAT: '/api/v1/agent/admin/chat',
-  ADMIN_CHAT_STREAM: '/api/v1/agent/admin/chat/stream',
-} as const;
+export const AGENT_API_ROUTES = API_ROUTES.AGENT;
 
 /**
  * Danh sách tên các công cụ quản trị cập nhật dữ liệu (Write Tools).

@@ -1,4 +1,5 @@
 import { fetchJson } from './client';
+import { API_ROUTES } from '../constants/apiRoutes';
 import type { SearchToursFilter, SearchToursResult, TourDetail, TourSummary } from '../types/tour';
 
 /**
@@ -120,7 +121,7 @@ export async function searchTours(filter: SearchToursFilter = {}): Promise<Searc
   const queryString = params.toString() ? `?${params.toString()}` : '';
 
   try {
-    const result = await fetchJson<SearchToursResult>(`/tours${queryString}`);
+    const result = await fetchJson<SearchToursResult>(`${API_ROUTES.TRAVELS.SEARCH}${queryString}`);
     if (result && result.items && result.items.length > 0) {
       return result;
     }

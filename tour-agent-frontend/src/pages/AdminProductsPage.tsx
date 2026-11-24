@@ -4,6 +4,7 @@ import { useConfirm } from '../components/common/ConfirmModal';
 import { apiFetch } from '../api/client';
 import type { TravelProduct, TourDeparture, ItineraryDay, TravelReview, TravelFaq } from '../types/travel';
 import { AdminLayout } from '../components/admin/AdminLayout';
+import { API_ROUTES } from '../constants/apiRoutes';
 
 /**
  * Trang Quản lý Danh mục Sản Phẩm Tour Du Lịch (Core Product Base).
@@ -75,7 +76,7 @@ export const AdminProductsPage: React.FC = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await apiFetch('/api/v1/travels');
+      const res = await apiFetch(API_ROUTES.TRAVELS.BASE);
       const json = await res.json();
       if (json.success && json.data) {
         setProducts(json.data);
@@ -215,7 +216,7 @@ export const AdminProductsPage: React.FC = () => {
     };
 
     try {
-      const url = editingId ? `/api/v1/travels/${editingId}` : '/api/v1/travels';
+      const url = editingId ? API_ROUTES.TRAVELS.BY_ID(editingId) : API_ROUTES.TRAVELS.BASE;
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await apiFetch(url, {
@@ -251,7 +252,7 @@ export const AdminProductsPage: React.FC = () => {
     if (!isConfirmed) return;
 
     try {
-      const res = await apiFetch(`/api/v1/travels/${id}`, {
+      const res = await apiFetch(API_ROUTES.TRAVELS.BY_ID(id), {
         method: 'DELETE',
         headers: { Accept: 'application/json' },
       });
@@ -275,7 +276,7 @@ export const AdminProductsPage: React.FC = () => {
     setShowReviewsModal(true);
     setShowAddReviewForm(false);
     try {
-      const res = await apiFetch(`/api/v1/travels/${product.id}/reviews`);
+      const res = await apiFetch(API_ROUTES.TRAVELS.REVIEWS(product.id));
       const json = await res.json();
       if (json.success && json.data) {
         setReviews(json.data);
@@ -293,7 +294,7 @@ export const AdminProductsPage: React.FC = () => {
     if (!selectedProduct) return;
 
     try {
-      const res = await apiFetch(`/api/v1/travels/${selectedProduct.id}/reviews`, {
+      const res = await apiFetch(API_ROUTES.TRAVELS.REVIEWS(selectedProduct.id), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
@@ -328,7 +329,7 @@ export const AdminProductsPage: React.FC = () => {
     setShowFaqsModal(true);
     setShowAddFaqForm(false);
     try {
-      const res = await apiFetch(`/api/v1/travels/${product.id}/faqs`);
+      const res = await apiFetch(API_ROUTES.TRAVELS.FAQS(product.id));
       const json = await res.json();
       if (json.success && json.data) {
         setFaqs(json.data);
@@ -346,7 +347,7 @@ export const AdminProductsPage: React.FC = () => {
     if (!selectedProduct) return;
 
     try {
-      const res = await apiFetch(`/api/v1/travels/${selectedProduct.id}/faqs`, {
+      const res = await apiFetch(API_ROUTES.TRAVELS.FAQS(selectedProduct.id), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({

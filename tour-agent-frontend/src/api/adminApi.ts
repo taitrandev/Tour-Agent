@@ -1,4 +1,5 @@
 import { fetchJson } from './client';
+import { API_ROUTES } from '../constants/apiRoutes';
 import type { AdminOverviewStats, ConversationAuditItem, TelegramStatus } from '../types/admin';
 
 /**
@@ -6,7 +7,7 @@ import type { AdminOverviewStats, ConversationAuditItem, TelegramStatus } from '
  */
 export async function getTelegramWebhookStatus(): Promise<TelegramStatus> {
   try {
-    return await fetchJson<TelegramStatus>('/webhooks/telegram/status');
+    return await fetchJson<TelegramStatus>(API_ROUTES.WEBHOOKS.TELEGRAM_STATUS);
   } catch (error) {
     console.warn('Lỗi lấy trạng thái Telegram Webhook, sử dụng mock:', error);
     return {

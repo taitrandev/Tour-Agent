@@ -4,6 +4,7 @@ import { notify } from '../lib/notify';
 import { useConfirm } from '../components/common/ConfirmModal';
 import { apiFetch } from '../api/client';
 import { AdminLayout } from '../components/admin/AdminLayout';
+import { API_ROUTES } from '../constants/apiRoutes';
 
 /**
  * Định nghĩa cấu trúc dữ liệu cho một hạng mục trong Bảng xếp chồng giá trị (Value Stack).
@@ -123,7 +124,7 @@ export const AdminOffersPage: React.FC = () => {
   const fetchOffers = async () => {
     setLoading(true);
     try {
-      const res = await apiFetch('/api/v1/offers');
+      const res = await apiFetch(API_ROUTES.OFFERS.BASE);
       const json = await res.json();
       if (json.success && json.data) {
         setOffers(json.data);
@@ -140,7 +141,7 @@ export const AdminOffersPage: React.FC = () => {
    */
   const fetchTravels = async () => {
     try {
-      const res = await apiFetch('/api/v1/travels');
+      const res = await apiFetch(API_ROUTES.TRAVELS.BASE);
       const json = await res.json();
       if (json.success && json.data) {
         setTravels(json.data);
@@ -336,7 +337,7 @@ export const AdminOffersPage: React.FC = () => {
     };
 
     try {
-      const url = editingId ? `/api/v1/offers/${editingId}` : '/api/v1/offers';
+      const url = editingId ? API_ROUTES.OFFERS.BY_ID(editingId) : API_ROUTES.OFFERS.BASE;
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await apiFetch(url, {
@@ -372,7 +373,7 @@ export const AdminOffersPage: React.FC = () => {
     if (!isConfirmed) return;
 
     try {
-      const res = await apiFetch(`/api/v1/offers/${id}`, {
+      const res = await apiFetch(API_ROUTES.OFFERS.BY_ID(id), {
         method: 'DELETE',
         headers: { Accept: 'application/json' },
       });
