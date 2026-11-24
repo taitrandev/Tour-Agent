@@ -10,6 +10,16 @@ export interface ChatRequest {
 }
 
 /**
+ * Yêu cầu gửi câu lệnh điều hành tới AI Agent Commander trong khu vực quản trị (/admin).
+ */
+export interface AdminChatRequest {
+  conversationId?: number;
+  message: string;
+  adminUsername?: string;
+  pageContext?: string;
+}
+
+/**
  * Kết quả trả về sau chu trình xử lý đồng bộ của AI Agent.
  */
 export interface AgentChatResult {

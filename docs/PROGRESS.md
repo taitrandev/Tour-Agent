@@ -6,8 +6,8 @@
 ---
 
 ## 📌 Trạng Thái Hiện Tại
-- **Giai đoạn hiện tại**: **Hoàn thiện Skill ADR Manager, chuẩn hóa kho quyết định kiến trúc `docs/adr/` (ADR-0001 đến 0008) theo nguyên bản Michael Nygard & cập nhật AGENTS.md**.
-- **Trạng thái Test**: **126/126 tests PASSED** (54 Domain Tests + 68 Application Tests + 4 Architecture Tests).
+- **Giai đoạn hiện tại**: **Phân tách độc lập System Prompt và phân quyền công cụ (Tool Scoping) giữa Customer Consultant (Khách hàng) và Admin Commander (Quản trị viên); triệt tiêu Magic Strings**.
+- **Trạng thái Test**: **132/132 tests PASSED** (54 Domain Tests + 74 Application Tests + 4 Architecture Tests).
 - **Cơ sở dữ liệu**: Đã clone thành công database `tour_agent_db` trên PostgreSQL Docker (Port 5432) với đầy đủ 28 tables và dữ liệu tour thực tế.
 - **Bước tiếp theo**: Tiếp tục hoàn thiện các màn hình chuyên sâu và tính năng AI tư vấn đóng gói tour.
 

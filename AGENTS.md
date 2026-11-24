@@ -93,6 +93,11 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
    - Trang chủ công ty (`/`) dùng riêng `LandingPage.tsx`; trang chi tiết sản phẩm (`/tour/:slug`) dùng riêng `TourProductPage.tsx`.
    - Bắt buộc Shimmer Loading Skeleton khi fetch API. Cấm tuyệt đối khởi tạo mock data gây chớp nháy (FOUC). Section không có data thì ẩn hoàn toàn cùng mục menu tương ứng.
 
+11. **Nguyên Tắc File-Per-Type & Tách Biệt Request DTOs Khỏi Controller**:
+   - Mọi DTO, Request/Response record, Query Object, Enum, hoặc Command/Query **BẮT BUỘC nằm trong file `.cs` riêng biệt**, tên file trùng khớp 100% với tên Type.
+   - **Tuyệt đối KHÔNG khai báo `record SomeRequest(...)` hay DTOs ở đầu/cuối file Controller** (vi phạm Single Responsibility Principle & File-per-Type).
+   - Các API Request/Response DTOs thuộc tầng Api phải đặt tại thư mục `TourAgent.Api/Contracts/{Feature}/` (ví dụ: `TourAgent.Api/Contracts/Agent/ChatRequest.cs`).
+
 ---
 
 ## 4. 🤖 Quy Tắc Riêng Cho AI Agent & Tool Calling
@@ -120,6 +125,7 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 - ❌ CẤM dùng `snake_case` cho API Request/Response payload, DTOs, hay frontend state ([ADR-0005](docs/adr/0005-strict-camelcase-api-contracts.md)).
 - ❌ CẤM viết danh sách tham số rời rạc dài trong GET action controller hoặc tạo lại `ToursController.cs` ([ADR-0007](docs/adr/0007-query-objects-and-unified-travels-api.md)).
 - ❌ CẤM hardcode mock data giả lập trong frontend component gây chớp nháy FOUC ([ADR-0008](docs/adr/0008-separate-tour-page-zero-fouc.md)).
+- ❌ CẤM khai báo DTOs, Request/Response records, Enums chung file với Controller (vi phạm File-per-Type & Single Responsibility Principle). Mọi contract phải tách thành file riêng biệt tại `TourAgent.Api/Contracts/{Feature}/` hoặc Application Feature Folder.
 
 ---
 

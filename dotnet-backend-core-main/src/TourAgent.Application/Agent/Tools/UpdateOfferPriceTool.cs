@@ -57,6 +57,9 @@ public sealed class UpdateOfferPriceTool : IAgentTool
     public JsonDocument ParametersSchema => StaticSchema;
 
     /// <inheritdoc />
+    public bool IsAdminOnly => true;
+
+    /// <inheritdoc />
     public async Task<string> ExecuteAsync(string argumentsJson, CancellationToken cancellationToken = default)
     {
         long? offerId = null;

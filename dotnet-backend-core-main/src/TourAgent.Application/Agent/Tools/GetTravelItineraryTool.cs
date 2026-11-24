@@ -49,6 +49,9 @@ public sealed class GetTravelItineraryTool : IAgentTool
     public JsonDocument ParametersSchema => StaticSchema;
 
     /// <inheritdoc />
+    public bool IsAdminOnly => false;
+
+    /// <inheritdoc />
     public async Task<string> ExecuteAsync(string argumentsJson, CancellationToken cancellationToken = default)
     {
         long travelId = 0;

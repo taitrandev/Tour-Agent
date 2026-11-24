@@ -24,6 +24,13 @@ public interface IAgentTool
     JsonDocument ParametersSchema { get; }
 
     /// <summary>
+    /// Đánh dấu công cụ chỉ dành riêng cho Quản trị viên (Admin Commander),
+    /// cấm tuyệt đối không nạp vào phiên tư vấn của khách hàng công cộng (Customer Consultant).
+    /// Mặc định là false (cho phép dùng trong tư vấn).
+    /// </summary>
+    bool IsAdminOnly => false;
+
+    /// <summary>
     /// Thực thi logic của công cụ dựa trên chuỗi tham số định dạng JSON do AI truyền vào.
     /// </summary>
     /// <param name="argumentsJson">Chuỗi JSON chứa các đối số gọi hàm từ mô hình AI.</param>

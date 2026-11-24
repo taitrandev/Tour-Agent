@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { X, Send, Sparkles, Bot, RefreshCw, Cpu } from 'lucide-react';
 import { apiFetch } from '../../api/client';
 import { notify } from '../../lib/notify';
+import { AGENT_API_ROUTES, ADMIN_WRITE_TOOLS } from '../../constants/agent';
 
 interface Message {
   sender: 'user' | 'agent';
@@ -157,12 +158,13 @@ export const AdminCommanderDrawer: React.FC<AdminCommanderDrawerProps> = ({
     setIsTyping(true);
 
     try {
-      const res = await apiFetch('/api/v1/agent/chat', {
+      const res = await apiFetch(AGENT_API_ROUTES.ADMIN_CHAT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           conversationId,
           message: userText,
+          pageContext: path,
         }),
       });
       let json: any = null;
@@ -192,13 +194,12 @@ export const AdminCommanderDrawer: React.FC<AdminCommanderDrawerProps> = ({
           : '⚡ Lệnh đã được tiếp nhận và ghi nhận vào hệ thống.');
 
       // Tự động phát sự kiện làm mới dữ liệu cho các bảng quản trị (Products / Offers) khi công cụ ghi được gọi
-      const executed = json.toolsExecuted || [];
-      if (
-        Array.isArray(executed) &&
-        (executed.includes('update_travel_title') ||
-         executed.includes('update_offer_price') ||
-         executed.some((t: string) => typeof t === 'string' && t.startsWith('update_')))
-      ) {
+      const executed: string[] = json.toolsExecuted || [];
+      const hasWriteToolExecuted = Array.isArray(executed) && executed.some((toolName) =>
+        (ADMIN_WRITE_TOOLS as readonly string[]).includes(toolName)
+      );
+
+      if (hasWriteToolExecuted) {
         window.dispatchEvent(new CustomEvent('refresh-admin-data'));
         notify.success('AI Commander đã cập nhật dữ liệu thành công!');
       }

@@ -1,12 +1,24 @@
 import { fetchJson, streamSSE } from './client';
-import type { AgentChatResult, AgentStreamEvent, ChatRequest } from '../types/agent';
+import { AGENT_API_ROUTES } from '../constants/agent';
+import type { AdminChatRequest, AgentChatResult, AgentStreamEvent, ChatRequest } from '../types/agent';
 
 /**
  * Gửi tin nhắn câu hỏi tới AI Agent và nhận phản hồi đồng bộ trọn gói.
  * @param request Payload câu hỏi và ngữ cảnh tour
  */
 export async function sendChatMessageSync(request: ChatRequest): Promise<AgentChatResult> {
-  return await fetchJson<AgentChatResult>('/agent/chat', {
+  return await fetchJson<AgentChatResult>(AGENT_API_ROUTES.CHAT, {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
+/**
+ * Gửi câu lệnh điều hành tới AI Agent Commander (/admin) và nhận phản hồi đồng bộ.
+ * @param request Payload câu lệnh điều hành và ngữ cảnh màn hình
+ */
+export async function sendAdminChatMessageSync(request: AdminChatRequest): Promise<AgentChatResult> {
+  return await fetchJson<AgentChatResult>(AGENT_API_ROUTES.ADMIN_CHAT, {
     method: 'POST',
     body: JSON.stringify(request),
   });
@@ -24,7 +36,7 @@ export async function streamChatMessage(
   signal?: AbortSignal
 ): Promise<void> {
   try {
-    await streamSSE<AgentStreamEvent>('/agent/chat/stream', request, onEvent, signal);
+    await streamSSE<AgentStreamEvent>(AGENT_API_ROUTES.CHAT_STREAM, request, onEvent, signal);
   } catch (error) {
     console.warn('Lỗi kết nối SSE tới Backend, chuyển sang mô phỏng thông minh cho demo:', error);
 

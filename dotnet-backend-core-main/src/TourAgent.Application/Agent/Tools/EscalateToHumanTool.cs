@@ -88,6 +88,9 @@ public sealed class EscalateToHumanTool : IAgentTool
     public JsonDocument ParametersSchema => StaticSchema;
 
     /// <inheritdoc />
+    public bool IsAdminOnly => false;
+
+    /// <inheritdoc />
     public async Task<string> ExecuteAsync(string argumentsJson, CancellationToken cancellationToken = default)
     {
         string reason = "Khách hàng cần hỗ trợ trực tiếp";

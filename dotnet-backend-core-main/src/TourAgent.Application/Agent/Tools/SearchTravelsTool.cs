@@ -65,6 +65,9 @@ public sealed class SearchTravelsTool : IAgentTool
     public JsonDocument ParametersSchema => StaticSchema;
 
     /// <inheritdoc />
+    public bool IsAdminOnly => false;
+
+    /// <inheritdoc />
     public async Task<string> ExecuteAsync(string argumentsJson, CancellationToken cancellationToken = default)
     {
         string? country = null;

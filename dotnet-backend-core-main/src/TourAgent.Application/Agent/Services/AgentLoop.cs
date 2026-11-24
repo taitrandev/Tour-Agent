@@ -118,11 +118,13 @@ public sealed class AgentLoop : IAgentLoop
         // Kỹ thuật D1: Cập nhật ý định tour từ tin nhắn của khách hàng
         _tourStateReducer.ReduceFromUserMessage(agentState, input.UserMessage);
 
-        // Xây dựng System Prompt với Guardrails chống ảo giác
-        var systemPrompt = TravelAgentPrompts.GetCustomerConsultantPrompt(
-            input.CurrentTravelId,
-            input.CurrentTravelTitle,
-            input.Country);
+        // Xây dựng System Prompt với Guardrails chống ảo giác tương ứng với vai trò (Consultant vs Commander)
+        var systemPrompt = input.Role == AgentRole.AdminCommander
+            ? TravelAgentPrompts.GetAdminCommanderPrompt(input.AdminUsername, input.PageContext)
+            : TravelAgentPrompts.GetCustomerConsultantPrompt(
+                input.CurrentTravelId,
+                input.CurrentTravelTitle,
+                input.Country);
 
         var messages = new List<ChatMessage>
         {
@@ -154,8 +156,13 @@ public sealed class AgentLoop : IAgentLoop
             messages.Add(ChatMessage.CreateUser(input.UserMessage));
         }
 
-        // Đóng gói danh sách công cụ
-        var toolDefinitions = _tools.Values
+        // Đóng gói danh sách công cụ theo phân quyền (Tool Scoping)
+        // CustomerConsultant chỉ được nạp Read Tools; AdminCommander nạp toàn bộ công cụ bao gồm Write Tools.
+        var allowedTools = _tools.Values
+            .Where(t => input.Role == AgentRole.AdminCommander || !t.IsAdminOnly)
+            .ToList();
+
+        var toolDefinitions = allowedTools
             .Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchema))
             .ToList();
 
@@ -237,6 +244,16 @@ public sealed class AgentLoop : IAgentLoop
 
                 foreach (var toolCall in completion.ToolCalls)
                 {
+                    // Phòng thủ tầng sâu (Defense-in-Depth): Ngăn chặn thực thi Write Tool nếu vai trò là CustomerConsultant
+                    if (_tools.TryGetValue(toolCall.FunctionName, out var requestedTool) &&
+                        requestedTool.IsAdminOnly &&
+                        input.Role != AgentRole.AdminCommander)
+                    {
+                        var unauthorizedResult = """{"error": "Unauthorized: Bạn không có quyền thực thi công cụ quản trị này."}""";
+                        messages.Add(ChatMessage.CreateTool(toolCall.Id, toolCall.FunctionName, unauthorizedResult));
+                        continue;
+                    }
+
                     executedTools.Add(toolCall.FunctionName);
 
                     // Kỹ thuật G3: Thực thi công cụ an toàn qua 3 pha Tool Guardrail Pipeline
@@ -289,9 +306,9 @@ public sealed class AgentLoop : IAgentLoop
         }
 
         // Phòng thủ chống ảo giác tạo ticket giả (Phantom Escalation):
-        // Nếu trong câu trả lời AI nhắc đến mã #ESC-XX nhưng chưa từng gọi escalate_to_human trong phiên này
+        // Chỉ áp dụng cho CustomerConsultant (vì Admin không tạo ticket tư vấn khách hàng)
         var escMatch = EscTicketRegex.Match(finalResponse);
-        if (escMatch.Success && !executedTools.Contains("escalate_to_human", StringComparer.OrdinalIgnoreCase))
+        if (input.Role == AgentRole.CustomerConsultant && escMatch.Success && !executedTools.Contains("escalate_to_human", StringComparer.OrdinalIgnoreCase))
         {
             var customerPhone = agentState.ConfirmedFacts.TryGetValue("customer_phone", out var cp) ? cp : null;
             long? targetTravelId = null;

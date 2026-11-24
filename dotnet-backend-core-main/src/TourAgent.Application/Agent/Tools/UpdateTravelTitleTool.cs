@@ -53,6 +53,9 @@ public sealed class UpdateTravelTitleTool : IAgentTool
     public JsonDocument ParametersSchema => StaticSchema;
 
     /// <inheritdoc />
+    public bool IsAdminOnly => true;
+
+    /// <inheritdoc />
     public async Task<string> ExecuteAsync(string argumentsJson, CancellationToken cancellationToken = default)
     {
         long? travelId = null;

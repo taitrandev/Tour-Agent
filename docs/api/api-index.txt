@@ -1,3 +1,5 @@
+POST	/api/v1/agent/admin/chat	[Agent]
+POST	/api/v1/agent/admin/chat/stream	[Agent]
 POST	/api/v1/agent/chat	[Agent]
 POST	/api/v1/agent/chat/stream	[Agent]
 GET	/api/v1/admin/contacts	[Contacts]
