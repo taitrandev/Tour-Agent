@@ -30,9 +30,14 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
    - Chứa Use Cases chia theo **Feature Folders** (`Features/{Area}/{UseCase}/`), DTOs, Abstractions (`IAppDbContext`, `ILlmClient`), Agent Tools, Prompts.
    - **Tuyệt đối KHÔNG phụ thuộc** vào `Infrastructure` hoặc `Api`.
    - Lệnh & Vị trí file
-     - Backend nằm trong `dotnet-backend-core-main/`. Chạy lệnh trong folder này:
-       - Build: `dotnet build`
-       - Test: `dotnet test`
+     - Backend nằm trong `dotnet-backend-core-main/`.
+     - **Lệnh kiểm tra toàn diện Backend duy nhất (1-Click Verification)**:
+       - Chạy từ thư mục gốc repository:
+         - Trên PowerShell: `pwsh scripts/test-backend.ps1` (hoặc `powershell -ExecutionPolicy Bypass -File scripts/test-backend.ps1`)
+         - Trên Git Bash / Linux: `./scripts/test-backend.sh` (hoặc `bash scripts/test-backend.sh`)
+         - Hoặc lệnh .NET trực tiếp: `dotnet test dotnet-backend-core-main/TourAgent.slnx`
+       - Lệnh này tự động: build 4 projects src (`Domain`, `Application`, `Infrastructure`, `Api`), tự kích hoạt sinh `docs/api/swagger.json` & `docs/api/api-index.txt`, và chạy toàn bộ 132 tests của 3 test projects.
+       - Khi đang đứng trong thư mục `dotnet-backend-core-main/`: chạy `dotnet test TourAgent.slnx`.
      - Schema DB: `dotnet-backend-core-main/db/supabase_migration.sql` (nguồn duy nhất).
      - `docs/api/`: tự sinh khi build Debug. KHÔNG sửa tay.
    - Tra cứu API
@@ -55,58 +60,67 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 ## 3. 📜 Quy Ước Code Bắt Buộc (Strict Guidelines)
 
 1. **User Global Rules**:
+
    - **Luôn viết comment XML doc/giải thích cho MỌI hàm/method**.
    - **Đặt tên biến rõ ràng, dễ hiểu, tránh viết tắt tối nghĩa**.
 2. **Use Case / Feature Folder Pattern**:
+
    - Mỗi use case là một folder: `Features/{Area}/{UseCase}/` gồm:
      - `{Name}Command.cs` hoặc `{Name}Query.cs`
      - `{Name}Handler.cs` (sealed class, 1 method public `HandleAsync(request, CancellationToken ct)`)
      - `{Name}Validator.cs`
      - `{Name}Response.cs`
 3. **Không dùng MediatR & Không dùng AutoMapper**:
+
    - Handlers được inject trực tiếp vào Minimal API endpoint.
    - Data Mapping hoàn toàn viết thủ công bằng Extension Methods (ví dụ: `tour.ToResponse()`).
 4. **Data Access**:
+
    - Truy cập dữ liệu qua `IAppDbContext`.
    - **Không tạo Generic Repository riêng cho từng entity** (tránh boilerplate thừa).
 5. **Error Handling & Invariants**:
+
    - Lỗi nghiệp vụ trả về `Result<T>.Failure(Error)`. Không dùng exception cho luồng xử lý nghiệp vụ thông thường.
    - Entities có private setter, khởi tạo qua static factory method `Create()` để kiểm soát invariants.
 6. **Async & Type Safety**:
+
    - Mọi phương thức async PHẢI nhận `CancellationToken ct`.
    - Bật `<Nullable>enable</Nullable>` và `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`.
-
 7. **JSON & API Naming Convention (Chuẩn camelCase 100%)** — Xem [ADR-0005](docs/adr/0005-strict-camelcase-api-contracts.md):
+
    - Dự án kết hợp giữa **.NET 10** và **React (TypeScript)**: Mọi Request Payload và Response Data qua HTTP API **bắt buộc dùng `camelCase`**, **tuyệt đối KHÔNG dùng `snake_case`**.
    - **Backend (.NET)**: DTOs khai báo bằng C# record/class PascalCase thông thường (ví dụ: `ApiKey`, `BaseUrl`, `BotToken`). ASP.NET Core với `JsonNamingPolicy.CamelCase` sẽ tự động chuyển thành `apiKey`, `baseUrl`, `botToken`. **KHÔNG đặt `[JsonPropertyName("ten_snake_case")]`**.
    - **Frontend (React)**: Mọi interface, state và payload gửi đi (`apiFetch`) đều dùng `camelCase` thuần túy (`apiKey`, `baseUrl`, `botToken`, `isConfigured`).
-
 8. **Query Objects Cho Controller & Hợp Nhất TravelsController** — Xem [ADR-0007](docs/adr/0007-query-objects-and-unified-travels-api.md):
+
    - Mọi action HTTP GET có nhiều hơn 1 tham số lọc/phân trang phải gom vào Query Object: `[FromQuery] TQuery query`.
    - Toàn bộ API nghiệp vụ tour tập trung tại `TravelsController.cs` (endpoint tìm kiếm nâng cao: `GET /api/v1/travels/search`). Không tạo thêm `ToursController.cs`.
-
 9. **Mô Hình Tour (1) — Offer (N) & Adaptive UI** — Xem [ADR-0006](docs/adr/0006-hybrid-80-20-tour-offer-adaptive-ui.md):
+
    - Database giữ quan hệ chuẩn 1-N (1 Tour có thể có nhiều Offer tiers).
    - Frontend hiển thị thích ứng: Nếu tour chỉ có 1 offer thì hiển thị trực diện phẳng; nếu có từ 2 offer trở lên thì hiển thị thanh chuyển đổi Pill Tabs.
-
 10. **Tách Biệt Route Sản Phẩm & Zero-FOUC Shimmer UX** — Xem [ADR-0008](docs/adr/0008-separate-tour-page-zero-fouc.md):
-   - Trang chủ công ty (`/`) dùng riêng `LandingPage.tsx`; trang chi tiết sản phẩm (`/tour/:slug`) dùng riêng `TourProductPage.tsx`.
-   - Bắt buộc Shimmer Loading Skeleton khi fetch API. Cấm tuyệt đối khởi tạo mock data gây chớp nháy (FOUC). Section không có data thì ẩn hoàn toàn cùng mục menu tương ứng.
+
+- Trang chủ công ty (`/`) dùng riêng `LandingPage.tsx`; trang chi tiết sản phẩm (`/tour/:slug`) dùng riêng `TourProductPage.tsx`.
+- Bắt buộc Shimmer Loading Skeleton khi fetch API. Cấm tuyệt đối khởi tạo mock data gây chớp nháy (FOUC). Section không có data thì ẩn hoàn toàn cùng mục menu tương ứng.
 
 11. **Nguyên Tắc File-Per-Type & Tách Biệt Request DTOs Khỏi Controller**:
-   - Mọi DTO, Request/Response record, Query Object, Enum, hoặc Command/Query **BẮT BUỘC nằm trong file `.cs` riêng biệt**, tên file trùng khớp 100% với tên Type.
-   - **Tuyệt đối KHÔNG khai báo `record SomeRequest(...)` hay DTOs ở đầu/cuối file Controller** (vi phạm Single Responsibility Principle & File-per-Type).
-   - Các API Request/Response DTOs thuộc tầng Api phải đặt tại thư mục `TourAgent.Api/Contracts/{Feature}/` (ví dụ: `TourAgent.Api/Contracts/Agent/ChatRequest.cs`).
+
+- Mọi DTO, Request/Response record, Query Object, Enum, hoặc Command/Query **BẮT BUỘC nằm trong file `.cs` riêng biệt**, tên file trùng khớp 100% với tên Type.
+- **Tuyệt đối KHÔNG khai báo `record SomeRequest(...)` hay DTOs ở đầu/cuối file Controller** (vi phạm Single Responsibility Principle & File-per-Type).
+- Các API Request/Response DTOs thuộc tầng Api phải đặt tại thư mục `TourAgent.Api/Contracts/{Feature}/` (ví dụ: `TourAgent.Api/Contracts/Agent/ChatRequest.cs`).
 
 12. **Tập Trung Hóa API Routes Trên Frontend (Zero Hardcoded URLs)** — Xem [ADR-0010](docs/adr/0010-centralized-frontend-api-routes.md):
-   - Mọi URL endpoint HTTP được gọi từ Frontend (`apiFetch`, `fetch`, SSE `EventSource`, v.v.) **BẮT BUỘC định nghĩa tập trung** trong `tour-agent-frontend/src/constants/apiRoutes.ts` thông qua hằng số `API_ROUTES`.
-   - Với các route có dynamic parameter (như `id`, `slug`), bắt buộc định nghĩa hàm helper nhận tham số (ví dụ: `API_ROUTES.ADMIN.TRAVEL_BY_ID(id)`, `API_ROUTES.TRAVELS.BY_SLUG(slug)`).
-   - **Tuyệt đối KHÔNG gõ chuỗi URL trực tiếp** như `'/api/v1/...'` rải rác trong React components, hooks, hay API services. Mọi endpoint mới phải được khai báo trong `API_ROUTES` trước khi gọi.
+
+- Mọi URL endpoint HTTP được gọi từ Frontend (`apiFetch`, `fetch`, SSE `EventSource`, v.v.) **BẮT BUỘC định nghĩa tập trung** trong `tour-agent-frontend/src/constants/apiRoutes.ts` thông qua hằng số `API_ROUTES`.
+- Với các route có dynamic parameter (như `id`, `slug`), bắt buộc định nghĩa hàm helper nhận tham số (ví dụ: `API_ROUTES.ADMIN.TRAVEL_BY_ID(id)`, `API_ROUTES.TRAVELS.BY_SLUG(slug)`).
+- **Tuyệt đối KHÔNG gõ chuỗi URL trực tiếp** như `'/api/v1/...'` rải rác trong React components, hooks, hay API services. Mọi endpoint mới phải được khai báo trong `API_ROUTES` trước khi gọi.
 
 13. **Cô Lập Thư Viện UI Thứ Ba Dễ Biến Động (Facade Pattern)** — Xem [ADR-0011](docs/adr/0011-facade-pattern-volatile-ui-libraries.md):
-   - Mọi thao tác hiển thị Toast/Alert trong ứng dụng **BẮT BUỘC** gọi thông qua module `notify` tại `src/lib/notify.tsx` (`notify.success`, `notify.error`, `notify.warning`, `notify.info`).
-   - Sử dụng kiểu dữ liệu riêng của dự án (`NotifyOptions`), tuyệt đối không để lộ hoặc tái sử dụng type của thư viện bên ngoài ra ngoài wrapper (ngăn chặn Leaky Abstraction).
-   - Tuyệt đối **KHÔNG import trực tiếp `'sonner'`** trong bất kỳ component, hook hay trang nào khác.
+
+- Mọi thao tác hiển thị Toast/Alert trong ứng dụng **BẮT BUỘC** gọi thông qua module `notify` tại `src/lib/notify.tsx` (`notify.success`, `notify.error`, `notify.warning`, `notify.info`).
+- Sử dụng kiểu dữ liệu riêng của dự án (`NotifyOptions`), tuyệt đối không để lộ hoặc tái sử dụng type của thư viện bên ngoài ra ngoài wrapper (ngăn chặn Leaky Abstraction).
+- Tuyệt đối **KHÔNG import trực tiếp `'sonner'`** trong bất kỳ component, hook hay trang nào khác.
 
 ---
 
@@ -144,6 +158,7 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 - ❌ CẤM hardcode chuỗi URL endpoint trực tiếp trong React components, hooks hoặc API services (ví dụ: `'/api/v1/...'`). Bắt buộc sử dụng hằng số tập trung `API_ROUTES` từ `tour-agent-frontend/src/constants/apiRoutes.ts` ([ADR-0010](docs/adr/0010-centralized-frontend-api-routes.md)).
 - ❌ CẤM gộp chung System Prompt giữa khách hàng và admin; CẤM cấp quyền hoặc để lộ Write Tools cho khách hàng ([ADR-0009](docs/adr/0009-dual-persona-agent-defense-in-depth.md)).
 - ❌ CẤM import trực tiếp thư viện `'sonner'` rải rác trong các React components; bắt buộc dùng `notify` từ `@/lib/notify` ([ADR-0011](docs/adr/0011-facade-pattern-volatile-ui-libraries.md)).
+- ❌ CẤM chạy build hoặc unit test lẻ tẻ từng dự án qua nhiều turn (gây lãng phí token context và dễ sót kiểm thử). Bắt buộc dùng 1 lệnh tập trung: `pwsh scripts/test-backend.ps1` (PowerShell), `./scripts/test-backend.sh` (Git Bash), hoặc `dotnet test dotnet-backend-core-main/TourAgent.slnx`.
 
 ---
 
@@ -152,6 +167,6 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 1. Đọc `AGENTS.md` và `docs/PROGRESS.md`.
 2. Nêu rõ kế hoạch: các file sẽ tạo/sửa + lý do.
 3. Code theo từng bước nhỏ, có comment đầy đủ cho từng hàm.
-4. Trong `dotnet-backend-core-main/`, chạy `dotnet build` và `dotnet test`, đảm bảo 100% test pass
+4. Chạy kiểm tra toàn diện Backend bằng 1 lệnh duy nhất: `pwsh scripts/test-backend.ps1` (hoặc `./scripts/test-backend.sh` / `dotnet test dotnet-backend-core-main/TourAgent.slnx`), đảm bảo 100% test pass.
 5. Cập nhật `docs/PROGRESS.md` trước khi kết thúc session.
 6. Nếu có quyết định kiến trúc mới → kích hoạt skill `adr-manager` để đánh giá và tạo ADR trong `docs/adr/`, không tự quyết.

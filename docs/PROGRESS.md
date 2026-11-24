@@ -61,6 +61,16 @@
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
 - **2026-11-24**:
+  - **Tối Ưu DX & Tiết Kiệm Token Cho AI Agent: Thiết Lập Bộ Đôi Script Kiểm Thử Tập Trung 1-Click (`scripts/test-backend.sh` & `scripts/test-backend.ps1`)**:
+    - **Lý do**: Trước đây, mỗi lần kiểm tra sau khi code xong, AI Agent thường tốn nhiều turn và hàng chục ngàn tokens ngữ cảnh để lần lượt chạy `dotnet build` và `dotnet test` rời rạc cho từng dự án, dễ xảy ra nhầm lẫn working directory và rủi ro bỏ sót kiểm thử kiến trúc (`ArchitectureTests`).
+    - **Giải pháp**:
+      - Xây dựng bộ đôi script kiểm thử cross-platform tại thư mục `scripts/`:
+        - [scripts/test-backend.sh](file:///d:/github/Tour-Agent/scripts/test-backend.sh): Tối ưu chạy trực tiếp trên **Git Bash**, Linux, macOS (dành cho Developer).
+        - [scripts/test-backend.ps1](file:///d:/github/Tour-Agent/scripts/test-backend.ps1): Tối ưu chạy trên **Windows PowerShell** (dành cho AI Agent chạy ngầm trên Windows OS).
+      - Cơ chế: Tự động định vị `TourAgent.slnx`, build toàn bộ 4 dự án src (`Domain`, `Application`, `Infrastructure`, `Api`), tự động sinh tài liệu API (Swagger + api-index) và thực thi trọn vẹn 132 tests của 3 dự án test trong đúng 1 lệnh duy nhất (~3.8s - 6.7s).
+      - Hỗ trợ đầy đủ tham số lọc test `-Filter <pattern>` và bỏ qua build `-NoBuild`.
+      - Cập nhật quy tắc bắt buộc vào [AGENTS.md](file:///d:/github/Tour-Agent/AGENTS.md): Nghiêm cấm chạy build/test lẻ tẻ; bắt buộc dùng 1 lệnh tập trung phù hợp theo môi trường (`./scripts/test-backend.sh`, `pwsh scripts/test-backend.ps1` hoặc `dotnet test dotnet-backend-core-main/TourAgent.slnx`).
+    - **Kiểm thử**: Đã xác minh thực tế 100% test passed trên cả Git Bash lẫn PowerShell.
   - **Rà Soát & Dọn Dẹp Triệt Để Toàn Bộ Tàn Dư PHP Khỏi Dự Án TourAgent**:
     - **Lý do**: Dự án sau khi convert từ PHP sang .NET 10 còn tồn dư nhiều từ khóa, docblock XML, rule gitignore và tài liệu cũ liên quan đến PHP/Laravel (`kp3-backend-core-main`, `php artisan test`, `Pest`, `PHPStan`, `Pint`, `Blade`), gây nhầm lẫn và nhiễu ngữ cảnh cho các AI Agent khi làm việc trên codebase.
     - **Thay đổi chi tiết**:
