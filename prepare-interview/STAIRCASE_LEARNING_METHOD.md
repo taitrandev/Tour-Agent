@@ -226,7 +226,7 @@ Quy tắc: Hoàn thành concept A trước, rồi mới chuyển sang B.
 > Cơ chế hoạt động gồm 3 phần:
 >
 > 1. **Cột `agent_state` (JSON)** trong bảng `conversations`: Lưu toàn bộ trạng thái dưới dạng JSON có cấu trúc (`version`, `current_goal`, `workflow_status`, `confirmed_facts`, `domain_state`).
-> 2. **AgentStateDTO**: Khuôn mẫu PHP chuẩn hóa dữ liệu JSON đó. Code không đọc JSON thô mà đọc qua DTO.
+> 2. **AgentState**: Record C# chuẩn hóa dữ liệu JSON đó. Code không đọc JSON thô mà đọc qua Record/DTO.
 > 3. **DatabaseAgentStateStore**: Thủ thư đọc/ghi. Khi đọc: lấy JSON từ DB → chuyển thành DTO. Khi ghi: so sánh `version` trong DTO với `version` trong DB — nếu khớp thì ghi + tăng version, nếu không khớp (có người khác ghi trước) thì từ chối → đây là OCC (Optimistic Concurrency Control).
 
 **✋ Câu kiểm tra:**

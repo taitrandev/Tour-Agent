@@ -9,15 +9,15 @@
 
 Theo tiêu chuẩn công nghiệp của **OpenAI Function Calling, Anthropic Tool Use và Gemini Tools**, một Tool chuẩn không chỉ là một hàm code thông thường mà là một giao ước (Contract) đa chiều gồm đúng **6 thành phần bắt buộc**:
 
-```php
-interface AgentToolInterface
+```csharp
+public interface IAgentTool
 {
-    public function name(): string;
-    public function description(): string;
-    public function schema(): array;
-    public function requiresConfirmation(): bool;
-    public function preview(array $arguments): array;
-    public function execute(array $arguments, ?int $userId = null): array;
+    string Name { get; }
+    string Description { get; }
+    IReadOnlyList<ToolParameterDefinition> Parameters { get; }
+    bool RequiresConfirmation { get; }
+    bool IsAdminOnly { get; }
+    Task<string> ExecuteAsync(Dictionary<string, object?> arguments, CancellationToken cancellationToken = default);
 }
 ```
 
@@ -41,7 +41,7 @@ interface AgentToolInterface
    * LLM sẽ trả về tên này trong trường `tool_calls[0].name` khi quyết định kích hoạt công cụ.
 
 2. **`description(): string` (Mô tả công dụng & ngữ cảnh)**:
-   * **Đây là phần quan trọng nhất đối với LLM!** LLM không đọc code PHP bên trong; nó chỉ đọc dòng `description` này để suy luận xem câu nói của người dùng có khớp với công năng của Tool hay không.
+   * **Đây là phần quan trọng nhất đối với LLM!** LLM không đọc mã nguồn bên trong; nó chỉ đọc dòng `description` này để suy luận xem câu nói của người dùng có khớp với công năng của Tool hay không.
    * *Nguyên tắc viết:* Phải nêu rõ hành động, đối tượng tác động và giá trị mang lại (Ví dụ: *"Cập nhật giá bán ưu đãi (offer_price) và tự động tính lại tiền cọc 30% cho gói sản phẩm"*).
 
 3. **`schema(): array` (JSON Schema tham số)**:
@@ -61,7 +61,7 @@ interface AgentToolInterface
    * Dữ liệu này được hiển thị lên Card xác nhận màu vàng cam trên giao diện trước khi gọi API.
 
 6. **`execute(array $arguments, ?int $userId = null): array` (Thực thi nghiệp vụ)**:
-   * Chạy qua các tầng Service/Repository của Laravel (có đầy đủ validation, tính toán phụ, hook events).
+   * Chạy qua các tầng Application Handlers / Services của Clean Architecture (có đầy đủ validation, tính toán phụ, domain events).
    * Tự động ghi lại nhật ký vào bảng `agent_audit_logs`.
 
 ---
@@ -70,14 +70,18 @@ interface AgentToolInterface
 
 Để hệ thống có thể chuyển đổi linh hoạt giữa các nhà cung cấp AI (**DeepSeek, OpenAI, Gemini, Anthropic**) mà không làm vỡ code ứng dụng, Driver cần tuân thủ **5 phương thức tiêu chuẩn**:
 
-```php
-interface LlmDriverInterface
+```csharp
+public interface ILlmClient
 {
-    public function name(): string;
-    public function chat(array $messages, array $tools = [], array $options = []): array;
-    public function synthesize(array $messages, string $toolCallId, string $toolName, array $toolResult, array $options = []): string;
-    public function testConnection(): array;
-    public function getAvailableModels(): array;
+    Task<LlmChatResponse> ChatAsync(
+        IReadOnlyList<LlmChatMessage> messages,
+        IReadOnlyList<IAgentTool>? tools = null,
+        CancellationToken cancellationToken = default);
+
+    IAsyncEnumerable<ChatStreamChunk> StreamChatAsync(
+        IReadOnlyList<LlmChatMessage> messages,
+        IReadOnlyList<IAgentTool>? tools = null,
+        CancellationToken cancellationToken = default);
 }
 ```
 
@@ -122,7 +126,7 @@ interface LlmDriverInterface
 * Đôi khi, thay vì trả về trường JSON `tool_calls` qua giao thức API chuẩn, DeepSeek lại in chuỗi DSML thô trực tiếp vào nội dung tin nhắn (`content`), kèm theo tên tool bị biến thể (ví dụ: `update_offer_pricing` thay vì `update_offer_price`).
 * Hậu quả: Backend không bắt được `tool_calls` chuẩn nên xem đó là tin nhắn văn bản thường, in nguyên đoạn mã XML/DSML lên màn hình người dùng và không kích hoạt được Card Xác Nhận.
 
-### Giải Pháp Triệt Để Trong `DeepSeekDriver.php`:
+### Giải Pháp Triệt Để Trong `DeepSeekLlmClient.cs`:
 1. **DSML Fallback Regex Parser**: Nếu `tool_calls` rỗng nhưng `content` có chứa thẻ `< | | DSML | | invoke ...>`, Driver sẽ tự động bóc tách tên tool và tham số (`offer_id`, `offer_price`) và biến thành `tool_call` hợp lệ.
 2. **Tool Name Normalizer (Alias Mapping)**: Tự động chuẩn hóa các biến thể tên tool (`update_offer_pricing` ➔ `update_offer_price`, `add_gift` ➔ `add_bonus_item`).
 3. **Giảm Temperature**: Đặt `temperature = 0.1` khi gọi function calling để mô hình tuân thủ tuyệt đối cấu trúc API chuẩn.
@@ -230,7 +234,7 @@ Một trong những sai lầm phổ biến nhất của các lập trình viên 
 
 ### ✅ Giải Pháp Chuẩn Kiến Trúc: Tách Biệt Tuyệt Đối 2 Giai Đoạn
 1. **Pha 1: High-Fidelity Verbatim Ingestion (Nhập liệu nguyên văn 100%)**:
-   - Sử dụng Parser thô (PHP/Python) trích xuất toàn bộ văn bản và bảng biểu từ `.docx` không qua LLM để không mất một chữ nào.
+   - Sử dụng Parser thô (OpenXML / Python) trích xuất toàn bộ văn bản và bảng biểu từ `.docx` không qua LLM để không mất một chữ nào.
    - LLM Extraction chỉ làm nhiệm vụ *phân loại khối văn bản (Text Block Categorization)* vào các trường JSON schema tương ứng (`itinerary`, `policies`, `flights`), cấm tuyệt đối việc paraphrase hoặc tóm tắt (`Zero Summarization Rule`).
 2. **Pha 2: AI Copy Enhancer (Tối ưu hóa nội dung Landing Page theo yêu cầu)**:
    - Chỉ kích hoạt khi Admin chủ động bấm nút *"✨ Tối ưu nội dung bán hàng bằng AI"*.
@@ -333,15 +337,15 @@ Inbound Event (Telegram / Web / Zalo)
 ## 🚪 14. Kiến Trúc Giao Diện Quản Trị: Tách Route Chuyên Biệt vs. Nhồi Nhét Modal
 
 ### ❌ Bài Học Cũ (Anti-Pattern): "Hội Chứng Nhồi Nhét Modal" (Modal Bloat)
-* Đưa toàn bộ các tính năng lớn vào chung 1 trang Dashboard `welcome.blade.php` bằng hàng chục `<div class="modal">` (Modal Tour Entry, Modal Offer, Modal Reviews, Modal FAQs, Modal Telegram Diagnostics, Modal Conversations Inspector...).
+* Đưa toàn bộ các tính năng lớn vào chung 1 trang Dashboard bằng hàng chục `<div class="modal">` (Modal Tour Entry, Modal Offer, Modal Reviews, Modal FAQs, Modal Telegram Diagnostics, Modal Conversations Inspector...).
 * **Hậu quả**:
-  1. **DOM phình to**: File Blade vượt 3.500 dòng, trình duyệt tải chậm, tốn RAM rendering.
+  1. **DOM phình to**: File component/view vượt 3.500 dòng, trình duyệt tải chậm, tốn RAM rendering.
   2. **Xung đột JavaScript**: Các biến toàn cục, sự kiện click, backdrop z-index dễ đè lên nhau.
-  3. **Không thể chia sẻ liên kết (No Deep Linking)**: Không thể gửi link trực tiếp cho đồng nghiệp xem trang Khách hàng CRM hay trang Zalo Bridge vì tất cả đều ẩn sau các nút mở popup.
+  3. **Không thể chia sẻ liên kết (No Deep Linking)**: Không thể gửi link trực tiếp cho đồng nghiệp xem trang Khách hàng CRM hay trang Telegram Bridge vì tất cả đều ẩn sau các nút mở popup.
 
 ### ✅ Nguyên Tắc Thiết Kế:
 1. **Tách Route Độc Lập cho Phân Hệ Lớn**:
-   - Phân hệ có luồng nghiệp vụ riêng biệt, bảng dữ liệu lớn hoặc cấu hình phức tạp (như Quản lý Khách hàng CRM `/admin/contacts`, Cấu hình Zalo Hub `/admin/zalo`) phải có **Route, Controller và View Blade riêng**.
+   - Phân hệ có luồng nghiệp vụ riêng biệt, bảng dữ liệu lớn hoặc cấu hình phức tạp (như Quản lý Khách hàng CRM `/admin/contacts`, Cấu hình Telegram Hub `/admin/channels/telegram`) phải có **Route, Controller và Trang Component riêng**.
 2. **Dashboard Chỉ Làm Hub Tổng Quan**:
    - Trang `/admin` chỉ đóng vai trò Dashboard tổng quan (Overview), hiển thị bảng số liệu tóm tắt và các nút điều hướng rõ ràng sang các trang con chuyên biệt.
 3. **Khi Nào Mới Dùng Modal?**:

@@ -3,7 +3,7 @@ using TourAgent.Domain.Offers;
 namespace TourAgent.Application.Features.Offers;
 
 /// <summary>
-/// DTO thông tin giá cả và tiền cọc của gói Offer (khớp cấu trúc pricing của PHP OfferResource).
+/// DTO thông tin giá cả và tiền cọc của gói Offer.
 /// </summary>
 public sealed record OfferPricingDto(
     decimal OriginalPrice,
@@ -54,7 +54,7 @@ public sealed record OfferItemDto(
     bool IsHighlighted);
 
 /// <summary>
-/// DTO đầy đủ của một Grand Slam Offer trả về cho Client, tương thích 100% với PHP OfferResource.
+/// DTO đầy đủ của một Grand Slam Offer trả về cho Client.
 /// </summary>
 public sealed record OfferDto(
     long Id,

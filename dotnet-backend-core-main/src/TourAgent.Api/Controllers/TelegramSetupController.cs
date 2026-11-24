@@ -35,7 +35,7 @@ public sealed record TestMessageRequest(string ChatId, string? Text = null);
 public sealed record TestEscalationRequest(string? AdminChatId = null);
 
 /// <summary>
-/// Controller quản lý cấu hình kết nối, thiết lập Webhook và kiểm tra tương tác Telegram Bot (tương thích 100% logic PHP).
+/// Controller quản lý cấu hình kết nối, thiết lập Webhook và kiểm tra tương tác Telegram Bot.
 /// </summary>
 [ApiController]
 [Route("api/v1/agent/telegram")]

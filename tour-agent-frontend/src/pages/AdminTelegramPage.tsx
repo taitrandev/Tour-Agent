@@ -52,8 +52,7 @@ interface TelegramConfigStatus {
 }
 
 /**
- * Trang Quản Trị Kênh Telegram Bot & Thông Báo Quản Lý
- * Tái hiện 100% giao diện và nghiệp vụ từ resources/views/admin/telegram.blade.php của PHP core.
+ * Trang Quản Trị Kênh Telegram Bot & Thông Báo Quản Lý.
  */
 export const AdminTelegramPage: React.FC = () => {
   const confirm = useConfirm();

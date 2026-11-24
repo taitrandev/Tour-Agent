@@ -13,7 +13,7 @@ namespace TourAgent.Application.Features.Tours.GetAllTours;
 public sealed record GetAllToursQuery(string? Search = null, string? Status = null) : IQuery<Result<IReadOnlyList<TourAdminItemDto>>>;
 
 /// <summary>
-/// DTO chi tiết đầy đủ cho từng mục Tour trả về cho UI quản trị và API tương thích 100% PHP.
+/// DTO chi tiết đầy đủ cho từng mục Tour trả về cho UI quản trị và API.
 /// </summary>
 public sealed record TourAdminItemDto(
     long Id,

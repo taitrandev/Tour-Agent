@@ -8,7 +8,6 @@ import { API_ROUTES } from '../constants/apiRoutes';
 
 /**
  * Trang Quản lý Danh mục Sản Phẩm Tour Du Lịch (Core Product Base).
- * Tái hiện 100% giao diện, layout và logic từ tab-products trong welcome.blade.php của PHP.
  */
 export const AdminProductsPage: React.FC = () => {
   const confirm = useConfirm();

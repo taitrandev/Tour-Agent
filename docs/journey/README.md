@@ -1,6 +1,11 @@
 # 🗺️ Nhật Ký Chuyển Đổi Dự Án: AI Agent Travel (PHP ➔ .NET 10)
 ## *From PHP 8.4 / Laravel 12 to Modern .NET 10 Clean Architecture*
 
+> [!NOTE]
+> **Tài Liệu Nghiên Cứu Lịch Sử & Hồ Sơ Phỏng Vấn (Historical Case Study)**:
+> Thư mục này lưu trữ hành trình kỹ thuật, các phân tích trade-off so sánh giữa Laravel và .NET 10 phục vụ mục đích phỏng vấn tuyển dụng Senior/Lead .NET.
+> Toàn bộ mã nguồn thực tế của hệ thống hiện tại chạy thuần **C# .NET 10 Clean Architecture** và **React 19 SPA**, không sử dụng runtime hay thư viện PHP.
+
 > **Tài liệu hành trình kỹ thuật (Engineering Journey Document)**
 > Được thiết kế đặc biệt nhằm trình bày tư duy kiến trúc, năng lực phân tích phản biện và khả năng làm chủ công nghệ C# .NET 10 sau 15 tháng gián đoạn để phục vụ phỏng vấn tuyển dụng vị trí Senior / Lead .NET Developer.
 

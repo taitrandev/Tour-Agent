@@ -50,7 +50,7 @@
 | **6.1** | Lập Blueprint `UI_PLAN.md`, cấu hình CORS Policy trên Backend .NET 10 | ✅ DONE | `SpaCorsPolicy` kích hoạt |
 | **6.2** | Khởi tạo dự án Frontend SPA (`tour-agent-frontend`) Vite + React 19 + TypeScript | ✅ DONE | Tailwind CSS v4, Lucide |
 | **6.3** | Tích hợp Client Portal & AI Consultant Widget với SSE Streaming + Tool Badges | ✅ DONE | `/api/v1/agent/chat/stream` |
-| **6.4** | Tách Route 1-1 theo dự án PHP: `/` (Landing), `/admin`, `/admin/conversations`, `/admin/escalations`, `/admin/channels/telegram` | ✅ DONE | Replicate 100% PHP UI |
+| **6.4** | Tách Route chuẩn hóa theo phân hệ: `/` (Landing), `/admin`, `/admin/conversations`, `/admin/escalations`, `/admin/channels/telegram` | ✅ DONE | Giao diện React SPA độc lập |
 | **7.1** | Phase 0 Step 1: Dọn dẹp Secret & Hardcoded API Key khỏi code và config | ✅ DONE | Trừu tượng hóa qua Env Vars |
 | **7.2** | Phase 0 Step 2: Cấu hình CORS động (`CORS_ALLOWED_ORIGINS`) & Telegram WebhookUrl | ✅ DONE | Hỗ trợ Cloud Deploy |
 | **7.3** | Phase 0 Step 3: Tích hợp ASP.NET Core Health Checks (`/health`) cho DB & DeepSeek AI | ✅ DONE | Endpoint `/health` kiểm tra song song DB và DeepSeek API |
@@ -61,6 +61,16 @@
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
 - **2026-11-24**:
+  - **Rà Soát & Dọn Dẹp Triệt Để Toàn Bộ Tàn Dư PHP Khỏi Dự Án TourAgent**:
+    - **Lý do**: Dự án sau khi convert từ PHP sang .NET 10 còn tồn dư nhiều từ khóa, docblock XML, rule gitignore và tài liệu cũ liên quan đến PHP/Laravel (`kp3-backend-core-main`, `php artisan test`, `Pest`, `PHPStan`, `Pint`, `Blade`), gây nhầm lẫn và nhiễu ngữ cảnh cho các AI Agent khi làm việc trên codebase.
+    - **Thay đổi chi tiết**:
+      - **Backend C# (.NET 10)**: Chuẩn hóa toàn bộ docblock XML trong 4 Controllers (`LlmSettingController`, `OffersController`, `TelegramSetupController`, `TravelsController`), Handler `GetAllOffersHandler`, DTO `OfferDtos.cs` và Query `GetAllToursQuery.cs`, loại bỏ hoàn toàn các nhắc đến "tương thích PHP core", "PHP OfferResource".
+      - **Frontend SPA (React 19 / TypeScript)**: Dọn sạch các chú thích `.blade.php` và `from PHP` trong `App.tsx`, `index.css` và 7 trang quản trị / landing page (`AdminContactsPage`, `AdminConversationsPage`, `AdminOffersPage`, `AdminOrdersPage`, `AdminProductsPage`, `AdminTelegramPage`, `LandingPage`).
+      - **Cấu hình Git (.gitignore)**: Loại bỏ các mục đặc thù của Laravel & PHPUnit (`**/vendor/`, `**/.phpunit.cache/`, `**/storage/*`, `**/public/hot`...).
+      - **Knowledge Base (dotnet-project-knowledge/)**: Dọn sạch `AI_CONTEXT.md` (xóa `kp3-backend-core-main/`), viết lại `TECHNICAL_NOTES.md` theo chuẩn `dotnet test` và `FakeLlmClient`, cập nhật `LESSONS_LEARNED.md` sang interface C# (`IAgentTool`, `ILlmClient`), chuẩn hóa `LESSONS_LEARNED_AGENT.md` và `GLOSSARY.md`. Xóa thư mục rỗng `dotnet-project-knowledge/adr/`.
+      - **Phỏng vấn (prepare-interview/)**: Làm mới `prepare-interview/PROMPTS.md`, loại bỏ các prompt cũ về Laravel/Pest/PHPStan, cập nhật `STAIRCASE_LEARNING_METHOD.md`.
+      - **Tài liệu (docs/)**: Cập nhật `UI_PLAN.md`, `API_ENDPOINTS.md` và gắn nhãn ghi chú lịch sử rõ ràng tại [docs/journey/README.md](journey/README.md).
+    - **Kiểm thử**: **132/132 tests backend PASSED 100%**. Frontend `npm run build` thành công không lỗi type hay lint. `git grep` xác nhận 0 tàn dư PHP trong toàn bộ code vận hành và knowledge hub.
   - **Ban Hành Bộ 3 Quyết Định Kiến Trúc Mới (ADR-0009, ADR-0010, ADR-0011)**:
     - Kích hoạt skill `adr-manager` theo quy chuẩn Michael Nygard (2011), rà soát và chính thức ban hành 3 ADRs:
       - [ADR-0009](adr/0009-dual-persona-agent-defense-in-depth.md): Kiến trúc Dual-Persona AI Agent và phòng thủ 2 lớp (Defense-in-Depth) chống Prompt Injection bảo vệ dữ liệu nghiệp vụ.

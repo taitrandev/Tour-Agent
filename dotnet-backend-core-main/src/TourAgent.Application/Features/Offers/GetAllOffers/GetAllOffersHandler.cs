@@ -27,7 +27,7 @@ public sealed class GetAllOffersHandler : IQueryHandler<GetAllOffersQuery, Resul
     /// </summary>
     /// <param name="query">Điều kiện tìm kiếm, trạng thái và nổi bật.</param>
     /// <param name="cancellationToken">Token hủy thao tác bất đồng bộ.</param>
-    /// <returns>Danh sách OfferDto tương thích 100% với PHP core.</returns>
+    /// <returns>Danh sách OfferDto đầy đủ thông tin ưu đãi và giá trị.</returns>
     public async Task<Result<IReadOnlyList<OfferDto>>> HandleAsync(
         GetAllOffersQuery query,
         CancellationToken cancellationToken = default)

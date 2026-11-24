@@ -1,135 +1,44 @@
-# 💬 PROMPTS.md — Bộ Câu Lệnh Chuẩn (Session Prompt Playbook)
+# 💬 PROMPTS.md — Bộ Câu Lệnh Chuẩn Luyện Phỏng Vấn & Review Kiến Trúc (.NET 10)
 
-> **Mục đích:** File này chứa các mẫu Prompt (câu lệnh) chuẩn đã được tối ưu sẵn.
-> Mỗi khi **bắt đầu chat session mới**, **tiếp tục task**, hoặc **bàn giao cho người mới**, bạn chỉ cần **copy & paste** một trong các prompt dưới đây vào ô chat mà không cần phải nhớ hay gõ lại từ đầu.
-
-## 🌟 0. PROMPT BOOTSTRAP DỰ ÁN MỚI HOÀN TOÀN (Dùng Khi Chỉ Có Base Core)
-
-> 📋 **Khi nào dùng:** Khi bạn bắt đầu một dự án mới tinh, chỉ có sẵn thư mục mã nguồn nền tảng `kp3-backend-core-main/` (chưa có tài liệu, chưa có task, chưa có context).
-
-```markdown
-Chào bạn, tôi đang bắt đầu một dự án mới hoàn toàn mang tên: "[TÊN DỰ ÁN MỚI, VD: AI Real Estate / Hệ Thống Booking Sân Golf]".
-
-Dự án này sử dụng mã nguồn cơ sở (Base Core) có sẵn nằm trong thư mục `kp3-backend-core-main/`. 
-
-Mục tiêu kinh doanh của dự án mới này là:
-- [Điền mô tả bài toán kinh doanh, đối tượng khách hàng, sản phẩm/dịch vụ bạn muốn bán...]
-
-Hãy đóng vai trò là Senior Software Architect & Tech Lead, thực hiện các bước Bootstrap dự án sau:
-
-### Bước 1: Khảo sát và phân tích Base Core (`kp3-backend-core-main/`)
-1. Quét cấu trúc thư mục, `composer.json`, và các module mẫu có sẵn trong `modules/`.
-2. Phân tích kiến trúc của framework (Modular Monolith, Hook System, Service Pattern, Auth, Database).
-3. Kiểm tra các tool kiểm thử và chuẩn code đang được cấu hình (Pest / PHPStan / Pint).
-
-### Bước 2: Thiết lập Bộ Tài Liệu Quản Trị Dự Án (Project Knowledge Hub)
-Tạo mới thư mục `project-knowledge/` ở thư mục gốc và khởi tạo 3 file cốt lõi:
-1. `AI_CONTEXT.md`:
-   - Định nghĩa Tên dự án, Domain bài toán kinh doanh, Tech stack.
-   - Bản đồ kiến trúc hệ thống và danh mục các Modules sẽ xây dựng cho dự án mới.
-   - Project Rules bất di bất dịch (Strict types `declare(strict_types=1);`, Docblock comment cho mọi method, Surgical Edits chỉ sửa đúng dòng cần thay đổi, PHPStan Level 8 Clean).
-2. `TASKS.md`:
-   - Khởi tạo bảng Kanban (`NEW`, `IN-PROGRESS`, `TESTING`, `DONE`).
-   - Phân rã bài toán kinh doanh thành các Task cụ thể (từ TASK-01 đến TASK-05), sắp xếp theo thứ tự ưu tiên hợp lý.
-3. `LESSONS_LEARNED.md`:
-   - Ghi lại các lưu ý kỹ thuật đặc thù của Base Core (ví dụ: cách tạo module mới, cách viết migration, hook system).
-
-### Bước 3: Đề xuất bước đi đầu tiên
-Báo cáo lại cho tôi:
-- Tóm tắt ngắn gọn năng lực và các module có sẵn trong Base Core.
-- Lộ trình 3 giai đoạn (Milestones) để hoàn thiện sản phẩm mới.
-- Task đầu tiên cần bắt tay vào làm ngay hôm nay là gì?
-```
+> **Mục đích:** File này chứa các mẫu Prompt (câu lệnh) chuẩn đã được tối ưu sẵn phục vụ luyện phỏng vấn Senior/Lead .NET và review kiến trúc Clean Architecture.
+> Mỗi khi **bắt đầu chat session mới**, bạn chỉ cần **copy & paste** một trong các prompt dưới đây vào ô chat.
 
 ---
 
-## 🚀 1. PROMPT KHỞI ĐỘNG SESSION MỚI (Dùng Cho Dự Án Đang Chạy)
+## 🚀 1. PROMPT REVIEW CODE & KIỂM TRA CHẤT LƯỢNG HỆ THỐNG (.NET 10)
 
-> 📋 **Khi nào dùng:** Mỗi khi bạn mở một cuộc trò chuyện mới với AI trên IDE (Antigravity / Cursor / Claude Code) cho dự án ĐÃ CÓ tài liệu `project-knowledge/`.
-
-```markdown
-Chào bạn, tôi đang tiếp tục phát triển dự án "AI Agent Travel". 
-Hãy thực hiện các bước sau để nắm toàn bộ ngữ cảnh dự án trước khi làm việc:
-
-1. Đọc kỹ các file sau:
-   - `AI_CONTEXT.md` (Tổng quan kiến trúc, domain nghiệp vụ, tech stack và project rules).
-   - `TASKS.md` (Bảng tiến độ công việc: Done, In-Progress, Testing, New).
-   - `LESSONS_LEARNED.md` (Những kiến thức và sai lầm đúc kết được trong quá trình xây hệ thống).
-2. Kiểm tra nhanh trạng thái hệ thống và cho tôi biết:
-   - Hệ thống hiện tại đang có những tính năng / Module nào đã hoàn thiện?
-   - Task nào đang ở trạng thái `IN-PROGRESS` hoặc ưu tiên cao nhất trong `NEW`?
-   - Đề xuất việc cụ thể chúng ta nên bắt tay vào làm tiếp theo.
-```
-
----
-
-## 🛠️ 2. PROMPT CHỌN VÀ LÀM 1 TASK CỤ THỂ
-
-> 📋 **Khi nào dùng:** Khi bạn muốn AI tập trung làm 1 task nhất định trong `TASKS.md`.
-
-```markdown
-Hãy cùng tôi thực hiện [TASK_ID, ví dụ: TASK-10 Xây dựng Module Booking] trong file `TASKS.md`.
-
-Yêu cầu:
-1. Đọc kỹ mô tả và tiêu chí nghiệm thu của task này.
-2. Lập kế hoạch các bước triển khai chi tiết (Plan).
-3. Tuân thủ nghiêm ngặt Project Rules:
-   - Strict types (`declare(strict_types=1);`).
-   - Viết comment/docblock cho mọi method.
-   - Giao tiếp giữa các module qua Hook System (`do_action`/`apply_filters`).
-   - **Quy tắc sửa file (Surgical Edits):** Chỉ chỉnh sửa đúng những dòng cần thiết (dùng `replace_file_content`), KHÔNG ghi đè toàn bộ file để Git Diff luôn sạch, dễ review.
-   - Chạy `composer check` (Pint + PHPStan Level 8 + Pest tests) đảm bảo 0 lỗi sau khi code xong.
-```
-
----
-
-## 🏁 3. PROMPT KẾT THÚC SESSION (Wrap-Up & Cập Nhật Context)
-
-> 📋 **Khi nào dùng:** Khi bạn chuẩn bị tắt máy hoặc muốn đổi sang session khác, cần lưu lại toàn bộ tiến độ để không bị mất context.
-
-```markdown
-Phiên làm việc này sắp kết thúc. Hãy giúp tôi tổng kết và đóng gói dự án:
-
-1. Cập nhật file `TASKS.md`: Chuyển các task vừa hoàn thành sang mục `✅ DONE`, cập nhật các task đang làm dở sang `⏳ IN-PROGRESS` kèm ghi chú cụ thể.
-2. Cập nhật file `AI_CONTEXT.md` nếu có thay đổi về kiến trúc, endpoint mới hoặc driver mới.
-3. Nếu trong quá trình làm có phát hiện lỗi kỹ thuật hay bài học mới, hãy bổ sung vào `LESSONS_LEARNED.md`.
-4. Tóm tắt ngắn gọn 3 ý:
-   - Những việc ĐÃ LÀM XONG hôm nay.
-   - Trạng thái hiện tại của hệ thống.
-   - Việc CẦN LÀM TIẾP THEO ngay khi mở session mới.
-```
-
----
-
-## 🧑‍💻 4. PROMPT DÀNH CHO NGƯỜI MỚI TIẾP QUẢN DỰ ÁN (Onboarding)
-
-> 📋 **Khi nào dùng:** Khi có đồng đội mới, sếp, hoặc đối tác mở repo này lần đầu tiên.
-
-```markdown
-Tôi là thành viên mới vừa tiếp quản dự án này. Hãy đóng vai trò là Tech Lead và hướng dẫn tôi:
-
-1. Đọc các tài liệu `AI_CONTEXT.md`, `TASKS.md`, `LESSONS_LEARNED.md` và `AI_AGENT_BLUEPRINT.md`.
-2. Tóm tắt cho tôi:
-   - Dự án này giải quyết bài toán kinh doanh gì? Khách hàng mục tiêu là ai?
-   - Kiến trúc công nghệ gồm những gì (Backend Laravel, AI Driver, Database)?
-   - Cách chạy dự án trên máy local (Herd / PHP / SQLite).
-   - Những quy tắc cốt lõi (Rules) không được vi phạm khi viết code.
-   - Công việc ưu tiên cần làm ngay hiện tại là gì?
-```
-
----
-
-## 🧪 5. PROMPT KIỂM TRA CHẤT LƯỢNG CODE & TEST HỆ THỐNG
-
-> 📋 **Khi nào dùng:** Khi muốn kiểm tra toàn diện chất lượng source code xem có lỗi ẩn hay không.
+> 📋 **Khi nào dùng:** Khi muốn kiểm tra toàn diện chất lượng source code backend và kiến trúc.
 
 ```markdown
 Hãy chạy quy trình kiểm tra chất lượng toàn diện (Code Quality & Testing Check):
-1. Chạy linter format code chuẩn Laravel Pint.
-2. Chạy Static Analysis PHPStan Level 8 (đảm bảo không còn bất kỳ warning hay baseline nào).
-3. Chạy toàn bộ Pest Feature & Unit Tests.
+1. Chạy `dotnet test dotnet-backend-core-main/TourAgent.slnx` để kiểm tra toàn bộ 132 tests.
+2. Kiểm tra bộ 4 tests kiến trúc `NetArchTest.Rules` bảo vệ ranh giới 4 tầng Clean Architecture.
+3. Kiểm tra xem có vi phạm compiler warnings nào không (TreatWarningsAsErrors=true).
 4. Báo cáo chi tiết số lượng test pass/fail và xác nhận hệ thống có đạt chuẩn để push code lên Git hay không.
 ```
+
+---
+
+## 🛠️ 2. PROMPT THIẾT KẾ FEATURE MỚI THEO VERTICAL FEATURE SLICE
+
+> 📋 **Khi nào dùng:** Khi muốn bổ sung một Use Case mới theo chuẩn Clean Architecture của dự án.
+
+```markdown
+Tôi muốn thêm một Use Case mới cho dự án TourAgent: "[TÊN FEATURE, vd: CreateBookingOrder]".
+
+Yêu cầu thực hiện:
+1. Đọc kỹ `AGENTS.md` và `docs/PROGRESS.md`.
+2. Tuân thủ Feature Folder trong `TourAgent.Application/Features/[Area]/[UseCase]/`:
+   - Command/Query record
+   - Sealed Handler class kế thừa `ICommandHandler` hoặc `IQueryHandler`
+   - Validator kế thừa FluentValidation `AbstractValidator`
+   - Response DTO độc lập với static extension mapping (Nói KHÔNG với AutoMapper và MediatR)
+3. Đảm bảo mọi method async đều nhận `CancellationToken ct`.
+4. Viết Unit Tests kiểm thử kịch bản thành công và thất bại.
+5. Chạy `dotnet test` đảm bảo 100% tests xanh.
+```
+
+---
 
 ## 6. học interview
 

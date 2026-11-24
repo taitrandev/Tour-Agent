@@ -15,8 +15,7 @@ import { AdminOrdersPage } from './pages/AdminOrdersPage';
 import { AdminLlmSettingsPage } from './pages/AdminLlmSettingsPage';
 
 /**
- * Root Router của hệ thống phân tách độc lập các tuyến đường Landing Page và Admin Portal,
- * kế thừa và ánh xạ 1-1 theo chuẩn định tuyến của dự án PHP.
+ * Root Router của hệ thống phân tách độc lập các tuyến đường Landing Page và Admin Portal.
  */
 export const App: React.FC = () => {
   return (

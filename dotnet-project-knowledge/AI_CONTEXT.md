@@ -87,29 +87,21 @@ AI-Agent-Travel/
 │   ├── TECHNICAL_NOTES.md                    # Ghi chú kỹ thuật runtime & tokens
 │   └── PROMPTS.md                            # Bộ câu lệnh mẫu chuẩn (cho session mới)
 │
-├── dotnet-backend-core-main/                 # 🏗️ Backend Core C# / .NET 10
-│   ├── TourAgent.sln                         # Solution file
+├── dotnet-backend-core-main/                 # 🏗️ Backend Core C# / .NET 10 Clean Architecture
+│   ├── TourAgent.slnx                        # Solution file .NET 10
 │   ├── Directory.Build.props                 # Cấu hình TreatWarningsAsErrors, Nullable
-│   ├── docs/
-│   │   ├── PROGRESS.md                       # Tiến độ chi tiết các giai đoạn
-│   │   ├── ARCHITECTURE.md                   # Đặc tả Clean Architecture 4 Layers
-│   │   ├── API_ENDPOINTS.md                  # Danh mục & chi tiết các REST / SSE endpoints
-│   │   ├── UI_PLAN.md                        # Blueprint kế hoạch xây dựng Frontend
-│   │   └── journey/                          # Hồ sơ hành trình di trú kỹ thuật
-│   │       ├── README.md                     # Mục lục 8 chương
-│   │       ├── 01..07-*.md                   # Nhật ký chi tiết các giai đoạn 1 -> 5
-│   │       └── 08-phase-6-ui-planning.md     # Kế hoạch UI Frontend
 │   ├── src/
 │   │   ├── TourAgent.Domain/                 # Entities: Tour, TourDeparture, Conversation, Message, LlmCall
-│   │   ├── TourAgent.Application/            # Slices: Features/Tours/SearchTours, Agent Loop & Tools
-│   │   ├── TourAgent.Infrastructure/         # EF Core AppDbContext, DeepSeekLlmClient, TelegramAdapter
-│   │   └── TourAgent.Api/                    # Controllers: AgentController, ToursController, TelegramWebhookController
+│   │   ├── TourAgent.Application/            # Feature Slices, Agent Loop & Tools, Abstractions
+│   │   ├── TourAgent.Infrastructure/         # EF Core AppDbContext, DeepSeekLlmClient, Channels
+│   │   └── TourAgent.Api/                    # Controllers: AgentController, TravelsController, OffersController...
 │   └── tests/
-│       ├── TourAgent.Domain.UnitTests/       # 24 Unit tests cho Invariants & Business Logic
-│       ├── TourAgent.Application.UnitTests/  # 14 Unit tests cho Queries & Agent Loop
-│       └── TourAgent.ArchitectureTests/      # 3 Architecture tests (NetArchTest.Rules)
+│       ├── TourAgent.Domain.UnitTests/       # Unit tests cho Invariants & Business Logic
+│       ├── TourAgent.Application.UnitTests/  # Unit tests cho Queries & Agent Loop
+│       └── TourAgent.ArchitectureTests/      # Architecture tests (NetArchTest.Rules)
 │
-└── kp3-backend-core-main/                    # 🗄️ PHP Legacy (CHỈ dùng tham khảo UI Layout, không sửa)
+├── tour-agent-frontend/                      # 🎨 Single Page Application (Vite + React 19 + TypeScript)
+└── docs/                                     # 📖 Tài liệu dự án, API contracts & Architecture Decision Records (ADRs)
 ```
 
 ---

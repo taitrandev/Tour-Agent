@@ -62,7 +62,7 @@ Hãy tưởng tượng **AI Agent** giống như một **nhân viên tư vấn t
 | Khái niệm / Class / Cột | Vị trí / Kiểu dữ liệu | Ý nghĩa 1 câu đời thực |
 | :--- | :--- | :--- |
 | `conversations.agent_state` | Cột JSON trong DB | Ngăn tủ chứa toàn bộ sổ tay trạng thái của phiên chat này. |
-| `AgentStateDTO` | Class PHP (DTO) | Khuôn mẫu chuẩn hoá dữ liệu trạng thái khi code trong PHP. |
+| `AgentStateDTO` | Record / DTO C# | Khuôn mẫu chuẩn hoá dữ liệu trạng thái khi code trong .NET C#. |
 | `DatabaseAgentStateStore` | Service Class | Thủ thư chịu trách nhiệm đọc/ghi dữ liệu từ DB vào DTO và ngược lại. |
 | `version` (trong JSON) | Số nguyên (`1, 2, 3...`) | **Chốt khóa chống xung đột (OCC)**: Ngăn 2 tin nhắn đến cùng lúc ghi đè làm mất dữ liệu của nhau. |
 | `current_goal` | String (`consulting`, ...) | Mục tiêu AI đang làm, tránh bị khách kéo đi lạc đề. |

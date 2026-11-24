@@ -50,8 +50,8 @@ public sealed record CreateFaqRequest(
 public sealed record UpdateFaqVisibilityRequest(bool IsVisible);
 
 /// <summary>
-/// Controller quản lý danh mục Sản Phẩm Tour Du Lịch (Product Catalog &amp; CRUD)
-/// Tương thích 100% với đặc tả REST API và các màn hình quản trị của PHP core.
+/// Controller quản lý danh mục Sản Phẩm Tour Du Lịch (Product Catalog &amp; CRUD).
+/// Cung cấp đặc tả REST API cho các màn hình quản trị và tìm kiếm client.
 /// </summary>
 [ApiController]
 [Produces("application/json")]

@@ -77,7 +77,6 @@ interface ConversationDetailData {
 
 /**
  * Hàm phân tích định dạng Markdown đơn giản sang chuỗi HTML an toàn.
- * Tái hiện phương thức formatMarkdown() của file conversations.blade.php.
  * @param raw Chuỗi markdown gốc
  * @returns Chuỗi HTML đã format
  */
@@ -111,8 +110,7 @@ function renderMarkdown(raw?: string | null): string {
 }
 
 /**
- * Trang Giám Sát Hội Thoại & Nhật Ký LLM (AI Observability Live Inspector)
- * Tái hiện 100% giao diện và nghiệp vụ từ resources/views/admin/conversations.blade.php của PHP core.
+ * Trang Giám Sát Hội Thoại & Nhật Ký LLM (AI Observability Live Inspector).
  */
 export const AdminConversationsPage: React.FC = () => {
   const confirm = useConfirm();

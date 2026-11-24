@@ -21,9 +21,9 @@
 
 ---
 
-## 🖼️ 2. Khảo Sát & Kế Thừa Từ Giao Diện PHP Cũ
+## 🖼️ 2. Khảo Sát & Quy Hoạch Kiến Trúc Giao Diện
 
-Từ phân tích màn hình quản trị của phiên bản PHP cũ (`media_1790481938721.png`), hệ thống bao gồm 2 phân hệ người dùng chính:
+Từ phân tích yêu cầu trải nghiệm người dùng, hệ thống bao gồm 2 phân hệ người dùng chính:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐

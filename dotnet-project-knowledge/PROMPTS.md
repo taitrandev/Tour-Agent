@@ -92,14 +92,14 @@ Phiên làm việc này sắp kết thúc. Hãy giúp tôi tổng kết và đó
 
 ---
 
-## 🧑‍💻 4. PROMPT HỎI ĐÁP PHỎNG VẤN & GIẢI TRÌNH KIẾN TRÚC (.NET Migration Journey)
+## 🧑‍💻 4. PROMPT HỎI ĐÁP PHỎNG VẤN & GIẢI TRÌNH KIẾN TRÚC (.NET Clean Architecture Journey)
 
-> 📋 **Khi nào dùng:** Khi bạn muốn chuẩn bị trả lời các câu hỏi phỏng vấn hóc búa về dự án di trú từ PHP sang .NET 10.
+> 📋 **Khi nào dùng:** Khi bạn muốn chuẩn bị trả lời các câu hỏi phỏng vấn hóc búa về kiến trúc hệ thống .NET 10.
 
 ```markdown
-Hãy đóng vai trò là Senior .NET Solution Architect đóng vai người phỏng vấn tôi về dự án "AI Agent Travel":
-1. Dựa trên tài liệu `dotnet-backend-core-main/docs/journey/` (8 chapters), hãy chất vấn tôi về các trade-off kỹ thuật:
-   - Tại sao lại chọn .NET 10 thay vì tiếp tục với PHP 8.4 Laravel?
+Hãy đóng vai trò là Senior .NET Solution Architect đóng vai người phỏng vấn tôi về dự án "TourAgent":
+1. Dựa trên tài liệu `docs/journey/` và các ADR trong `docs/adr/`, hãy chất vấn tôi về các trade-off kỹ thuật:
+   - Tại sao lại chọn .NET 10 Clean Architecture và các quyết định kiến trúc cốt lõi?
    - Tại sao từ chối MediatR và AutoMapper dù cộng đồng .NET dùng rất phổ biến?
    - Làm thế nào kiểm soát Hallucination số liệu tour khi AI tự động tư vấn giá?
    - Cơ chế Zero-latency Ack qua System.Threading.Channels giải quyết bài toán gì của Telegram Webhook?

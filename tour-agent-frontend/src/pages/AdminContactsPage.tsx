@@ -48,7 +48,7 @@ interface ContactDetailData extends CrmContactItem {
 
 /**
  * Trang Quản Trị Khách Hàng Tập Trung (Core CRM Contacts 360°).
- * Tái hiện 100% UI Glassmorphism & Logic tương tác từ contacts.blade.php của PHP core.
+ * Giao diện Glassmorphism & Logic tương tác quản lý khách hàng.
  */
 export const AdminContactsPage: React.FC = () => {
   const confirm = useConfirm();

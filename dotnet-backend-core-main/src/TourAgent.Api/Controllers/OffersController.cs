@@ -12,7 +12,7 @@ namespace TourAgent.Api.Controllers;
 
 /// <summary>
 /// Controller quản lý các gói Grand Slam Offers và Bảng xếp chồng giá trị (Value Stack).
-/// Tương thích 100% với REST API và giao diện quản trị của PHP core.
+/// Cung cấp đầy đủ REST API cho giao diện quản trị và client portal.
 /// </summary>
 [ApiController]
 [Route("api/v1/offers")]

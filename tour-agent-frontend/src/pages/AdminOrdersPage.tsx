@@ -81,7 +81,7 @@ interface OrderMetrics {
 
 /**
  * Trang Quản Trị Đơn Tour & Tiến Trình Visa (Order & Visa Pipeline Desk).
- * Tái hiện 100% UI Dark Glassmorphism và đầy đủ logic từ orders.blade.php.
+ * Giao diện Dark Glassmorphism và đầy đủ logic quản lý đơn tour.
  */
 export const AdminOrdersPage: React.FC = () => {
   const confirm = useConfirm();

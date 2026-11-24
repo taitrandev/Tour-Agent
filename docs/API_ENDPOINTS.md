@@ -199,7 +199,7 @@ Dưới đây là danh sách các endpoints cần bổ sung trong slice tiếp t
 | Phân hệ | Phương thức | Endpoint dự kiến | Mục đích cho Frontend |
 | :--- | :---: | :--- | :--- |
 | **Tours Management** | `GET` | `/api/v1/tours/{id}` | Lấy chi tiết lịch trình ngày 1..N, danh sách đợt bay, chính sách tour |
-| | `POST` | `/api/v1/tours` | Nhập tour mới (Form Manual Entry thay thế modal PHP) |
+| | `POST` | `/api/v1/tours` | Nhập tour mới (Form Manual Entry nhập liệu trực tiếp) |
 | | `PUT` | `/api/v1/tours/{id}` | Sửa thông tin giá sàn, hành trình, đợt mở bán |
 | | `DELETE` | `/api/v1/tours/{id}` | Xóa hoặc chuyển trạng thái ẩn tour |
 | **Conversations Hub** | `GET` | `/api/v1/conversations` | Danh sách các phiên chat của khách (phân trang, lọc theo kênh web/telegram) |

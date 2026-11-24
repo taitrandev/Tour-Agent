@@ -125,7 +125,6 @@ const DEFAULT_REVIEWS = [
 
 /**
  * Trang Landing Page giới thiệu doanh nghiệp và các hành trình du lịch tinh hoa (Corporate Landing Page).
- * Tái hiện 100% giao diện landing.blade.php của dự án PHP.
  */
 export const LandingPage: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);

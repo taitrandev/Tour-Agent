@@ -17,7 +17,7 @@ public sealed record SaveLlmSettingsRequest(
 
 /// <summary>
 /// Controller quản lý cấu hình và kiểm tra kết nối cổng LLM (DeepSeek AI & Anthropic Claude Gateway).
-/// Tương thích 100% với giao thức và UI của module LlmSetting từ phiên bản PHP.
+/// Quản lý tham số và kiểm tra tương tác của module LlmSetting.
 /// </summary>
 [ApiController]
 [Route("api/v1/llm-setting")]

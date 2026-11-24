@@ -85,8 +85,7 @@ interface TravelOption {
 }
 
 /**
- * Trang Quản Trị Offers (Grand Slam & Value Stack)
- * Tái hiện 100% giao diện và nghiệp vụ từ welcome.blade.php của PHP core.
+ * Trang Quản Trị Offers (Grand Slam & Value Stack).
  */
 export const AdminOffersPage: React.FC = () => {
   const confirm = useConfirm();

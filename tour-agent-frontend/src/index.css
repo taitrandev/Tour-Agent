@@ -44,7 +44,7 @@
   }
 }
 
-/* Luxury Gold & Glass Utilities replicated 100% from PHP */
+/* Luxury Gold & Glass Utilities */
 .text-gold-gradient {
   background: linear-gradient(135deg, #fce09b 0%, #d4a853 50%, #b88628 100%);
   -webkit-background-clip: text;

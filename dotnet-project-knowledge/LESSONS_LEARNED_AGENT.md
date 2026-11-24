@@ -19,7 +19,7 @@ Bạn thấy ngạc nhiên vì bình thường chat với ChatGPT/DeepSeek trên
 Hệ thống hiện tại của bạn đã tự động kích hoạt **3 cơ chế phòng thủ** tự nhiên:
 
 1. **Rào chắn Persona & Giới hạn thẩm quyền (System Prompt Boundaries):**
-   Trong file [`TravelAgentPrompts.php`](file:///d:/Nghĩa/AI-Agent-Travel/kp3-backend-core-main/modules/AiAgent/Services/TravelAgentPrompts.php), ta đã định nghĩa rất đanh thép:
+   Trong file `TravelAgentPrompts.cs`, ta đã định nghĩa rất đanh thép:
    > *"Bạn là Chuyên viên Tư Vấn Du Lịch AI chuyên nghiệp... Nhiệm vụ của bạn là hỗ trợ tư vấn khách hàng 24/7 về tour, lịch trình, báo giá, chính sách... Mọi thông tin cung cấp PHẢI dựa trên kết quả trả về từ CÔNG CỤ (TOOLS)."*
    Khi gặp câu hỏi về code C#, DeepSeek so khớp với nhiệm vụ được giao và thấy hoàn toàn nằm ngoài thẩm quyền được phép trả lời.
 2. **Cơ chế Tool-Gating (Khoá bằng công cụ):**
@@ -50,7 +50,7 @@ flowchart TD
 | **Cấp 1 (Đang dùng)** | **Prompt Guardrails & Low Temp** | Quy định rõ trong System Prompt: *"Chỉ trả lời trong phạm vi du lịch, từ chối lịch sự mọi chủ đề khác"*. | Dễ làm nhất, nhưng người dùng cao tay có thể dùng kỹ thuật Jailbreak để vượt qua. |
 | **Cấp 2 (Đang dùng)** | **Tool-Gating** | Chỉ đưa vào những công cụ phục vụ kinh doanh du lịch. | Chặn được việc AI tự ý can thiệp hệ thống khác. |
 | **Cấp 3 (Nâng cao)** | **Intent Router / Guardrail Model** | Dùng 1 model siêu nhẹ hoặc thư viện như *NeMo Guardrails* / *Llama Guard* kiểm tra trước: *"Câu này có thuộc nghiệp vụ du lịch không?"*. Nếu không ➔ Trả lời mẫu từ chối ngay mà không gửi vào DeepSeek chính. | **Tiết kiệm 100% chi phí token** khi bị spam câu hỏi linh tinh. |
-| **Cấp 4 (Nâng cao)** | **Input Sanitization & Keyword Blocklist** | Chặn các từ khóa nhạy cảm, mã lệnh code (`<script>`, `SELECT *`, `exec()`) ngay tại Controller Laravel. | Chống tấn công injection. |
+| **Cấp 4 (Nâng cao)** | **Input Sanitization & Keyword Blocklist** | Chặn các từ khóa nhạy cảm, mã lệnh code (`<script>`, `SELECT *`, `exec()`) ngay tại Controller ASP.NET Core. | Chống tấn công injection. |
 
 ---
 
@@ -70,7 +70,7 @@ Có **3 giải pháp kiến trúc** để xử lý bài toán này:
 
 Đây là cách chuẩn nhất, rẻ nhất và phù hợp 100% với kiến trúc hiện tại của dự án.
 
-* Bảng [`conversations`](file:///d:/Nghĩa/AI-Agent-Travel/kp3-backend-core-main/modules/AiAgent/Models/Conversation.php) của chúng ta **đã có sẵn cột `metadata` (JSON)**.
+* Bảng `conversations` của chúng ta **đã có sẵn cột `metadata` (JSON)**.
 * **Cơ chế:** Khi khách hàng tiết lộ thông tin cá nhân hoặc nhu cầu cốt lõi, ta trích xuất và lưu vào `conversations.metadata`:
   ```json
   {
@@ -167,5 +167,4 @@ Có **3 giải pháp kiến trúc** để xử lý bài toán này:
       .TakeLast(12)
       .ToList();
   ```
-  *(Giải pháp này hoàn toàn đồng nhất với mã nguồn chuẩn của Laravel core: `whereIn('role', ['user', 'assistant'])`).*
 
