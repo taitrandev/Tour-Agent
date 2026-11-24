@@ -6,7 +6,7 @@
 ---
 
 ## 📌 Trạng Thái Hiện Tại
-- **Giai đoạn hiện tại**: **Hoàn thiện URL Slug sản phẩm Tour, Nút Xem Landing Page từ Admin & Loại bỏ toàn bộ mock data, ẩn section/menu rỗng trên `/tour/:slug`**.
+- **Giai đoạn hiện tại**: **Hoàn thiện Skill ADR Manager, chuẩn hóa kho quyết định kiến trúc `docs/adr/` (ADR-0001 đến 0008) theo nguyên bản Michael Nygard & cập nhật AGENTS.md**.
 - **Trạng thái Test**: **126/126 tests PASSED** (54 Domain Tests + 68 Application Tests + 4 Architecture Tests).
 - **Cơ sở dữ liệu**: Đã clone thành công database `tour_agent_db` trên PostgreSQL Docker (Port 5432) với đầy đủ 28 tables và dữ liệu tour thực tế.
 - **Bước tiếp theo**: Tiếp tục hoàn thiện các màn hình chuyên sâu và tính năng AI tư vấn đóng gói tour.
@@ -14,6 +14,7 @@
 ---
 
 ## 🎯 Quyết Định Đã Chốt (Architecture Decisions)
+- **Nguồn chân lý kiến trúc**: Toàn bộ quyết định kiến trúc được chuẩn hóa tại [`docs/adr/`](adr/README.md) gồm 8 ADRs đã chấp thuận.
 - **Framework**: .NET 10 (LTS/Current SDK: 10.0.401).
 - **Kiến trúc**: Clean Architecture 4 Layers (`Domain`, `Application`, `Infrastructure`, `Api`) + Feature Folders trong Application.
 - **Database**: PostgreSQL 16 (Docker: `tour_agent_db`) qua EF Core 10 (`Npgsql.EntityFrameworkCore.PostgreSQL`).
@@ -60,6 +61,18 @@
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
 - **2026-11-24**:
+  - **Tạo Skill `adr-manager` & Chuẩn Hóa Hệ Thống ADRs Dự Án (0001 - 0008)**:
+    - **Lý do & Bối cảnh**: Để ngăn ngừa các AI Agent tương lai tái diễn lỗi (dùng sai quy ước camelCase/snake_case, tự ý viết lại quan hệ DB, tạo controller thừa...), dự án cần một Nguồn Chân Lý Duy Nhất (Single Source of Truth) tuân thủ nguyên bản Michael Nygard (2011).
+    - **Thành quả**:
+      - Tạo mới skill `adr-manager` tại [.agents/skills/adr-manager/SKILL.md](.agents/skills/adr-manager/SKILL.md) với quy trình 2 bước nghiêm ngặt: (1) Đánh giá tiêu chí bất khả nghịch & hỏi xác nhận từ User; (2) Tạo file ADR chuẩn và cập nhật mục lục.
+      - Thiết lập kho lưu trữ trung tâm tại `docs/adr/` và tạo mục lục [docs/adr/README.md](adr/README.md).
+      - Di chuyển và đồng bộ 4 ADRs từ CI/CD (`0001` đến `0004`).
+      - Soạn thảo và ban hành 4 ADRs mới:
+        - [ADR-0005](adr/0005-strict-camelcase-api-contracts.md): Quy ước 100% camelCase cho API contracts & cấm tuyệt đối snake_case.
+        - [ADR-0006](adr/0006-hybrid-80-20-tour-offer-adaptive-ui.md): Mô hình Hybrid 80/20 Adaptive UI cho quan hệ Tour (1) — Offer (N).
+        - [ADR-0007](adr/0007-query-objects-and-unified-travels-api.md): Đóng gói query params vào Query Objects & hợp nhất API Tour vào TravelsController.
+        - [ADR-0008](adr/0008-separate-tour-page-zero-fouc.md): Tách route `/tour/:slug` độc lập, triệt tiêu FOUC bằng Shimmer skeleton và conditional rendering.
+      - Cập nhật quy tắc bắt buộc trong [AGENTS.md](file:///d:/github/Tour-Agent/AGENTS.md).
   - **Chuẩn Hóa [FromQuery] Sang Query Objects & Hợp Nhất ToursController Vào TravelsController**:
     - **Lý do**:
       - Loại bỏ code smell "Long Parameter List" trong các action GET ở tầng API, tuân thủ nguyên tắc CQRS và ASP.NET Core Model Binding.

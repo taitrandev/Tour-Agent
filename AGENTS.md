@@ -114,4 +114,4 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 3. Code theo từng bước nhỏ, có comment đầy đủ cho từng hàm.
 4. Trong `dotnet-backend-core-main/`, chạy `dotnet build` và `dotnet test`, đảm bảo 100% test pass
 5. Cập nhật `docs/PROGRESS.md` trước khi kết thúc session.
-6. Nếu có quyết định kiến trúc mới → đề xuất ADR trong docs/decisions/, không tự quyết.
+6. Nếu có quyết định kiến trúc mới → kích hoạt skill `adr-manager` để đánh giá và tạo ADR trong `docs/adr/`, không tự quyết.
