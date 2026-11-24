@@ -98,10 +98,15 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
    - **Tuyệt đối KHÔNG khai báo `record SomeRequest(...)` hay DTOs ở đầu/cuối file Controller** (vi phạm Single Responsibility Principle & File-per-Type).
    - Các API Request/Response DTOs thuộc tầng Api phải đặt tại thư mục `TourAgent.Api/Contracts/{Feature}/` (ví dụ: `TourAgent.Api/Contracts/Agent/ChatRequest.cs`).
 
-12. **Tập Trung Hóa API Routes Trên Frontend (Zero Hardcoded URLs)**:
+12. **Tập Trung Hóa API Routes Trên Frontend (Zero Hardcoded URLs)** — Xem [ADR-0010](docs/adr/0010-centralized-frontend-api-routes.md):
    - Mọi URL endpoint HTTP được gọi từ Frontend (`apiFetch`, `fetch`, SSE `EventSource`, v.v.) **BẮT BUỘC định nghĩa tập trung** trong `tour-agent-frontend/src/constants/apiRoutes.ts` thông qua hằng số `API_ROUTES`.
    - Với các route có dynamic parameter (như `id`, `slug`), bắt buộc định nghĩa hàm helper nhận tham số (ví dụ: `API_ROUTES.ADMIN.TRAVEL_BY_ID(id)`, `API_ROUTES.TRAVELS.BY_SLUG(slug)`).
    - **Tuyệt đối KHÔNG gõ chuỗi URL trực tiếp** như `'/api/v1/...'` rải rác trong React components, hooks, hay API services. Mọi endpoint mới phải được khai báo trong `API_ROUTES` trước khi gọi.
+
+13. **Cô Lập Thư Viện UI Thứ Ba Dễ Biến Động (Facade Pattern)** — Xem [ADR-0011](docs/adr/0011-facade-pattern-volatile-ui-libraries.md):
+   - Mọi thao tác hiển thị Toast/Alert trong ứng dụng **BẮT BUỘC** gọi thông qua module `notify` tại `src/lib/notify.tsx` (`notify.success`, `notify.error`, `notify.warning`, `notify.info`).
+   - Sử dụng kiểu dữ liệu riêng của dự án (`NotifyOptions`), tuyệt đối không để lộ hoặc tái sử dụng type của thư viện bên ngoài ra ngoài wrapper (ngăn chặn Leaky Abstraction).
+   - Tuyệt đối **KHÔNG import trực tiếp `'sonner'`** trong bất kỳ component, hook hay trang nào khác.
 
 ---
 
@@ -116,6 +121,11 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 3. **Observability**:
    - Mỗi lượt hội thoại phải lưu log: `conversationId`, `tokens_in`, `tokens_out`, `latency_ms`, danh sách tool đã gọi.
    - Dữ liệu cá nhân (SĐT, email) không ghi vào log dạng plain text
+4. **Phân Quyền Dual-Persona & Phòng Thủ 2 Lớp (Defense-in-Depth)** — Xem [ADR-0009](docs/adr/0009-dual-persona-agent-defense-in-depth.md):
+   - Tách biệt 100% System Prompt giữa `Customer Consultant` (khách hàng tư vấn tour) và `Admin Commander` (quản trị viên điều hành).
+   - Mọi Write Tool (như `update_travel_title`, `update_offer_price`) bắt buộc khai báo `IsAdminOnly => true`.
+   - Bảo vệ 2 lớp: Lớp 1 (Context Filter) giấu tool definition khỏi prompt khách hàng; Lớp 2 (Runtime Guard) kiểm tra quyền hạn trong `AgentLoop` chặn đứng thực thi nếu phát hiện vai trò khách hàng gọi Write Tools.
+   - Tách biệt endpoint API: `POST /api/v1/agent/chat` (Consultant) vs `POST /api/v1/agent/admin/chat` (Commander).
 
 ---
 
@@ -131,7 +141,9 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 - ❌ CẤM viết danh sách tham số rời rạc dài trong GET action controller hoặc tạo lại `ToursController.cs` ([ADR-0007](docs/adr/0007-query-objects-and-unified-travels-api.md)).
 - ❌ CẤM hardcode mock data giả lập trong frontend component gây chớp nháy FOUC ([ADR-0008](docs/adr/0008-separate-tour-page-zero-fouc.md)).
 - ❌ CẤM khai báo DTOs, Request/Response records, Enums chung file với Controller (vi phạm File-per-Type & Single Responsibility Principle). Mọi contract phải tách thành file riêng biệt tại `TourAgent.Api/Contracts/{Feature}/` hoặc Application Feature Folder.
-- ❌ CẤM hardcode chuỗi URL endpoint trực tiếp trong React components, hooks hoặc API services (ví dụ: `'/api/v1/...'`). Bắt buộc sử dụng hằng số tập trung `API_ROUTES` từ `tour-agent-frontend/src/constants/apiRoutes.ts`.
+- ❌ CẤM hardcode chuỗi URL endpoint trực tiếp trong React components, hooks hoặc API services (ví dụ: `'/api/v1/...'`). Bắt buộc sử dụng hằng số tập trung `API_ROUTES` từ `tour-agent-frontend/src/constants/apiRoutes.ts` ([ADR-0010](docs/adr/0010-centralized-frontend-api-routes.md)).
+- ❌ CẤM gộp chung System Prompt giữa khách hàng và admin; CẤM cấp quyền hoặc để lộ Write Tools cho khách hàng ([ADR-0009](docs/adr/0009-dual-persona-agent-defense-in-depth.md)).
+- ❌ CẤM import trực tiếp thư viện `'sonner'` rải rác trong các React components; bắt buộc dùng `notify` từ `@/lib/notify` ([ADR-0011](docs/adr/0011-facade-pattern-volatile-ui-libraries.md)).
 
 ---
 

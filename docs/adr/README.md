@@ -17,6 +17,9 @@
 | [**0006**](0006-hybrid-80-20-tour-offer-adaptive-ui.md) | **Hybrid 80/20 Adaptive UI for Tour (1) — Offer (N)** | `Domain`, `Application`, `Frontend` | Accepted | 2026-11-24 | Giữ DB 1-N nhưng tự động thích ứng UI: 1 offer hiển thị phẳng, ≥2 offer hiện pill tabs. |
 | [**0007**](0007-query-objects-and-unified-travels-api.md) | **Query Objects for [FromQuery] & Unified Travels API** | `TourAgent.Api`, `Controllers` | Accepted | 2026-11-24 | Đóng gói query params vào Query Objects; Xóa `ToursController`, gộp vào `TravelsController`. |
 | [**0008**](0008-separate-tour-page-zero-fouc.md) | **Dedicated Tour Page (/tour/:slug) with Zero-FOUC** | `Frontend`, `Routing`, `UX` | Accepted | 2026-11-24 | Tách route `/tour/:slug`, loại bỏ mock data, conditional render và Shimmer skeleton. |
+| [**0009**](0009-dual-persona-agent-defense-in-depth.md) | **Dual-Persona AI Agent & Defense-in-Depth Tool Authorization** | `Application`, `Agent`, `Api` | Accepted | 2026-11-24 | Tách System Prompt Consultant vs Commander; cờ `IsAdminOnly` và bảo vệ 2 lớp Prompt + Runtime Guard. |
+| [**0010**](0010-centralized-frontend-api-routes.md) | **Centralized Frontend API Routing Contract (Zero Hardcoded URLs)** | `Frontend`, `Constants`, `Routing` | Accepted | 2026-11-24 | Tập trung 100% API endpoints vào `API_ROUTES` theo Domain Namespace; Cấm tuyệt đối URL hardcoded. |
+| [**0011**](0011-facade-pattern-volatile-ui-libraries.md) | **Facade Pattern for Volatile Third-Party UI Libraries (`notify`)** | `Frontend`, `Lib`, `UI Isolation` | Accepted | 2026-11-24 | Bọc thư viện `sonner` qua Facade `notify.tsx` với project-owned types; Chống Leaky Abstraction. |
 
 ---
 

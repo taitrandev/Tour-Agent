@@ -14,7 +14,7 @@
 ---
 
 ## 🎯 Quyết Định Đã Chốt (Architecture Decisions)
-- **Nguồn chân lý kiến trúc**: Toàn bộ quyết định kiến trúc được chuẩn hóa tại [`docs/adr/`](adr/README.md) gồm 8 ADRs đã chấp thuận.
+- **Nguồn chân lý kiến trúc**: Toàn bộ quyết định kiến trúc được chuẩn hóa tại [`docs/adr/`](adr/README.md) gồm 11 ADRs đã chấp thuận (ADR-0001 đến ADR-0011).
 - **Framework**: .NET 10 (LTS/Current SDK: 10.0.401).
 - **Kiến trúc**: Clean Architecture 4 Layers (`Domain`, `Application`, `Infrastructure`, `Api`) + Feature Folders trong Application.
 - **Database**: PostgreSQL 16 (Docker: `tour_agent_db`) qua EF Core 10 (`Npgsql.EntityFrameworkCore.PostgreSQL`).
@@ -61,6 +61,12 @@
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
 - **2026-11-24**:
+  - **Ban Hành Bộ 3 Quyết Định Kiến Trúc Mới (ADR-0009, ADR-0010, ADR-0011)**:
+    - Kích hoạt skill `adr-manager` theo quy chuẩn Michael Nygard (2011), rà soát và chính thức ban hành 3 ADRs:
+      - [ADR-0009](adr/0009-dual-persona-agent-defense-in-depth.md): Kiến trúc Dual-Persona AI Agent và phòng thủ 2 lớp (Defense-in-Depth) chống Prompt Injection bảo vệ dữ liệu nghiệp vụ.
+      - [ADR-0010](adr/0010-centralized-frontend-api-routes.md): Chuẩn hóa tập trung hóa 100% URL API Routes trên Frontend (`API_ROUTES`), cấm hardcode magic strings.
+      - [ADR-0011](adr/0011-facade-pattern-volatile-ui-libraries.md): Áp dụng Facade Pattern bọc thư viện UI dễ thay đổi (`notify` over `sonner`), chống Leaky Abstraction.
+    - Cập nhật liên kết trực tiếp từ [AGENTS.md](../AGENTS.md) sang các ADRs và đồng bộ mục lục [docs/adr/README.md](adr/README.md).
   - **Tập Trung Hóa 100% Frontend API Routes & Cập Nhật Luật Bắt Buộc Vào AGENTS.md**:
     - **Lý do**: Khắc phục triệt để tình trạng hardcode magic string URL (`/api/v1/...`) rải rác trong các component và services trên Frontend, đồng thời ngăn chặn các AI Agent hoặc lập trình viên tái phạm trong tương lai.
     - **Thay đổi chi tiết**:
