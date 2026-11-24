@@ -61,6 +61,13 @@
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
 - **2026-11-24**:
+  - **Chuẩn Hóa Mô Hình Quản Trị Kiến Trúc 2 Tầng (Two-Tier Pointer Model) AGENTS.md & ADR**:
+    - **Vấn đề & Trăn trở của PO**: Có nguy cơ trùng lặp quy tắc hoặc phình to token nếu vừa ghi quy tắc vào `AGENTS.md` vừa tạo file ADR riêng cho các quy tắc viết code (như 0005 camelCase, 0007 Query Objects, 0008 Shimmer Zero-FOUC).
+    - **Giải pháp chuẩn hóa (Phương án A được phê duyệt)**:
+      - **Tầng 1 - `AGENTS.md` (Operational Memory)**: Giữ các quy tắc thép súc tích (1-2 câu) dạng checklist + link trỏ trực tiếp đến ADR (`docs/adr/000X-...`). AI Agent nạp quy tắc vào bộ nhớ làm việc ngay từ prompt đầu tiên mà không làm phình context window.
+      - **Tầng 2 - `docs/adr/` (Long-term Archive)**: Lưu trữ đầy đủ bối cảnh phát sinh vấn đề, các lựa chọn bị bác bỏ (rejected alternatives), phân tích đánh đổi (trade-offs) và mã nguồn mẫu chi tiết để tra cứu lý do ("The WHY").
+      - Cập nhật đồng bộ các quy tắc số 7, 8, 9, 10 và danh sách điều cấm trong `AGENTS.md` trỏ trực tiếp sang ADR-0005, 0006, 0007, 0008.
+    - **Kiểm thử**: **126/126 tests backend PASSED 100%**. Frontend build 100% không lỗi.
   - **Tạo Skill `adr-manager` & Chuẩn Hóa Hệ Thống ADRs Dự Án (0001 - 0008)**:
     - **Lý do & Bối cảnh**: Để ngăn ngừa các AI Agent tương lai tái diễn lỗi (dùng sai quy ước camelCase/snake_case, tự ý viết lại quan hệ DB, tạo controller thừa...), dự án cần một Nguồn Chân Lý Duy Nhất (Single Source of Truth) tuân thủ nguyên bản Michael Nygard (2011).
     - **Thành quả**:

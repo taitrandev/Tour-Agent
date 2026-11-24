@@ -47,6 +47,8 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
    - Không chứa business logic.
 5. **Kiểm tra tự động**:
    - Ranh giới các tầng được kiểm tra tự động bởi `tests/TourAgent.ArchitectureTests` sử dụng `NetArchTest.Rules`. Mọi vi phạm tầng sẽ khiến `dotnet test` báo lỗi ngay lập tức.
+6. **Kho Quyết Định Kiến Trúc (Architecture Decisions)**:
+   - Toàn bộ bối cảnh, phân tích đánh đổi và quyết định kiến trúc được lưu trữ tập trung tại [`docs/adr/`](docs/adr/README.md) (ADR-0001 đến 0008). Mọi quy tắc code bên dưới đều có ADR tương ứng để tra cứu lý do ("The WHY").
 
 ---
 
@@ -74,10 +76,22 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
    - Mọi phương thức async PHẢI nhận `CancellationToken ct`.
    - Bật `<Nullable>enable</Nullable>` và `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`.
 
-7. **JSON & API Naming Convention (Chuẩn camelCase 100%)**:
+7. **JSON & API Naming Convention (Chuẩn camelCase 100%)** — Xem [ADR-0005](docs/adr/0005-strict-camelcase-api-contracts.md):
    - Dự án kết hợp giữa **.NET 10** và **React (TypeScript)**: Mọi Request Payload và Response Data qua HTTP API **bắt buộc dùng `camelCase`**, **tuyệt đối KHÔNG dùng `snake_case`**.
    - **Backend (.NET)**: DTOs khai báo bằng C# record/class PascalCase thông thường (ví dụ: `ApiKey`, `BaseUrl`, `BotToken`). ASP.NET Core với `JsonNamingPolicy.CamelCase` sẽ tự động chuyển thành `apiKey`, `baseUrl`, `botToken`. **KHÔNG đặt `[JsonPropertyName("ten_snake_case")]`**.
    - **Frontend (React)**: Mọi interface, state và payload gửi đi (`apiFetch`) đều dùng `camelCase` thuần túy (`apiKey`, `baseUrl`, `botToken`, `isConfigured`).
+
+8. **Query Objects Cho Controller & Hợp Nhất TravelsController** — Xem [ADR-0007](docs/adr/0007-query-objects-and-unified-travels-api.md):
+   - Mọi action HTTP GET có nhiều hơn 1 tham số lọc/phân trang phải gom vào Query Object: `[FromQuery] TQuery query`.
+   - Toàn bộ API nghiệp vụ tour tập trung tại `TravelsController.cs` (endpoint tìm kiếm nâng cao: `GET /api/v1/travels/search`). Không tạo thêm `ToursController.cs`.
+
+9. **Mô Hình Tour (1) — Offer (N) & Adaptive UI** — Xem [ADR-0006](docs/adr/0006-hybrid-80-20-tour-offer-adaptive-ui.md):
+   - Database giữ quan hệ chuẩn 1-N (1 Tour có thể có nhiều Offer tiers).
+   - Frontend hiển thị thích ứng: Nếu tour chỉ có 1 offer thì hiển thị trực diện phẳng; nếu có từ 2 offer trở lên thì hiển thị thanh chuyển đổi Pill Tabs.
+
+10. **Tách Biệt Route Sản Phẩm & Zero-FOUC Shimmer UX** — Xem [ADR-0008](docs/adr/0008-separate-tour-page-zero-fouc.md):
+   - Trang chủ công ty (`/`) dùng riêng `LandingPage.tsx`; trang chi tiết sản phẩm (`/tour/:slug`) dùng riêng `TourProductPage.tsx`.
+   - Bắt buộc Shimmer Loading Skeleton khi fetch API. Cấm tuyệt đối khởi tạo mock data gây chớp nháy (FOUC). Section không có data thì ẩn hoàn toàn cùng mục menu tương ứng.
 
 ---
 
@@ -103,7 +117,9 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 - ❌ CẤM sửa hoặc xóa test để "cho qua" (fix code chứ không sửa test sai lệch).
 - ❌ CẤM tạo abstraction trừu tượng trước khi có nhu cầu sử dụng thực tế (YAGNI).
 - ❌ CẤM đoán API/package/version, hỏi lại thay vì đoán, nói rõ "tôi không chắc"
-- ❌ CẤM dùng `snake_case` cho API Request/Response payload, DTOs, hay frontend state (Dự án chuẩn hóa 100% camelCase giữa .NET và React)
+- ❌ CẤM dùng `snake_case` cho API Request/Response payload, DTOs, hay frontend state ([ADR-0005](docs/adr/0005-strict-camelcase-api-contracts.md)).
+- ❌ CẤM viết danh sách tham số rời rạc dài trong GET action controller hoặc tạo lại `ToursController.cs` ([ADR-0007](docs/adr/0007-query-objects-and-unified-travels-api.md)).
+- ❌ CẤM hardcode mock data giả lập trong frontend component gây chớp nháy FOUC ([ADR-0008](docs/adr/0008-separate-tour-page-zero-fouc.md)).
 
 ---
 
