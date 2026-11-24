@@ -31,13 +31,10 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
    - **Tuyệt đối KHÔNG phụ thuộc** vào `Infrastructure` hoặc `Api`.
    - Lệnh & Vị trí file
      - Backend nằm trong `dotnet-backend-core-main/`.
-     - **Lệnh kiểm tra toàn diện Backend duy nhất (1-Click Verification)**:
-       - Chạy từ thư mục gốc repository:
-         - Trên PowerShell: `pwsh scripts/test-backend.ps1` (hoặc `powershell -ExecutionPolicy Bypass -File scripts/test-backend.ps1`)
-         - Trên Git Bash / Linux: `./scripts/test-backend.sh` (hoặc `bash scripts/test-backend.sh`)
-         - Hoặc lệnh .NET trực tiếp: `dotnet test dotnet-backend-core-main/TourAgent.slnx`
-       - Lệnh này tự động: build 4 projects src (`Domain`, `Application`, `Infrastructure`, `Api`), tự kích hoạt sinh `docs/api/swagger.json` & `docs/api/api-index.txt`, và chạy toàn bộ 132 tests của 3 test projects.
-       - Khi đang đứng trong thư mục `dotnet-backend-core-main/`: chạy `dotnet test TourAgent.slnx`.
+     - **Lệnh kiểm tra toàn diện Backend duy nhất (1-Command Verification)**:
+       - Chạy từ thư mục gốc repository: `dotnet test dotnet-backend-core-main/TourAgent.slnx`
+       - Khi đang đứng trong thư mục `dotnet-backend-core-main/`: `dotnet test TourAgent.slnx`
+       - *Lưu ý*: Lệnh này chuẩn cross-platform (hoạt động giống hệt nhau trên mọi terminal: Git Bash, PowerShell, Linux, macOS, GitHub Actions CI), tự động build toàn bộ 4 projects src (`Domain`, `Application`, `Infrastructure`, `Api`), tự kích hoạt sinh `docs/api/swagger.json` & `docs/api/api-index.txt`, và chạy trọn vẹn 132 tests của 3 test projects chỉ trong ~3.5s - 6s. Không cần tạo thêm bất kỳ script wrapper nào.
      - Schema DB: `dotnet-backend-core-main/db/supabase_migration.sql` (nguồn duy nhất).
      - `docs/api/`: tự sinh khi build Debug. KHÔNG sửa tay.
    - Tra cứu API
@@ -158,7 +155,7 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 - ❌ CẤM hardcode chuỗi URL endpoint trực tiếp trong React components, hooks hoặc API services (ví dụ: `'/api/v1/...'`). Bắt buộc sử dụng hằng số tập trung `API_ROUTES` từ `tour-agent-frontend/src/constants/apiRoutes.ts` ([ADR-0010](docs/adr/0010-centralized-frontend-api-routes.md)).
 - ❌ CẤM gộp chung System Prompt giữa khách hàng và admin; CẤM cấp quyền hoặc để lộ Write Tools cho khách hàng ([ADR-0009](docs/adr/0009-dual-persona-agent-defense-in-depth.md)).
 - ❌ CẤM import trực tiếp thư viện `'sonner'` rải rác trong các React components; bắt buộc dùng `notify` từ `@/lib/notify` ([ADR-0011](docs/adr/0011-facade-pattern-volatile-ui-libraries.md)).
-- ❌ CẤM chạy build hoặc unit test lẻ tẻ từng dự án qua nhiều turn (gây lãng phí token context và dễ sót kiểm thử). Bắt buộc dùng 1 lệnh tập trung: `pwsh scripts/test-backend.ps1` (PowerShell), `./scripts/test-backend.sh` (Git Bash), hoặc `dotnet test dotnet-backend-core-main/TourAgent.slnx`.
+- ❌ CẤM chạy build hoặc unit test lẻ tẻ từng dự án qua nhiều turn (gây lãng phí token context và dễ sót kiểm thử). Bắt buộc dùng 1 lệnh duy nhất: `dotnet test dotnet-backend-core-main/TourAgent.slnx` (hoặc `dotnet test TourAgent.slnx` khi đứng trong thư mục backend).
 
 ---
 
@@ -167,6 +164,6 @@ Hướng phụ thuộc **chỉ đi vào trong**: `Api` ➔ `Infrastructure` ➔ 
 1. Đọc `AGENTS.md` và `docs/PROGRESS.md`.
 2. Nêu rõ kế hoạch: các file sẽ tạo/sửa + lý do.
 3. Code theo từng bước nhỏ, có comment đầy đủ cho từng hàm.
-4. Chạy kiểm tra toàn diện Backend bằng 1 lệnh duy nhất: `pwsh scripts/test-backend.ps1` (hoặc `./scripts/test-backend.sh` / `dotnet test dotnet-backend-core-main/TourAgent.slnx`), đảm bảo 100% test pass.
+4. Chạy kiểm tra toàn diện Backend bằng 1 lệnh duy nhất: `dotnet test dotnet-backend-core-main/TourAgent.slnx` (hoặc `dotnet test TourAgent.slnx`), đảm bảo 100% test pass.
 5. Cập nhật `docs/PROGRESS.md` trước khi kết thúc session.
 6. Nếu có quyết định kiến trúc mới → kích hoạt skill `adr-manager` để đánh giá và tạo ADR trong `docs/adr/`, không tự quyết.
