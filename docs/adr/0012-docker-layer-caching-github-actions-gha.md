@@ -38,8 +38,8 @@ Dự án TourAgent sử dụng GitHub Actions với runner tiêu chuẩn (`runs-
    - Nhánh `main` vừa đọc vừa ghi cache (`cache-to: mode=max`) tạo thành baseline cache chuẩn mực của dự án.
    - Các nhánh Pull Request tự động kế thừa cache của nhánh `main` (`cache-from`), giúp quá trình kiểm thử PR diễn ra tức thì, chỉ build lại các layer có mã nguồn thực sự thay đổi trong PR.
 4. **Tích hợp BuildKit Cache Mounts trong Dockerfiles**:
-   - **Backend**: `RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages dotnet restore ...`
-   - **Frontend**: `RUN --mount=type=cache,id=npm,target=/root/.npm npm ci`
+   - **Backend**: Mount cache `id=nuget` trên cả 2 bước `dotnet restore` VÀ `dotnet publish` (`RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages`). Đảm bảo `dotnet publish --no-restore` đọc được đầy đủ assemblies từ cache mà không bị lỗi thiếu package `NETSDK1064`.
+   - **Frontend**: `RUN --mount=type=cache,id=npm,target=/root/.npm npm ci`.
    - Đảm bảo ngay cả khi có thêm thư viện mới (layer cache bị invalidate), package manager vẫn giữ được thư mục cache và chỉ tải các thư viện mới bổ sung.
 5. **Kích hoạt Cache cho CI Test Step**:
    - Tích hợp `cache: true` trong `actions/setup-dotnet@v4` cho job `build-and-test` của Backend.

@@ -27,7 +27,8 @@ WORKDIR "/app/src/TourAgent.Api"
 # -------------------------------------------------------------
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "/app/src/TourAgent.Api/TourAgent.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --no-restore
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    dotnet publish "/app/src/TourAgent.Api/TourAgent.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --no-restore
 
 # -------------------------------------------------------------
 # Stage 3: Final Image (Chỉ chứa binary đã publish và runtime tối giản)
