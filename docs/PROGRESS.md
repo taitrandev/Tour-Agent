@@ -6,7 +6,7 @@
 ---
 
 ## 📌 Trạng Thái Hiện Tại
-- **Giai đoạn hiện tại**: **Hoàn thiện File-per-Type cho `IAgentLoop.cs` và chuẩn hóa 100% `API_ROUTES` tập trung cho toàn bộ các trang và API client trên Frontend**.
+- **Giai đoạn hiện tại**: **Tối ưu hóa Docker Layer Caching trên GitHub Actions CI/CD cho Backend & Frontend (BuildKit `type=gha,mode=max` + Dual-Scope + Cache Mounts) & Ban hành ADR-0012**.
 - **Trạng thái Test**: **132/132 tests PASSED** (54 Domain Tests + 74 Application Tests + 4 Architecture Tests).
 - **Cơ sở dữ liệu**: Đã clone thành công database `tour_agent_db` trên PostgreSQL Docker (Port 5432) với đầy đủ 28 tables và dữ liệu tour thực tế.
 - **Bước tiếp theo**: Tiếp tục hoàn thiện các màn hình chuyên sâu và tính năng AI tư vấn đóng gói tour.
@@ -14,7 +14,7 @@
 ---
 
 ## 🎯 Quyết Định Đã Chốt (Architecture Decisions)
-- **Nguồn chân lý kiến trúc**: Toàn bộ quyết định kiến trúc được chuẩn hóa tại [`docs/adr/`](adr/README.md) gồm 11 ADRs đã chấp thuận (ADR-0001 đến ADR-0011).
+- **Nguồn chân lý kiến trúc**: Toàn bộ quyết định kiến trúc được chuẩn hóa tại [`docs/adr/`](adr/README.md) gồm 12 ADRs đã chấp thuận (ADR-0001 đến ADR-0012).
 - **Framework**: .NET 10 (LTS/Current SDK: 10.0.401).
 - **Kiến trúc**: Clean Architecture 4 Layers (`Domain`, `Application`, `Infrastructure`, `Api`) + Feature Folders trong Application.
 - **Database**: PostgreSQL 16 (Docker: `tour_agent_db`) qua EF Core 10 (`Npgsql.EntityFrameworkCore.PostgreSQL`).
@@ -55,11 +55,21 @@
 | **7.2** | Phase 0 Step 2: Cấu hình CORS động (`CORS_ALLOWED_ORIGINS`) & Telegram WebhookUrl | ✅ DONE | Hỗ trợ Cloud Deploy |
 | **7.3** | Phase 0 Step 3: Tích hợp ASP.NET Core Health Checks (`/health`) cho DB & DeepSeek AI | ✅ DONE | Endpoint `/health` kiểm tra song song DB và DeepSeek API |
 | **7.4** | Phase 0 Step 4: Dockerfile Multi-stage .NET 10 & .dockerignore | ✅ DONE | Image size chỉ 102MB, non-root user, layer cache tối ưu |
-| **7.5** | CI/CD Pipeline GitHub Actions deploy Azure App Service | ⏳ PENDING | GitHub Actions workflow |
+| **7.5** | CI/CD Pipeline GitHub Actions deploy Azure App Service / Container Apps & Docker Layer Caching (`type=gha`) | ✅ DONE | BuildKit GHA Cache + Dual-Scope ADR-0012 |
 
 ---
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
+- **2026-11-25**:
+  - **Tối Ưu Hóa Toàn Diện Docker Layer Cache Trên GitHub Actions (BuildKit `type=gha` & Dual-Scope) & Ban Hành ADR-0012**:
+    - **Lý do**: Trên runner ngắn hạn (`ubuntu-latest`) của GitHub Actions, mỗi lần chạy workflow máy ảo bị tạo mới và hủy sau khi xong, làm mất toàn bộ Docker layer cache cục bộ. Backend phải kéo lại SDK .NET và chạy lại `dotnet restore` từ `nuget.org`, Frontend phải tải lại hàng trăm MB qua `npm ci` từ `registry.npmjs.org` dù dependencies không hề thay đổi.
+    - **Giải pháp chuẩn mực (80/20)**:
+      - Sử dụng **GitHub Actions Cache Backend (`type=gha`)** với `mode=max` trong `docker/build-push-action@v6` để lưu toàn bộ các build stages trung gian vào kho lưu trữ cache miễn phí 10GB của GitHub.
+      - **Phân tách Dual-Scope Cache**: Backend dùng `scope=backend`, Frontend dùng `scope=frontend` để loại trừ triệt để tình trạng ghi đè cache lẫn nhau trong cùng repo (chống Cache Thrashing).
+      - **BuildKit Cache Mounts trong Dockerfiles**: Bổ sung `--mount=type=cache,id=nuget,target=/root/.nuget/packages` cho `dotnet restore` và `--mount=type=cache,id=npm,target=/root/.npm` cho `npm ci`.
+      - **Tăng tốc CI Test Step**: Bật `cache: true` và `cache-dependency-path: '**/TourAgent.slnx'` trong `actions/setup-dotnet@v4`.
+      - Ban hành [ADR-0012](adr/0012-docker-layer-caching-github-actions-gha.md) và cập nhật mục lục [docs/adr/README.md](adr/README.md).
+    - **Kiểm thử**: **132/132 tests backend PASSED 100%**. Frontend `npm run build` thành công xuất sắc.
 - **2026-11-24**:
   - **Tối Giản Hóa DX & Tiết Kiệm Token (YAGNI & Zero Boilerplate): Chuẩn Hóa 1 Lệnh Thuần .NET CLI**:
     - **Lý do**: Trước đây, mỗi lần kiểm tra sau khi code xong, AI Agent thường tốn nhiều turn và hàng chục ngàn tokens ngữ cảnh để lần lượt chạy `dotnet build` và `dotnet test` rời rạc cho từng dự án, dễ xảy ra nhầm lẫn working directory và rủi ro bỏ sót kiểm thử kiến trúc (`ArchitectureTests`).

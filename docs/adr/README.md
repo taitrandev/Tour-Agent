@@ -20,6 +20,7 @@
 | [**0009**](0009-dual-persona-agent-defense-in-depth.md) | **Dual-Persona AI Agent & Defense-in-Depth Tool Authorization** | `Application`, `Agent`, `Api` | Accepted | 2026-11-24 | Tách System Prompt Consultant vs Commander; cờ `IsAdminOnly` và bảo vệ 2 lớp Prompt + Runtime Guard. |
 | [**0010**](0010-centralized-frontend-api-routes.md) | **Centralized Frontend API Routing Contract (Zero Hardcoded URLs)** | `Frontend`, `Constants`, `Routing` | Accepted | 2026-11-24 | Tập trung 100% API endpoints vào `API_ROUTES` theo Domain Namespace; Cấm tuyệt đối URL hardcoded. |
 | [**0011**](0011-facade-pattern-volatile-ui-libraries.md) | **Facade Pattern for Volatile Third-Party UI Libraries (`notify`)** | `Frontend`, `Lib`, `UI Isolation` | Accepted | 2026-11-24 | Bọc thư viện `sonner` qua Facade `notify.tsx` với project-owned types; Chống Leaky Abstraction. |
+| [**0012**](0012-docker-layer-caching-github-actions-gha.md) | **Docker Layer Caching via BuildKit GHA Backend & Dual-Scope** | `CI/CD`, `GitHub Actions`, `Docker` | Accepted | 2026-11-25 | Tối ưu Docker layer cache bằng BuildKit `type=gha,mode=max` phân tách Dual-Scope (`backend`/`frontend`). |
 
 ---
 

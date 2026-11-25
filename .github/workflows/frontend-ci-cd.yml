@@ -67,6 +67,8 @@ jobs:
           build-args: |
             VITE_API_BASE_URL=https://touragent-api.gentlecliff-410d3b6b.southeastasia.azurecontainerapps.io/api/v1
           tags: touragent-frontend:test
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
 
       # Nếu là Push nhánh main: Đăng nhập Azure OIDC và Push Image lên ACR
       - name: Azure Login via OIDC
@@ -92,6 +94,8 @@ jobs:
             VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL || 'https://touragent-api.gentlecliff-410d3b6b.southeastasia.azurecontainerapps.io/api/v1' }}
           tags: |
             ${{ vars.ACR_NAME }}.azurecr.io/touragent-frontend:${{ github.sha }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
 
   deploy:
     name: Deploy to Azure Container Apps

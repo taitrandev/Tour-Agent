@@ -12,8 +12,9 @@ COPY ["src/TourAgent.Application/TourAgent.Application.csproj", "/app/src/TourAg
 COPY ["src/TourAgent.Infrastructure/TourAgent.Infrastructure.csproj", "/app/src/TourAgent.Infrastructure/"]
 COPY ["src/TourAgent.Api/TourAgent.Api.csproj", "/app/src/TourAgent.Api/"]
 
-# Restore dependencies (Layer này được Docker cache lại, không phải tải lại mỗi khi sửa code .cs)
-RUN dotnet restore "/app/src/TourAgent.Api/TourAgent.Api.csproj"
+# Restore dependencies (Layer này được Docker cache lại, kết hợp BuildKit cache mount để tái sử dụng nuget packages)
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    dotnet restore "/app/src/TourAgent.Api/TourAgent.Api.csproj"
 
 # Copy toàn bộ mã nguồn src/
 COPY src/ /app/src/
