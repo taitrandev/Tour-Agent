@@ -11,8 +11,7 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Copy package dependency manifests first for Docker layer caching
 COPY package*.json ./
-RUN --mount=type=cache,id=npm,target=/root/.npm \
-    npm ci
+RUN npm ci
 
 # Copy full frontend source code
 COPY . .

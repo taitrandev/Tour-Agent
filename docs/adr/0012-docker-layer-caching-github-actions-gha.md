@@ -24,7 +24,7 @@ Dự án TourAgent sử dụng GitHub Actions với runner tiêu chuẩn (`runs-
 
 ## 2. Quyết Định Kiến Trúc (Decision)
 
-Áp dụng giải pháp **Docker Buildx GitHub Actions Cache Backend (`type=gha`)** kết hợp **BuildKit Cache Mounts** và **phân tách Dual-Scope Cache**:
+Áp dụng giải pháp **Docker Buildx GitHub Actions Cache Backend (`type=gha`)** với **phân tách Dual-Scope Cache** và **loại bỏ BuildKit Cache Mounts khỏi Dockerfile (Tối giản YAGNI)**:
 
 1. **Sử dụng GitHub Actions Cache Backend (`type=gha`)**:
    - Sử dụng cơ chế remote caching native của BuildKit (`docker/build-push-action@v6`).
@@ -37,10 +37,9 @@ Dự án TourAgent sử dụng GitHub Actions với runner tiêu chuẩn (`runs-
 3. **Chiến lược Cache giữa `main` và Pull Request**:
    - Nhánh `main` vừa đọc vừa ghi cache (`cache-to: mode=max`) tạo thành baseline cache chuẩn mực của dự án.
    - Các nhánh Pull Request tự động kế thừa cache của nhánh `main` (`cache-from`), giúp quá trình kiểm thử PR diễn ra tức thì, chỉ build lại các layer có mã nguồn thực sự thay đổi trong PR.
-4. **Tích hợp BuildKit Cache Mounts trong Dockerfiles**:
-   - **Backend**: Mount cache `id=nuget` trên cả 2 bước `dotnet restore` VÀ `dotnet publish` (`RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages`). Đảm bảo `dotnet publish --no-restore` đọc được đầy đủ assemblies từ cache mà không bị lỗi thiếu package `NETSDK1064`.
-   - **Frontend**: `RUN --mount=type=cache,id=npm,target=/root/.npm npm ci`.
-   - Đảm bảo ngay cả khi có thêm thư viện mới (layer cache bị invalidate), package manager vẫn giữ được thư mục cache và chỉ tải các thư viện mới bổ sung.
+4. **Loại bỏ Cache Mounts khỏi Dockerfile (Đơn giản hóa & YAGNI)**:
+   - Không sử dụng `--mount=type=cache` trong Dockerfiles của Backend và Frontend.
+   - Lý do: Cache mounts làm phức tạp cú pháp Dockerfile, dễ gây lỗi dependency resolution (`NETSDK1064`) khi cấu hình thiếu ở các stage kế tiếp. Việc kết hợp Docker Layer Cache chuẩn mực (`COPY *.csproj` + `RUN dotnet restore`) với `type=gha,mode=max` đã đủ giải quyết 80/20 nhu cầu cache dependencies mà giữ cho Dockerfile đơn giản, dễ đọc và tương thích 100% với mọi môi trường build (Docker Desktop, Podman, CI).
 5. **Kích hoạt Cache cho CI Test Step**:
    - Tích hợp `cache: true` trong `actions/setup-dotnet@v4` cho job `build-and-test` của Backend.
 
@@ -63,7 +62,7 @@ Dự án TourAgent sử dụng GitHub Actions với runner tiêu chuẩn (`runs-
 
 1. **BẮT BUỘC chỉ định `scope` khi dùng `type=gha`**: Khi khai báo `docker/build-push-action`, tuyệt đối không dùng `type=gha` trần trụi. Luôn khai báo tường minh `scope=backend` cho Backend và `scope=frontend` cho Frontend.
 2. **LUÔN dùng `mode=max` cho `cache-to`**: Nếu thiếu `mode=max`, Buildx chỉ lưu stage runtime cuối cùng và bỏ qua stage build/restore, làm mất đi giá trị của layer caching.
-3. **BẢO LƯU BuildKit Cache Mounts trong Dockerfile**: Không xóa các khai báo `--mount=type=cache` trong `dotnet restore` và `npm ci`.
+3. **GIỮ DOCKERFILE ĐƠN GIẢN CHUẨN MỰC**: Không lạm dụng `--mount=type=cache` trong Dockerfile; dựa vào layer caching tự nhiên và GHA cache backend để tối ưu DX, tính portable và khả năng bảo trì.
 
 ---
 

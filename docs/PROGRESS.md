@@ -60,6 +60,14 @@
 ---
 
 ## 📝 Nhật Ký Hoạt Động (Work Log)
+- **2026-11-26**:
+  - **Tối Giản Hóa Dockerfiles (YAGNI): Loại Bỏ Cache Mounts, Giữ Chuẩn GHA Remote Layer Cache**:
+    - **Lý do**: Cache mounts (`--mount=type=cache`) trong Dockerfile làm cú pháp trở nên phức tạp, khó đọc, dễ gây lỗi dependency resolution (`NETSDK1064`) ở các stage biên dịch nếu thiếu đồng bộ. Trong khi đó, việc kết hợp Docker Layer Cache tự nhiên (`COPY manifests` + `RUN restore`) cùng BuildKit GitHub Actions Cache (`type=gha,mode=max`) với Dual-Scope đã giải quyết trọn vẹn 80/20 bài toán tốc độ CI mà không cần bất kỳ cú pháp tùy biến nào trong Dockerfile.
+    - **Thay đổi chi tiết**:
+      - Gỡ bỏ hoàn toàn `--mount=type=cache` khỏi cả 2 Dockerfile: [dotnet-backend-core-main/Dockerfile](file:///d:/github/Tour-Agent/dotnet-backend-core-main/Dockerfile) và [tour-agent-frontend/Dockerfile](file:///d:/github/Tour-Agent/tour-agent-frontend/Dockerfile).
+      - Dockerfiles trở về dạng chuẩn mực, thuần túy, tương thích hoàn toàn trên mọi môi trường build (Docker Desktop, Podman, GitHub Actions).
+      - Đồng bộ tài liệu và Golden Rules trong [ADR-0012](adr/0012-docker-layer-caching-github-actions-gha.md).
+    - **Kiểm thử**: **132/132 tests backend PASSED 100%**.
 - **2026-11-25**:
   - **Tối Ưu Hóa Toàn Diện Docker Layer Cache Trên GitHub Actions (BuildKit `type=gha` & Dual-Scope) & Ban Hành ADR-0012**:
     - **Lý do**: Trên runner ngắn hạn (`ubuntu-latest`) của GitHub Actions, mỗi lần chạy workflow máy ảo bị tạo mới và hủy sau khi xong, làm mất toàn bộ Docker layer cache cục bộ. Backend phải kéo lại SDK .NET và chạy lại `dotnet restore` từ `nuget.org`, Frontend phải tải lại hàng trăm MB qua `npm ci` từ `registry.npmjs.org` dù dependencies không hề thay đổi.
