@@ -16,6 +16,13 @@ permissions:
   id-token: write  # Bắt buộc để xin JWT từ GitHub OIDC provider
   contents: read   # Đọc source code
 
+# Chống chạy song song: các lần chạy cùng ref sẽ xếp hàng theo thứ tự
+# - PR: hủy run cũ khi có commit mới (tiết kiệm tài nguyên)
+# - Push main: KHÔNG hủy run đang chạy (tránh bỏ dở giữa lúc deploy), run mới chờ run cũ xong
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
